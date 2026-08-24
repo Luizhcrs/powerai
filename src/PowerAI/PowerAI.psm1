@@ -1,4 +1,4 @@
-# PowerAI.psm1 - Silent, Read-Safe & Intelligent Native Windows Harness
+# PowerAI.psm1 - Agent-Safe, Silent & Intelligent Native Windows Harness
 
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 [Console]::InputEncoding  = [System.Text.Encoding]::UTF8
@@ -454,7 +454,7 @@ Responda OBRIGATORIAMENTE em JSON puro:
     }
 }
 
-# --- PROMPT ERROR HOOK INTERCEPTOR ---
+# --- PROMPT ERROR HOOK INTERCEPTOR (AGENT & CI/CD SAFE) ---
 $global:PowerAI_LastHandledErrorId = $null
 $global:PowerAI_LastHandledExitCodeId = $null
 
@@ -464,6 +464,23 @@ function Register-PowerAIErrorHandler {
     }
 
     function global:prompt {
+        # SAFETY CHECK: If running in non-interactive CI/CD or Agent automation, skip prompt interception
+        $isAgentOrNonInteractive = [System.Console]::IsInputRedirected -or `
+                                  ($env:CI -eq "true") -or `
+                                  ($env:AGENT_MODE -eq "true") -or `
+                                  ($env:CONTINUOUS_INTEGRATION -eq "true") -or `
+                                  ($env:TERM -eq "dumb") -or `
+                                  ($env:GEMINI_CLI -eq "true") -or `
+                                  ($env:ANTIGRAVITY_CLI -eq "true")
+
+        if ($isAgentOrNonInteractive) {
+            if ($global:PowerAI_OriginalPrompt) {
+                return (Invoke-Command -ScriptBlock ([ScriptBlock]::Create($global:PowerAI_OriginalPrompt)))
+            } else {
+                return "PS $($executionContext.SessionState.Path.CurrentLocation)$('>' * ($nestedPromptLevel + 1)) "
+            }
+        }
+
         $cfg = Get-AIPowerShellConfig
 
         # 1. PowerShell Pipeline Errors
