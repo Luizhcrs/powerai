@@ -454,7 +454,7 @@ Responda OBRIGATORIAMENTE em JSON puro:
     }
 }
 
-# --- PROMPT ERROR HOOK INTERCEPTOR (AGENT & CI/CD SAFE) ---
+# --- PROMPT ERROR HOOK INTERCEPTOR ---
 $global:PowerAI_LastHandledErrorId = $null
 $global:PowerAI_LastHandledExitCodeId = $null
 
@@ -464,16 +464,8 @@ function Register-PowerAIErrorHandler {
     }
 
     function global:prompt {
-        # SAFETY CHECK: If running in non-interactive CI/CD or Agent automation, skip prompt interception
-        $isAgentOrNonInteractive = [System.Console]::IsInputRedirected -or `
-                                  ($env:CI -eq "true") -or `
-                                  ($env:AGENT_MODE -eq "true") -or `
-                                  ($env:CONTINUOUS_INTEGRATION -eq "true") -or `
-                                  ($env:TERM -eq "dumb") -or `
-                                  ($env:GEMINI_CLI -eq "true") -or `
-                                  ($env:ANTIGRAVITY_CLI -eq "true")
-
-        if ($isAgentOrNonInteractive) {
+        # Check non-interactive only if input is redirected
+        if ([System.Console]::IsInputRedirected) {
             if ($global:PowerAI_OriginalPrompt) {
                 return (Invoke-Command -ScriptBlock ([ScriptBlock]::Create($global:PowerAI_OriginalPrompt)))
             } else {
