@@ -97,13 +97,19 @@ function Get-HarnessEnvironmentContext {
     param([string]$Cwd)
 
     $userHome = $env:USERPROFILE
+    $appData = $env:APPDATA
+    $localAppData = $env:LOCALAPPDATA
     $docsPath = [System.IO.Path]::Combine($userHome, "Documents")
     $deskPath = [System.IO.Path]::Combine($userHome, "Desktop")
     $downPath = [System.IO.Path]::Combine($userHome, "Downloads")
+    $windPath = $env:WINDIR
 
     $ctx = @{
         Cwd = $Cwd
         UserHome = $userHome
+        AppData = $appData
+        LocalAppData = $localAppData
+        WindowsDir = $windPath
         Documents = $docsPath
         Desktop = $deskPath
         Downloads = $downPath
@@ -134,12 +140,14 @@ function Get-HarnessEnvironmentContext {
     $sessionHistory = Get-PowerAISessionSummary
 
     $summary = @"
-=== CONTEXTO DO SISTEMA E AMBIENTE ===
+=== CONTEXTO DO SISTEMA E AMBIENTE (POWERSHELL) ===
 - Diretorio Atual (CWD): $($ctx.Cwd)
 - Pasta do Usuario ($env:USERNAME): $($ctx.UserHome)
+- Pasta Windows (C:\Windows): $($ctx.WindowsDir)
+- Pasta AppData: $($ctx.AppData)
+- Pasta LocalAppData: $($ctx.LocalAppData)
 - Pasta Documentos: $($ctx.Documents)
 - Pasta Desktop/Area de Trabalho: $($ctx.Desktop)
-- Pasta Downloads: $($ctx.Downloads)
 - Pastas no Diretorio Atual: $([string]::Join(", ", $ctx.Directories))
 - Arquivos no Diretorio Atual: $([string]::Join(", ", $ctx.Files))
 
@@ -336,19 +344,20 @@ function ai {
     $harnessCtx = Get-HarnessEnvironmentContext -Cwd $cwd
 
     $sysPrompt = @"
-Voce e um Harness de IA Nativo especializado em Windows PowerShell e CLI.
+Voce e um Harness de IA Nativo especializado em Windows PowerShell.
 $harnessCtx
-REGRAS DE SEGURANCA E LEITURA:
-- NUNCA crie, altere ou delete arquivos no disco do usuario a menos que ele peca explicitamente (ex: 'crie o arquivo teste.txt').
-- NUNCA crie scripts intermediarios .ps1 ou .bat no disco para responder perguntas.
-- O Harness opera em modo READ-ONLY e INSPECAO por padrao.
-- 'em que pasta estou?' ou 'qual meu diretorio atual?' -> Get-Location (ou pwd)
-- 'ir para pasta documentos' -> Set-Location '$($env:USERPROFILE)\Documents'
-- 'ir para desktop' ou 'area de trabalho' -> Set-Location '$($env:USERPROFILE)\Desktop'
-- 'listar pastas' -> Get-ChildItem -Directory
-- 'listar arquivos' -> Get-ChildItem -File
-- 'listar tudo' -> Get-ChildItem
-- 'qual meu ip' -> ipconfig /all
+REGRAS FUNDAMENTAIS DE POWERSHELL:
+- Para variaveis de ambiente, SEMPRE use `$env:NOME (ex: Set-Location `$env:APPDATA, Set-Location `$env:LOCALAPPDATA, Set-Location `$env:USERPROFILE). NUNCA use sintaxe de CMD (%APPDATA%).
+- 'ir para pasta windows' ou 'na pasta windows': Set-Location `$env:WINDIR (ou cd C:\Windows)
+- 'ir para appdata': Set-Location `$env:APPDATA
+- 'ir para localappdata': Set-Location `$env:LOCALAPPDATA
+- 'ir para pasta documentos': Set-Location '$($env:USERPROFILE)\Documents'
+- 'ir para desktop' ou 'area de trabalho': Set-Location '$($env:USERPROFILE)\Desktop'
+- 'em que pasta estou?' ou 'qual meu diretorio atual?': Get-Location
+- 'listar pastas': Get-ChildItem -Directory
+- 'listar arquivos': Get-ChildItem -File
+- 'listar tudo': Get-ChildItem
+- 'qual meu ip': ipconfig /all
 - NUNCA utilize emojis nas respostas.
 
 Responda OBRIGATORIAMENTE em JSON puro:
@@ -413,17 +422,20 @@ Voce e o Motor de Auto-Correcao do Harness de IA do PowerShell.
 $harnessCtx
 O usuario digitou algo que causou erro no terminal.
 Analise TANTO o texto digitado quanto a mensagem de erro retornada.
-SEGURANCA:
-- NUNCA sugira comandos que criem ou modifiquem arquivos no disco silenciosamente.
-- Se o usuario perguntar 'estou em que pasta?', 'onde estou?', 'qual diretorio': comando e 'Get-Location' (ou 'pwd').
-- Se o usuario pedir para 'ir para documentos': comando e Set-Location '$($env:USERPROFILE)\Documents'.
-- Se o usuario pedir para 'ir para desktop': comando e Set-Location '$($env:USERPROFILE)\Desktop'.
-- Se o usuario cometeu erro de digitacao (ex: git pussh, npm rin): comando corrigido.
-- Se for duvida de rede/ip: ipconfig /all.
+REGRAS OBRIGATORIAS:
+- No PowerShell, SEMPRE use sintaxe `$env:VAR e NUNCA sintaxe de CMD %VAR%.
+- 'no windows' ou 'na pasta windows': Set-Location `$env:WINDIR (ou cd C:\Windows)
+- 'ir para appdata': Set-Location `$env:APPDATA
+- 'ir para localappdata': Set-Location `$env:LOCALAPPDATA
+- 'ir para documentos': Set-Location '$($env:USERPROFILE)\Documents'
+- 'ir para desktop': Set-Location '$($env:USERPROFILE)\Desktop'
+- 'estou em que pasta?', 'onde estou?': Get-Location
+- Erros de digitacao (git pussh, npm rin): comando corrigido.
+- Rede/ip: ipconfig /all.
 - NUNCA utilize emojis nas respostas.
 
 Responda OBRIGATORIAMENTE em JSON puro:
-{"suggested_command": "comando correto a executar", "explanation": "explicacao direta em portugues"}
+{"suggested_command": "comando correto a executar", "explanation": "explicacao direta em 1 frase"}
 "@
 
     $userPrompt = "Comando/Texto que falhou: $FailedCommand`nMensagem de Erro do Shell: $ErrorMessage"
