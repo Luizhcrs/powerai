@@ -1,0 +1,22 @@
+# .gitignore for PowerAI / Nuno
+
+# Build outputs
+bin/
+obj/
+*.user
+*.userosscache
+*.sln.docstates
+
+# Config local sensivel
+.powerai/
+config.json
+
+# Testes e logs
+TestResults/
+*.log
+
+# Windows temporarios
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
