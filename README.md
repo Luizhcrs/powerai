@@ -2,11 +2,19 @@
 
 # ✦ PowerAI
 ### A Camada Cognitiva Invisível & Copiloto para o seu Terminal
-*The Invisible Cognitive Layer & AI Copilot for macOS, Linux, and Windows*
+*The Invisible Cognitive Layer & Local-First AI Copilot for macOS, Linux, and Windows*
 
 <br/>
 
-[**Acesse a Landing Page & Demo Interativo**](https://luizhcrs.github.io/nuno) • [**Instalação Rápida**](#instalação-rápida) • [**Recursos**](#recursos) • [**Arquitetura**](#arquitetura-hexagonal) • [**Configurações**](#configurações)
+[![GitHub Release](https://img.shields.io/badge/release-v1.2.0-white?style=flat-square&logo=github)](https://github.com/Luizhcrs/nuno/releases)
+[![License: PolyForm Noncommercial](https://img.shields.io/badge/license-PolyForm%20Noncommercial-black?style=flat-square)](LICENSE)
+[![Platforms](https://img.shields.io/badge/platforms-macOS%20%7C%20Linux%20%7C%20Windows-blue?style=flat-square)](#instalação-rápida)
+[![Inference: Local-First](https://img.shields.io/badge/inference-Local--First%20(Ollama)-emerald?style=flat-square)](https://ollama.com)
+[![Architecture: Hexagonal](https://img.shields.io/badge/architecture-Hexagonal%20(.NET)-purple?style=flat-square)](#arquitetura-hexagonal)
+
+<br/>
+
+[**🌐 Experimente a Landing Page & Simulador Web**](https://luizhcrs.github.io/nuno) • [**Instalação Rápida**](#-instalação-rápida) • [**Recursos**](#-recursos-principais) • [**Comandos**](#-guia-de-comandos) • [**Arquitetura**](#-arquitetura-hexagonal) • [**Licença**](#-licença--propriedade-intelectual)
 
 ---
 
@@ -17,24 +25,24 @@
 ```text
   ✦  P O W E R A I
      Camada Cognitiva & Copiloto para Terminal
-     ─────────────────────────────────────────────────────────────
+  ──────────────────────────────────────────────────────────
 
   ✓  1. Idioma do Sistema:       Português (Brasil) (Auto-detectado)
-  ✓  2. Ambiente & Ferramentas:  curl, python3, jq prontos
-  ✓  3. Provedor de IA:          Ollama Local (http://localhost:11434)
-  ✓  4. Modelo Selecionado:      qwen2.5-coder:1.5b (Apple Metal GPU)
-  ✓  5. Recursos de Terminal:    Sugestões e correções automáticas ativadas
-
-  ✦ PowerAI instalado com sucesso!
+  ✓  2. Ambiente & Dependências:  curl, python3, jq prontos
+  3. Provedor de IA: (Navegue com ↑/↓ e Enter)
+    ▸ 1) Ollama Local     · Recomendado: ultrarrápido, offline, <1s
+      2) API Local        · OMLX, LM Studio, vLLM em :5151 / :8000
+      3) Nuvem            · OpenAI gpt-4o-mini / Groq / OpenRouter
+      4) Automático       · Detecta localmente e faz fallback nuvem
 ```
 
 <br/>
 
-## Instalação Rápida
+## 🚀 Instalação Rápida
 
-Em qualquer terminal limpo, execute uma única linha:
+Em qualquer terminal limpo, execute uma única linha para iniciar o assistente interativo:
 
-### macOS & Linux (Bash & Zsh)
+### macOS & Linux (Bash / Zsh)
 ```bash
 curl -fsSL https://raw.githubusercontent.com/Luizhcrs/nuno/main/install.sh | bash
 ```
@@ -44,74 +52,85 @@ curl -fsSL https://raw.githubusercontent.com/Luizhcrs/nuno/main/install.sh | bas
 irm https://raw.githubusercontent.com/Luizhcrs/nuno/main/install.ps1 | iex
 ```
 
-> **Instalação Autônoma**: O instalador é *Self-Healing* — se o sistema não possuir `curl`, `python3` ou `jq`, as dependências são instaladas automaticamente. Para uso com Ollama, o motor e o modelo recomendado são configurados automaticamente.
+> **✦ Instalador Auto-Curativo (*Self-Healing*)**: Caso seu sistema não possua `curl`, `python3` ou `jq`, o script resolve e instala as dependências automaticamente via Homebrew, APT, DNF, Pacman ou WinGet. Para uso com Ollama, o modelo de alta performance (`qwen2.5-coder:1.5b`) é configurado automaticamente.
 
 ---
 
-## Recursos
+## ⚡ Recursos Principais
 
-### 1. Local-First & Privacidade Absoluta
-- Execução 100% offline via **Ollama** (`http://localhost:11434`) ou APIs Locais compatíveis com OpenAI (**OMLX**, **LM Studio**, **vLLM** em `:5151` / `:8000`).
-- Aceleração por hardware nativa (**Apple Metal GPU** no macOS / **CUDA** no Linux & Windows) com tempo de resposta inferior a **800ms**.
+### 1. 🔒 Local-First & Privacidade Absoluta
+- Execução 100% offline via **Ollama** (`http://localhost:11434`) ou APIs Locais (**OMLX**, **LM Studio**, **vLLM** em `:5151` / `:8000`).
+- Aceleração por hardware nativa (**Apple Metal GPU** no macOS / **CUDA / DirectML** no Linux & Windows) com inferência instantânea (< 800ms).
+- Zero telemetria — seus comandos, histórico e dados nunca saem da sua máquina.
 
-### 2. Memória de Saída Contextual de Comandos
-- Mantém um buffer estruturado das últimas saídas geradas no terminal (*stdout/stderr*).
-- Permite fazer perguntas sobre informações já impressas na tela:
+### 2. 🧠 Memória de Saída Contextual (*Output Buffer*)
+- Mantém um buffer inteligente da última saída gerada no terminal (*stdout/stderr*).
+- Permite fazer perguntas diretas sobre dados impressos na tela sem precisar copiar e colar:
   ```text
   $ ifconfig
-  ... (saída de rede com várias interfaces) ...
+  ... (dezenas de linhas de interfaces de rede) ...
 
   $ ai qual é o meu IP local aí na saída?
-  ✦ 192.168.0.105 (na interface en0)
+  ✦ 192.168.1.100 (na interface en0)
   ```
 
-### 3. Zero Risco & Execução Segura
-- Operação **Read-Only** por padrão. Nenhum comando é executado sem confirmação explícita no teclado: `[Enter/S = Sim | Esc/N = Não]`.
+### 3. 🛡️ Zero Risco por Padrão (*Human-in-the-Loop*)
+- Operação **Read-Only** segura. Nenhum comando é executado sem sua confirmação explícita no teclado:
+  ```text
+  ✦ docker compose up -d --build
+  ↳ Sobe os contêineres em segundo plano reconstruindo imagens.
 
-### 4. Suporte Multilíngue Nativo (i18n)
-- Identificação automática do idioma do sistema operacional (**Português**, **Inglês** e **Espanhol**).
-- Alternância de idioma a qualquer momento via terminal:
+  Executar comando? [Enter/S = Sim | Esc/N = Não]
+  ```
+
+### 4. 🌐 Suporte Multilíngue Nativo (i18n)
+- Auto-detecção do idioma do sistema operacional (**Português**, **Inglês** e **Espanhol**).
+- Troque o idioma a qualquer momento diretamente pelo terminal:
   ```bash
   ai language en   # Switch to English
   ai language es   # Cambiar a Español
-  ai language pt   # Volta para Português
+  ai language pt   # Retorna para Português
   ```
 
-### 5. Interceptação Automática de Erros (Auto-Healing)
-- Comandos digitados incorretamente ou inexistentes são interceptados pelo hook do shell, sugerindo a sintaxe correta imediatamente.
+### 5. 🩹 Auto-Healing de Erros de Sintaxe
+- Comandos digitados incorretamente ou inexistentes são interceptados em tempo real pelo hook nativo do shell, sugerindo a sintaxe correta imediatamente.
 
 ---
 
-## Comandos
+## ⌨️ Guia de Comandos
 
 | Comando | Descrição |
 | :--- | :--- |
 | `ai <pergunta>` | Consulta em linguagem natural no terminal |
 | `? <pergunta>` | Atalho rápido para consultas diretas |
 | `ai language <pt\|en\|es>` | Troca o idioma do copiloto em tempo real |
-| `ai config` | Exibe as configurações ativas e endpoints |
-| `ai uninstall` | Desinstalação completa e limpa do PowerAI |
+| `ai config` | Exibe as configurações ativas, provedor e endpoints |
+| `ai uninstall` | Desinstalação completa e limpeza de perfis |
 
-### Exemplos de Uso:
+### Exemplos Práticos do Dia a Dia:
+
 ```bash
-# Infraestrutura e rede
-? como listar portas abertas escutando conexões
+# Infraestrutura e Redes
+? como listar portas abertas escutando conexões TCP
 ? como matar todos os processos de node travados
+? verificar consumo de memória de todos os contêineres docker
 
-# Arquivos e diretórios
+# Manipulação de Arquivos e Logs
 ? como encontrar todos os arquivos .log com mais de 100mb
 ? compactar a pasta src em tar.gz excluindo node_modules
+? buscar a palavra "ERROR" nos últimos 500 logs em tempo real
 
-# Git e versionamento
-? desfazer o ultimo commit mantendo as alteracoes locais
-? listar branches remotas que ja foram mescladas
+# Git e Fluxo de Trabalho
+? desfazer o ultimo commit mantendo as alteracoes nos arquivos
+? listar branches remotas que ja foram mescladas na main
+? limpar branches locais que foram deletadas na origem
 ```
 
 ---
 
-## Arquitetura Hexagonal
+## 📐 Arquitetura Hexagonal
 
-O núcleo do projeto segue o padrão **Ports & Adapters (Hexagonal Architecture)** em C# (.NET Core), desacoplando o Domínio dos Provedores de IA:
+O núcleo do projeto segue o padrão **Ports & Adapters (Hexagonal Architecture)** em C# (.NET Core), desacoplando totalmente as regras de negócio dos provedores de IA e terminais:
 
 ```mermaid
 graph TD
@@ -139,7 +158,7 @@ graph TD
     end
 
     subgraph DrivenAdapters ["Adaptadores Secundários (Saída / Outbound)"]
-        D1["OllamaProvider"]
+        D1["OllamaProvider (Local-First)"]
         D2["OpenAICompatibleProvider (Local & Cloud)"]
         D3["JsonConfigRepository (~/.powerai/config.json)"]
         D4["ProcessCliExecutor (Git / OS commands)"]
@@ -147,6 +166,7 @@ graph TD
 
     A1 --> P1
     A2 --> P1
+    A3 --> P1
     P1 --> C1
     P2 --> C2
     C1 --> C3
@@ -162,7 +182,7 @@ graph TD
 
 ---
 
-## Configurações
+## ⚙️ Configuração Personalizada
 
 O arquivo de configuração reside em `~/.powerai/config.json`:
 
@@ -186,19 +206,40 @@ O arquivo de configuração reside em `~/.powerai/config.json`:
 
 ---
 
-## Testes Automatizados
+## 🧪 Suíte de Testes Automatizados
 
-Suítes de testes automatizados:
-- **Testes Unitários de Domínio e Arquitetura (.NET / xUnit)**: `tests/PowerAI.Tests/`
-- **Testes de Integração e Shell Harness**: `tests/test_harness.sh`
+O projeto possui cobertura de testes de ponta a ponta:
+- **Testes Unitários de Domínio (.NET / xUnit)**: `tests/PowerAI.Tests/`
+- **Testes de Integração de Terminal**: `tests/test_harness.sh`
 
-Execução dos testes locais:
+Para rodar os testes localmente:
 ```bash
 ./tests/test_harness.sh
 ```
 
 ---
 
-## Licença
+## 📄 Licença & Propriedade Intelectual
 
-Distribuído sob a licença [MIT](LICENSE).
+Este projeto é de código aberto sob os termos da licença **PolyForm Noncommercial License 1.0.0**.
+
+### ✦ O que é PERMITIDO (Gratuito):
+- ✅ Uso pessoal ilimitado em suas máquinas e terminais.
+- ✅ Uso acadêmico, educacional e pesquisa científica.
+- ✅ Estudo do código-fonte, contribuições e desenvolvimento comunitário.
+- ✅ Forks não-comerciais mantendo a atribuição original.
+
+### ✦ O que NÃO É PERMITIDO (Sem autorização expressa):
+- ❌ Venda direta, revenda ou licenciamento pago do software ou de forks derivados.
+- ❌ Distribuição como parte de produtos comerciais pagos, pacotes ou serviços SaaS/Cloud sem autorização prévia.
+- ❌ Monetização direta do código ou marca sem acordo comercial formal.
+
+Para fins de licenciamento comercial, parcerias ou integração em produtos comerciais proprietários, entre em contato diretamente com o autor:
+- **Autor / Criador**: Luiz Henrique ([@Luizhcrs](https://github.com/Luizhcrs))
+- **Repositório**: [github.com/Luizhcrs/nuno](https://github.com/Luizhcrs/nuno)
+
+---
+
+<div align="center">
+  <sub>Desenvolvido com 🤍 por <a href="https://github.com/Luizhcrs">Luiz Henrique</a>. Código aberto para toda a comunidade de desenvolvedores.</sub>
+</div>

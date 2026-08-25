@@ -1,0 +1,56 @@
+PolyForm Noncommercial License 1.0.0
+
+Copyright (c) 2026 Luiz Henrique (https://github.com/Luizhcrs)
+All rights reserved.
+
+<https://polyformproject.org/licenses/noncommercial/1.0.0>
+
+========================================================================
+TERMS AND CONDITIONS FOR USE, REPRODUCTION, AND DISTRIBUTION
+========================================================================
+
+1. Purpose & Grant of License
+-----------------------------
+The licensor grants you a copyright license to make, use, modify, copy, 
+and distribute the software for Noncommercial Purposes only.
+
+2. Noncommercial Purposes
+-------------------------
+A purpose is a "Noncommercial Purpose" if it is not primarily intended for 
+or directed towards commercial advantage or monetary compensation.
+
+Examples of Permitted Noncommercial Purposes:
+- Personal use and productivity on your own local machines
+- Academic, educational, and scientific research
+- Open-source contributions, studying, and non-commercial community projects
+- Testing, evaluating, and demonstrating the software
+
+Examples of Prohibited Commercial Purposes (Without Written License):
+- Selling, renting, licensing, or monetizing the software or derivatives
+- Offering the software as a paid service, SaaS, API, or cloud-hosted solution
+- Bundling, embedding, or distributing the software as part of a paid product
+- Using the software to directly generate revenue or commercial advantage
+
+3. Commercial Licensing
+-----------------------
+If you wish to use, embed, distribute, or license PowerAI for Commercial 
+Purposes, please contact the author to obtain an explicit written 
+commercial agreement:
+- Author / Maintainer: Luiz Henrique
+- GitHub: https://github.com/Luizhcrs/nuno
+- Contact: https://github.com/Luizhcrs
+
+4. Notices & Attribution
+------------------------
+You must ensure that all copies of the software or modified versions 
+retain this license text and copyright notice.
+
+5. Disclaimer of Warranties
+---------------------------
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
