@@ -57,8 +57,11 @@ function Get-AIPowerShellConfig {
     } else {
         $defaultConfig = [PSCustomObject]@{
             Mode = "Auto"
+            LocalType = "OpenAICompatible"
+            LocalEndpoint = "http://127.0.0.1:5151/v1"
+            LocalApiKey = ""
+            LocalModel = "mlx-community--Qwen2.5-7B-Instruct-4bit"
             OllamaEndpoint = "http://localhost:11434"
-            LocalModel = "qwen2.5-coder:1.5b"
             CloudEndpoint = "https://api.openai.com/v1"
             CloudApiKey = ""
             CloudModel = "gpt-4o-mini"
@@ -83,13 +86,36 @@ function Set-AIPowerShellProvider {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory = $true, Position = 0)]
-        [ValidateSet("Auto", "Local", "Cloud")]
+        [ValidateSet("Auto", "Local", "Cloud", "Ollama", "LocalOpenAI")]
         [string]$Mode
     )
     $cfg = Get-AIPowerShellConfig
-    $cfg.Mode = $Mode
+    if ($Mode -eq "Ollama") {
+        $cfg.Mode = "Local"
+        $cfg.LocalType = "Ollama"
+    } elseif ($Mode -eq "LocalOpenAI") {
+        $cfg.Mode = "Local"
+        $cfg.LocalType = "OpenAICompatible"
+    } else {
+        $cfg.Mode = $Mode
+    }
     Set-AIPowerShellConfig -Config $cfg
     Write-Host "[OK] Provedor PowerAI atualizado para: $Mode" -ForegroundColor Green
+}
+
+function Uninstall-PowerAI {
+    [CmdletBinding(SupportsShouldProcess = $true)]
+    param(
+        [switch]$Force
+    )
+    if ($Force -or $PSCmdlet.ShouldProcess("PowerAI", "Desinstalar completamente o PowerAI do sistema")) {
+        $uninstallerPath = Join-Path $env:USERPROFILE ".powerai\uninstall.ps1"
+        if (Test-Path $uninstallerPath) {
+            & $uninstallerPath
+        } else {
+            irm "https://raw.githubusercontent.com/Luizhcrs/nuno/main/uninstall.ps1" | iex
+        }
+    }
 }
 
 # --- HARNESS: CONTEXT ENGINE WITH WINDOWS KNOWLEDGE ---
@@ -164,26 +190,84 @@ function Invoke-AIRouterRequest {
     )
 
     $cfg = Get-AIPowerShellConfig
-    $useLocal = $false
+    $useLocalOpenAI = $false
+    $useOllama = $false
+    $useCloud = $false
+
+    $localOpenAIEndpoint = if ($cfg.LocalEndpoint) { $cfg.LocalEndpoint.TrimEnd('/') } else { "http://127.0.0.1:5151/v1" }
+    $ollamaEndpoint = if ($cfg.OllamaEndpoint) { $cfg.OllamaEndpoint.TrimEnd('/') } else { "http://localhost:11434" }
 
     if ($cfg.Mode -eq "Local") {
-        $useLocal = $true
+        if ($cfg.LocalType -eq "OpenAICompatible") {
+            $useLocalOpenAI = $true
+        } elseif ($cfg.LocalType -eq "Ollama") {
+            $useOllama = $true
+        } else {
+            # Auto detect local provider
+            try {
+                $headers = @{}
+                if (-not [string]::IsNullOrWhiteSpace($cfg.LocalApiKey)) { $headers["Authorization"] = "Bearer $($cfg.LocalApiKey)" }
+                $null = Invoke-RestMethod -Uri "$localOpenAIEndpoint/models" -Method Get -Headers $headers -TimeoutSec 2 -ErrorAction Stop
+                $useLocalOpenAI = $true
+            } catch {
+                try {
+                    $null = Invoke-RestMethod -Uri "$ollamaEndpoint/api/tags" -Method Get -TimeoutSec 2 -ErrorAction Stop
+                    $useOllama = $true
+                } catch {
+                    $useLocalOpenAI = $true
+                }
+            }
+        }
     } elseif ($cfg.Mode -eq "Cloud") {
-        $useLocal = $false
+        $useCloud = $true
     } else {
+        # Auto Mode: check Local OpenAI first, then Ollama, then Cloud
         try {
-            $null = Invoke-RestMethod -Uri "$($cfg.OllamaEndpoint)/api/tags" -Method Get -TimeoutSec 2 -ErrorAction Stop
-            $useLocal = $true
+            $headers = @{}
+            if (-not [string]::IsNullOrWhiteSpace($cfg.LocalApiKey)) { $headers["Authorization"] = "Bearer $($cfg.LocalApiKey)" }
+            $null = Invoke-RestMethod -Uri "$localOpenAIEndpoint/models" -Method Get -Headers $headers -TimeoutSec 2 -ErrorAction Stop
+            $useLocalOpenAI = $true
         } catch {
-            if (-not [string]::IsNullOrWhiteSpace($cfg.CloudApiKey)) {
-                $useLocal = $false
-            } else {
-                return @{ Success = $false; Explanation = "Nenhum provedor disponivel (Ollama inacessivel e Cloud sem API Key)." }
+            try {
+                $null = Invoke-RestMethod -Uri "$ollamaEndpoint/api/tags" -Method Get -TimeoutSec 2 -ErrorAction Stop
+                $useOllama = $true
+            } catch {
+                if (-not [string]::IsNullOrWhiteSpace($cfg.CloudApiKey)) {
+                    $useCloud = $true
+                } else {
+                    return @{ Success = $false; Explanation = "Nenhum provedor disponivel (Local API/Ollama inacessiveis e CloudApiKey nao configurada)." }
+                }
             }
         }
     }
 
-    if ($useLocal) {
+    if ($useLocalOpenAI) {
+        $localUrl = if ($localOpenAIEndpoint.EndsWith("/chat/completions")) { $localOpenAIEndpoint } else { "$localOpenAIEndpoint/chat/completions" }
+        $payload = @{
+            model = $cfg.LocalModel
+            messages = @(
+                @{ role = "system"; content = $SystemPrompt },
+                @{ role = "user"; content = $UserPrompt }
+            )
+            temperature = 0.0
+        } | ConvertTo-Json -Depth 5
+
+        $headers = @{}
+        if (-not [string]::IsNullOrWhiteSpace($cfg.LocalApiKey)) {
+            $headers["Authorization"] = "Bearer $($cfg.LocalApiKey)"
+        }
+
+        try {
+            $res = Invoke-RestMethod -Uri $localUrl -Method Post -Body $payload -Headers $headers -ContentType "application/json; charset=utf-8" -TimeoutSec $cfg.TimeoutSeconds
+            return @{
+                Success = $true
+                RawResponse = $res.choices[0].message.content
+                Provider = "Local API ($($cfg.LocalModel))"
+            }
+        } catch {
+            return @{ Success = $false; Explanation = "Falha ao consultar API Local ($localUrl): $_" }
+        }
+    } elseif ($useOllama) {
         $payload = @{
             model = $cfg.LocalModel
             stream = $false
@@ -195,7 +279,7 @@ function Invoke-AIRouterRequest {
         } | ConvertTo-Json -Depth 5
 
         try {
-            $res = Invoke-RestMethod -Uri "$($cfg.OllamaEndpoint)/api/chat" -Method Post -Body $payload -ContentType "application/json; charset=utf-8" -TimeoutSec $cfg.TimeoutSeconds
+            $res = Invoke-RestMethod -Uri "$ollamaEndpoint/api/chat" -Method Post -Body $payload -ContentType "application/json; charset=utf-8" -TimeoutSec $cfg.TimeoutSeconds
             return @{
                 Success = $true
                 RawResponse = $res.message.content
@@ -337,6 +421,16 @@ function ai {
     )
 
     $question = $Query -join " "
+    if ($question.Trim() -in @("uninstall", "--uninstall", "desinstalar", "/uninstall", "-uninstall")) {
+        $confirmed = Prompt-UserConfirmation -PromptText "Deseja realmente desinstalar o PowerAI do seu sistema? [Enter/S = Sim | Esc/N = Nao]: "
+        if ($confirmed) {
+            Uninstall-PowerAI -Force
+        } else {
+            Write-Host "Desinstalacao cancelada." -ForegroundColor DarkGray
+        }
+        return
+    }
+
     $cwd = (Get-Location).Path
 
     Write-Host "[PowerAI] Processando..." -ForegroundColor DarkGray
@@ -379,24 +473,27 @@ Responda OBRIGATORIAMENTE em JSON puro:
 
     Add-PowerAISessionTurn -UserQuery $question -SuggestedCommand $suggestedCmd -Explanation $explanation
 
-    Write-Host ""
-    if ($explanation) {
-        Write-Host $explanation -ForegroundColor Cyan
-    }
-
     if (-not [string]::IsNullOrWhiteSpace($suggestedCmd)) {
         Write-Host ""
-        Write-Host "Comando sugerido: " -NoNewline -ForegroundColor White
-        Write-Host $suggestedCmd -ForegroundColor Green
+        Write-Host "  ✦ $suggestedCmd" -ForegroundColor White
+        if ($explanation) {
+            Write-Host "    ↳ $explanation" -ForegroundColor DarkGray
+        }
+        Write-Host ""
 
-        $confirmed = Prompt-UserConfirmation -PromptText "Executar comando? [Enter/S = Sim | Esc/N = Nao]: "
+        $confirmed = Prompt-UserConfirmation -PromptText "  Executar comando? [Enter/S = Sim | Esc/N = Nao]: "
         if ($confirmed) {
+            Write-Host "  [Executando] $suggestedCmd" -ForegroundColor Gray
+            Write-Host ""
             Execute-HarnessCommand -CommandToRun $suggestedCmd
         } else {
-            Write-Host "Cancelado." -ForegroundColor DarkGray
+            Write-Host "  Cancelado." -ForegroundColor DarkGray
         }
+    } elseif ($explanation) {
+        Write-Host ""
+        Write-Host "  ✦ $explanation" -ForegroundColor Gray
+        Write-Host ""
     }
-    Write-Host ""
 }
 
 Set-Alias -Name '?' -Value 'ai' -Option AllScope -Force
@@ -413,7 +510,7 @@ function Invoke-AIErrorFix {
     )
 
     $cwd = (Get-Location).Path
-    Write-Host "[PowerAI] Analisando erro e contexto..." -ForegroundColor DarkGray
+    Write-Host "  ⠋ pensando · analisando erro..." -ForegroundColor DarkGray
 
     $harnessCtx = Get-HarnessEnvironmentContext -Cwd $cwd
 
@@ -450,17 +547,19 @@ Responda OBRIGATORIAMENTE em JSON puro:
         if ($parsed -and -not [string]::IsNullOrWhiteSpace($suggestedCmd)) {
             Add-PowerAISessionTurn -UserQuery $FailedCommand -SuggestedCommand $suggestedCmd -Explanation $explanation
             Write-Host ""
+            Write-Host "  ✦ $suggestedCmd" -ForegroundColor White
             if ($explanation) {
-                Write-Host $explanation -ForegroundColor DarkCyan
+                Write-Host "    ↳ $explanation" -ForegroundColor DarkGray
             }
-            Write-Host "Voce quis dizer: " -NoNewline -ForegroundColor White
-            Write-Host $suggestedCmd -ForegroundColor Green
+            Write-Host ""
 
-            $confirmed = Prompt-UserConfirmation -PromptText "Executar correcao? [Enter/S = Sim | Esc/N = Nao]: "
+            $confirmed = Prompt-UserConfirmation -PromptText "  Executar correcao? [Enter/S = Sim | Esc/N = Nao]: "
             if ($confirmed) {
+                Write-Host "  [Executando] $suggestedCmd" -ForegroundColor Gray
+                Write-Host ""
                 Execute-HarnessCommand -CommandToRun $suggestedCmd
             } else {
-                Write-Host "Cancelado." -ForegroundColor DarkGray
+                Write-Host "  Cancelado." -ForegroundColor DarkGray
             }
         }
     }

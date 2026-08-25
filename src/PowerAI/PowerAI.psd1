@@ -19,7 +19,8 @@
         'Parse-AIJsonResult',
         'Add-PowerAISessionTurn',
         'Get-PowerAISessionSummary',
-        'Clear-PowerAISession'
+        'Clear-PowerAISession',
+        'Uninstall-PowerAI'
     )
     AliasesToExport = @('?')
     CmdletsToExport = @()

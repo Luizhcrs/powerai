@@ -15,9 +15,10 @@ REM 1. Criar diretorios necessarios
 if not exist "%TARGET_DIR%" mkdir "%TARGET_DIR%"
 if not exist "%MODULE_DIR%" mkdir "%MODULE_DIR%"
 
-REM 2. Copiar binarios e scripts para ~/.powerai/bin
+REM 2. Copiar binarios e scripts para ~/.powerai
 echo [1/4] Instalando executaveis globais em %TARGET_DIR%...
 copy /Y "%CURRENT_DIR%ai.cmd" "%TARGET_DIR%\ai.cmd" >nul
+if exist "%CURRENT_DIR%uninstall.ps1" copy /Y "%CURRENT_DIR%uninstall.ps1" "%USERPROFILE%\.powerai\uninstall.ps1" >nul
 
 REM 3. Configurar doskey '?' para o CMD
 echo [2/4] Configurando atalho '?' para o CMD...

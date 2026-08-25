@@ -18,6 +18,9 @@ if (-not (Test-Path $moduleDir)) { New-Item -Path $moduleDir -ItemType Directory
 # 1. Instalar ai.cmd e cmd_autorun.cmd para o CMD
 Write-Host "[1/4] Instalando executaveis globais do CMD em $binDir..." -ForegroundColor Yellow
 Copy-Item -Path (Join-Path $sourceDir "ai.cmd") -Destination (Join-Path $binDir "ai.cmd") -Force
+if (Test-Path (Join-Path $sourceDir "uninstall.ps1")) {
+    Copy-Item -Path (Join-Path $sourceDir "uninstall.ps1") -Destination (Join-Path $env:USERPROFILE ".powerai\uninstall.ps1") -Force
+}
 $autoRunScript = "@echo off`ndoskey ?=ai `$`*"
 Set-Content -Path (Join-Path $binDir "cmd_autorun.cmd") -Value $autoRunScript -Force
 
