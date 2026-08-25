@@ -4,15 +4,9 @@
 ### A Camada Cognitiva Invisível & Copiloto para o seu Terminal
 *The Invisible Cognitive Layer & AI Copilot for macOS, Linux, and Windows*
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square)](LICENSE)
-[![Platforms](https://img.shields.io/badge/Platforms-macOS%20%7C%20Linux%20%7C%20Windows-lightgrey?style=flat-square)](https://github.com/Luizhcrs/nuno)
-[![Local First](https://img.shields.io/badge/Local--First-Ollama%20%7C%20Apple%20Metal%20GPU-black?style=flat-square)](https://ollama.com)
-[![Architecture](https://img.shields.io/badge/Architecture-Hexagonal%20(Ports%20%26%20Adapters)-purple?style=flat-square)](https://github.com/Luizhcrs/nuno)
-[![Tests](https://img.shields.io/badge/Tests-100%25%20Passing-brightgreen?style=flat-square)](https://github.com/Luizhcrs/nuno)
-
 <br/>
 
-[**🌐 Acesse a Landing Page & Demo Interativo**](https://luizhcrs.github.io/nuno) • [**⚡ Instalação Rápida**](#-instalação-rápida) • [**🧠 Recursos**](#-superpoderes) • [**🏗️ Arquitetura**](#-arquitetura-hexagonal) • [**⚙️ Configuração**](#-configurações)
+[**Acesse a Landing Page & Demo Interativo**](https://luizhcrs.github.io/nuno) • [**Instalação Rápida**](#instalação-rápida) • [**Recursos**](#recursos) • [**Arquitetura**](#arquitetura-hexagonal) • [**Configurações**](#configurações)
 
 ---
 
@@ -36,33 +30,33 @@
 
 <br/>
 
-## ⚡ Instalação Rápida
+## Instalação Rápida
 
 Em qualquer terminal limpo, execute uma única linha:
 
-### 🍎 macOS & 🐧 Linux (Bash & Zsh)
+### macOS & Linux (Bash & Zsh)
 ```bash
 curl -fsSL https://raw.githubusercontent.com/Luizhcrs/nuno/main/install.sh | bash
 ```
 
-### 🪟 Windows (PowerShell 5.1 / 7+ & CMD)
+### Windows (PowerShell 5.1 / 7+ & CMD)
 ```powershell
 irm https://raw.githubusercontent.com/Luizhcrs/nuno/main/install.ps1 | iex
 ```
 
-> **Nota de Instalação Autônoma**: O instalador é *Self-Healing* — se a sua máquina não tiver `curl`, `python3` ou `jq`, ele instala tudo automaticamente. Se você escolher Ollama, ele também pode instalar e baixar o modelo leve em 1 clique.
+> **Instalação Autônoma**: O instalador é *Self-Healing* — se o sistema não possuir `curl`, `python3` ou `jq`, as dependências são instaladas automaticamente. Para uso com Ollama, o motor e o modelo recomendado são configurados automaticamente.
 
 ---
 
-## 🧠 Superpoderes
+## Recursos
 
-### 1. ⚡ Local-First & Privacidade Absoluta
-- Funciona 100% offline via **Ollama** (`http://localhost:11434`) ou APIs Locais compatíveis com OpenAI (**OMLX**, **LM Studio**, **vLLM** em `:5151` / `:8000`).
-- Aceleração por hardware nativa (**Apple Metal GPU** no macOS / **CUDA** no Linux & Windows) para respostas em **menos de 800ms**.
+### 1. Local-First & Privacidade Absoluta
+- Execução 100% offline via **Ollama** (`http://localhost:11434`) ou APIs Locais compatíveis com OpenAI (**OMLX**, **LM Studio**, **vLLM** em `:5151` / `:8000`).
+- Aceleração por hardware nativa (**Apple Metal GPU** no macOS / **CUDA** no Linux & Windows) com tempo de resposta inferior a **800ms**.
 
-### 2. 🔍 Memória de Saída Contextual de Comandos
-- O PowerAI mantém um buffer inteligente das últimas saídas exibidas no seu terminal (*stdout/stderr*).
-- Permite fazer perguntas sobre dados já exibidos na tela:
+### 2. Memória de Saída Contextual de Comandos
+- Mantém um buffer estruturado das últimas saídas geradas no terminal (*stdout/stderr*).
+- Permite fazer perguntas sobre informações já impressas na tela:
   ```text
   $ ifconfig
   ... (saída de rede com várias interfaces) ...
@@ -71,25 +65,24 @@ irm https://raw.githubusercontent.com/Luizhcrs/nuno/main/install.ps1 | iex
   ✦ 192.168.0.105 (na interface en0)
   ```
 
-### 3. 🛡️ Zero Risco & Execução Segura
-- O PowerAI é **100% Read-Only** por padrão. Nenhum comando é executado silenciosamente.
-- Cada ação exige sua confirmação física no teclado: `[Enter/S = Sim | Esc/N = Não]`.
+### 3. Zero Risco & Execução Segura
+- Operação **Read-Only** por padrão. Nenhum comando é executado sem confirmação explícita no teclado: `[Enter/S = Sim | Esc/N = Não]`.
 
-### 4. 🌍 Suporte Multilíngue Nativo (i18n)
-- Identifica automaticamente o idioma do sistema operacional (**Português**, **Inglês** e **Espanhol**).
-- Permite alternar o idioma do copiloto a qualquer momento:
+### 4. Suporte Multilíngue Nativo (i18n)
+- Identificação automática do idioma do sistema operacional (**Português**, **Inglês** e **Espanhol**).
+- Alternância de idioma a qualquer momento via terminal:
   ```bash
   ai language en   # Switch to English
   ai language es   # Cambiar a Español
   ai language pt   # Volta para Português
   ```
 
-### 5. 🩹 Interceptação Automática de Erros (*Auto-Healing*)
-- Se você digitar um comando incorreto ou que não existe (ex: `dockr ps`), o hook nativo do shell intercepta a falha e sugere a sintaxe correta imediatamente.
+### 5. Interceptação Automática de Erros (Auto-Healing)
+- Comandos digitados incorretamente ou inexistentes são interceptados pelo hook do shell, sugerindo a sintaxe correta imediatamente.
 
 ---
 
-## 💻 Como Usar
+## Comandos
 
 | Comando | Descrição |
 | :--- | :--- |
@@ -99,13 +92,13 @@ irm https://raw.githubusercontent.com/Luizhcrs/nuno/main/install.ps1 | iex
 | `ai config` | Exibe as configurações ativas e endpoints |
 | `ai uninstall` | Desinstalação completa e limpa do PowerAI |
 
-### Exemplos do Dia a Dia:
+### Exemplos de Uso:
 ```bash
-# Consultas de infraestrutura e rede
+# Infraestrutura e rede
 ? como listar portas abertas escutando conexões
 ? como matar todos os processos de node travados
 
-# Análise de arquivos e diretórios
+# Arquivos e diretórios
 ? como encontrar todos os arquivos .log com mais de 100mb
 ? compactar a pasta src em tar.gz excluindo node_modules
 
@@ -116,9 +109,9 @@ irm https://raw.githubusercontent.com/Luizhcrs/nuno/main/install.ps1 | iex
 
 ---
 
-## 🏗️ Arquitetura Hexagonal
+## Arquitetura Hexagonal
 
-O núcleo do projeto segue rigorosamente o padrão **Ports & Adapters (Hexagonal Architecture)** em C# (.NET Core), garantindo separação absoluta entre o Domínio e os Provedores de IA:
+O núcleo do projeto segue o padrão **Ports & Adapters (Hexagonal Architecture)** em C# (.NET Core), desacoplando o Domínio dos Provedores de IA:
 
 ```mermaid
 graph TD
@@ -169,7 +162,7 @@ graph TD
 
 ---
 
-## ⚙️ Configurações (`config.json`)
+## Configurações
 
 O arquivo de configuração reside em `~/.powerai/config.json`:
 
@@ -193,19 +186,19 @@ O arquivo de configuração reside em `~/.powerai/config.json`:
 
 ---
 
-## 🧪 Testes Automatizados
+## Testes Automatizados
 
-O repositório inclui suítes completas de testes automatizados:
+Suítes de testes automatizados:
 - **Testes Unitários de Domínio e Arquitetura (.NET / xUnit)**: `tests/PowerAI.Tests/`
 - **Testes de Integração e Shell Harness**: `tests/test_harness.sh`
 
-Para rodar os testes localmente:
+Execução dos testes locais:
 ```bash
 ./tests/test_harness.sh
 ```
 
 ---
 
-## 📄 Licença
+## Licença
 
-Distribuído sob a licença [MIT](LICENSE). Desenvolvido com foco em alta performance, privacidade local e usabilidade elegante.
+Distribuído sob a licença [MIT](LICENSE).
