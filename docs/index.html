@@ -17,17 +17,17 @@
       /* Dark Theme */
       --bg: #070709;
       --card-bg: #0d0d11;
-      --card-border: #1a1a20;
-      --card-hover-border: #2e2e38;
+      --card-border: #18181f;
+      --card-hover-border: #2c2c36;
       --text-main: #f4f4f5;
       --text-muted: #8e8e96;
       --text-subtle: #52525c;
       --accent: #ffffff;
       --accent-invert: #000000;
       --code-bg: rgba(255, 255, 255, 0.035);
-      --nav-bg: rgba(7, 7, 9, 0.8);
-      --radial-glow-1: rgba(255, 255, 255, 0.06);
-      --radial-glow-2: rgba(120, 119, 198, 0.04);
+      --nav-bg: rgba(7, 7, 9, 0.85);
+      --radial-glow-1: rgba(255, 255, 255, 0.05);
+      --radial-glow-2: rgba(120, 119, 198, 0.03);
       --font-sans: 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       --font-mono: 'Geist Mono', 'SF Mono', Consolas, Monaco, monospace;
 
@@ -65,7 +65,7 @@
       --accent: #09090b;
       --accent-invert: #ffffff;
       --code-bg: rgba(0, 0, 0, 0.035);
-      --nav-bg: rgba(247, 247, 250, 0.85);
+      --nav-bg: rgba(247, 247, 250, 0.9);
       --radial-glow-1: rgba(0, 0, 0, 0.03);
       --radial-glow-2: rgba(100, 100, 200, 0.02);
 
@@ -126,13 +126,13 @@
       padding: 0 24px;
     }
 
-    /* Navbar */
+    /* Header & Navigation Bar */
     header {
       position: sticky;
       top: 0;
       z-index: 50;
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
       border-bottom: 1px solid var(--card-border);
       background: var(--nav-bg);
     }
@@ -141,7 +141,7 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      height: 60px;
+      height: 64px;
     }
 
     .logo {
@@ -156,9 +156,10 @@
     }
 
     .abstract-logo {
-      width: 26px;
-      height: 26px;
+      width: 24px;
+      height: 24px;
       flex-shrink: 0;
+      color: var(--text-main);
     }
 
     .nav-controls {
@@ -184,7 +185,7 @@
       font-size: 0.75rem;
       font-weight: 600;
       cursor: pointer;
-      padding: 3px 6px;
+      padding: 3px 7px;
       border-radius: 4px;
     }
 
@@ -194,7 +195,7 @@
     }
 
     .theme-toggle-btn {
-      background: transparent;
+      background: var(--code-bg);
       border: 1px solid var(--card-border);
       color: var(--text-muted);
       width: 32px;
@@ -214,8 +215,8 @@
     .github-btn {
       display: inline-flex;
       align-items: center;
-      gap: 6px;
-      padding: 6px 12px;
+      gap: 7px;
+      padding: 6px 13px;
       border-radius: 6px;
       background: var(--code-bg);
       border: 1px solid var(--card-border);
@@ -234,37 +235,6 @@
       padding: 96px 0 52px;
       text-align: center;
       position: relative;
-    }
-
-    /* Status Pill */
-    .hero-live-pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 5px 14px;
-      border-radius: 999px;
-      background: var(--code-bg);
-      border: 1px solid var(--card-border);
-      color: var(--text-muted);
-      font-size: 0.8rem;
-      font-weight: 500;
-      margin-bottom: 24px;
-      font-family: var(--font-mono);
-    }
-
-    .pill-dot-pulse {
-      width: 6px;
-      height: 6px;
-      border-radius: 50%;
-      background: #22c55e;
-      box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7);
-      animation: pulse 2s infinite;
-    }
-
-    @keyframes pulse {
-      0% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7); }
-      70% { box-shadow: 0 0 0 8px rgba(34, 197, 94, 0); }
-      100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
     }
 
     .hero-title {
@@ -300,7 +270,7 @@
       align-items: center;
       justify-content: space-between;
       gap: 12px;
-      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15);
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
     }
 
     .install-tabs {
@@ -577,7 +547,7 @@
       line-height: 1.6;
     }
 
-    /* Professional Multi-Column Footer */
+    /* Structured Multi-Column Footer */
     footer {
       border-top: 1px solid var(--card-border);
       background: var(--nav-bg);
@@ -650,22 +620,6 @@
       gap: 12px;
     }
 
-    .footer-status {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      font-family: var(--font-mono);
-      font-size: 0.75rem;
-      color: var(--text-muted);
-    }
-
-    .status-dot {
-      width: 6px;
-      height: 6px;
-      border-radius: 50%;
-      background: #22c55e;
-    }
-
     @media (max-width: 768px) {
       .hero { padding: 56px 0 28px; }
       .install-box { flex-direction: column; align-items: stretch; }
@@ -683,7 +637,7 @@
 </head>
 <body>
 
-  <!-- Navigation -->
+  <!-- Clean Minimalist Header -->
   <header>
     <div class="container nav-wrap">
       <a href="#" class="logo">
@@ -727,11 +681,6 @@
   <!-- Hero Section -->
   <section class="hero">
     <div class="container">
-      <div class="hero-live-pill">
-        <span class="pill-dot-pulse"></span>
-        <span data-i18n="hero_pill">Local-First · Ollama & Metal GPU · Respostas em <1s</span>
-      </div>
-
       <h1 class="hero-title" data-i18n="hero_title">
         A inteligência do terminal, direto na sua máquina.
       </h1>
@@ -838,7 +787,7 @@
     </div>
   </section>
 
-  <!-- Structured Multi-Column Footer -->
+  <!-- Structured Clean Multi-Column Footer -->
   <footer>
     <div class="container">
       <div class="footer-grid">
@@ -879,10 +828,6 @@
 
       <div class="footer-bottom">
         <span>© 2026 PowerAI · Open Source Software</span>
-        <div class="footer-status">
-          <span class="status-dot"></span>
-          <span data-i18n="foot_status">Motor Local Operacional · Latência <800ms</span>
-        </div>
       </div>
     </div>
   </footer>
@@ -890,7 +835,6 @@
   <script>
     const translations = {
       pt: {
-        hero_pill: "Local-First · Ollama & Metal GPU · Respostas em <1s",
         hero_title: "A inteligência do terminal, direto na sua máquina.",
         hero_desc: "Interprete saídas de comandos, corrija erros e execute ações com um toque. Local-first com Ollama, zero telemetria e respostas instantâneas.",
         copy_btn: "Copiar",
@@ -907,13 +851,11 @@
         foot_install: "Instalação",
         foot_features: "Recursos",
         foot_arch: "Arquitetura",
-        foot_status: "Motor Local Operacional · Latência <800ms",
         confirm_prompt: "Executar comando? [Enter/S = Sim | Esc/N = Não]",
         confirm_yes: "Sim (Enter)",
         confirm_no: "Não (Esc)"
       },
       en: {
-        hero_pill: "Local-First · Ollama & Metal GPU · Responses in <1s",
         hero_title: "Terminal intelligence, built for your local machine.",
         hero_desc: "Analyze outputs, auto-heal typos, and execute CLI actions instantly. Local-first via Ollama with zero telemetry and sub-second inference.",
         copy_btn: "Copy",
@@ -930,19 +872,17 @@
         foot_install: "Installation",
         foot_features: "Features",
         foot_arch: "Architecture",
-        foot_status: "Local Engine Operational · Latency <800ms",
         confirm_prompt: "Execute command? [Enter/Y = Yes | Esc/N = No]",
         confirm_yes: "Yes (Enter)",
         confirm_no: "No (Esc)"
       },
       es: {
-        hero_pill: "Local-First · Ollama y GPU Metal · Respuestas en <1s",
         hero_title: "La inteligencia de la terminal, directo en tu equipo.",
         hero_desc: "Analiza salidas, corrige errores y ejecuta acciones al instante. Local-first con Ollama, cero telemetría y respuestas inmediatas.",
         copy_btn: "Copiar",
         demo_try: "Ejemplos interactivos:",
         b1_title: "Local-First y Offline",
-        b1_desc: "Ejecución 100% offline vía Ollama con aceleración de GPU. Tus datos nunca salen de tu equipo.",
+        b1_desc: "Ejecución 100% offline vía Ollama con aceleración de GPU. Tus dados nunca salen de tu equipo.",
         b2_title: "Memoria de Salida",
         b2_desc: "Pregunta directamente sobre datos impresos en la terminal sin copiar y pegar.",
         b3_title: "Cero Riesgo por Defecto",
@@ -953,7 +893,6 @@
         foot_install: "Instalación",
         foot_features: "Funciones",
         foot_arch: "Arquitectura",
-        foot_status: "Motor Local Operativo · Latencia <800ms",
         confirm_prompt: "¿Ejecutar comando? [Enter/S = Sí | Esc/N = No]",
         confirm_yes: "Sí (Enter)",
         confirm_no: "No (Esc)"
