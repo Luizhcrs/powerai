@@ -5,10 +5,34 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>PowerAI — Copiloto Inteligente para Terminal</title>
   <meta name="description" content="A camada cognitiva invisível para o seu terminal. Local-First via Ollama, memória de saída em tempo real e privacidade absoluta.">
+  <meta name="theme-color" content="#070709">
+
+  <!-- Open Graph & Social Sharing -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="PowerAI — Copiloto Inteligente para Terminal">
+  <meta property="og:description" content="A camada cognitiva invisível para o seu terminal. Local-First via Ollama, memória de saída em tempo real e privacidade absoluta.">
+  <meta property="og:url" content="https://luizhcrs.github.io/nuno/">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="PowerAI — Copiloto Inteligente para Terminal">
+  <meta name="twitter:description" content="Interprete saídas de comandos, corrija erros e execute ações com um toque. 100% Local-First e seguro.">
   
   <!-- Isometric Faceted Cube Favicon -->
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32' fill='none'%3E%3Cpath d='M16 2L29 9.5V22.5L16 30L3 22.5V9.5L16 2Z' stroke='%23ffffff' stroke-width='2' stroke-linejoin='round'/%3E%3Cpath d='M16 2V16M16 16L29 22.5M16 16L3 22.5' stroke='%23ffffff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3Ccircle cx='16' cy='16' r='3' fill='%23ffffff'/%3E%3C/svg%3E">
   
+  <!-- Zero-Flash Theme Boot Script -->
+  <script>
+    (function() {
+      try {
+        var saved = localStorage.getItem('powerai-theme');
+        if (saved) {
+          document.documentElement.setAttribute('data-theme', saved);
+        } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) {
+          document.documentElement.setAttribute('data-theme', 'light');
+        }
+      } catch(e) {}
+    })();
+  </script>
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500;600&family=Geist:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -50,6 +74,7 @@
       --terminal-chip-bg: rgba(255, 255, 255, 0.05);
       --terminal-chip-border: rgba(255, 255, 255, 0.08);
       --terminal-chip-hover: rgba(255, 255, 255, 0.1);
+      --terminal-chip-active: rgba(255, 255, 255, 0.18);
       --terminal-chip-text: #a1a1aa;
       --terminal-output: #a1a1aa;
       --dot-1: #38383f;
@@ -88,6 +113,7 @@
       --terminal-chip-bg: #f0f0f3;
       --terminal-chip-border: #e2e2e8;
       --terminal-chip-hover: #e5e5eb;
+      --terminal-chip-active: #dcdce2;
       --terminal-chip-text: #52525b;
       --terminal-output: #52525b;
       --dot-1: #d4d4d8;
@@ -130,6 +156,10 @@
       position: relative;
     }
 
+    #install, #demo, #features {
+      scroll-margin-top: 80px;
+    }
+
     /* Balanced 3-Column Navbar */
     header {
       position: sticky;
@@ -170,7 +200,7 @@
     .nav-center {
       display: flex;
       align-items: center;
-      gap: 22px;
+      gap: 24px;
       position: absolute;
       left: 50%;
       transform: translateX(-50%);
@@ -351,6 +381,11 @@
       opacity: 0.9;
     }
 
+    .copy-btn.copied {
+      background: #10b981;
+      color: #ffffff;
+    }
+
     /* Terminal Simulator */
     .terminal-container {
       max-width: 840px;
@@ -522,6 +557,12 @@
       color: var(--terminal-user);
     }
 
+    .demo-chip.active-chip {
+      background: var(--terminal-chip-active);
+      border-color: var(--terminal-cmd-border);
+      color: var(--terminal-user);
+    }
+
     /* 3 Core Pillars (Features) */
     .bento-grid {
       display: grid;
@@ -535,10 +576,13 @@
       border: 1px solid var(--card-border);
       border-radius: 10px;
       padding: 28px;
+      transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
     }
 
     .bento-card:hover {
       border-color: var(--card-hover-border);
+      transform: translateY(-2px);
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
     }
 
     .bento-icon {
@@ -735,11 +779,13 @@
         <div class="install-cmd" id="installCmdText">
           curl -fsSL https://raw.githubusercontent.com/Luizhcrs/nuno/main/install.sh | bash
         </div>
-        <button class="copy-btn" onclick="copyInstallCmd()">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-          </svg>
+        <button class="copy-btn" id="copyBtn" onclick="copyInstallCmd()">
+          <span id="copyBtnIcon">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+            </svg>
+          </span>
           <span id="copyBtnText" data-i18n="copy_btn">Copiar</span>
         </button>
       </div>
@@ -782,9 +828,9 @@
 
         <div class="terminal-demo-actions">
           <span style="font-size: 0.78rem; color: var(--terminal-muted); align-self: center; margin-right: 4px;" data-i18n="demo_try">Exemplos interativos:</span>
-          <button class="demo-chip" onclick="runInteractiveDemo(1)">ai como ver portas abertas</button>
-          <button class="demo-chip" onclick="runInteractiveDemo(2)">ai qual meu ip local na saída?</button>
-          <button class="demo-chip" onclick="runInteractiveDemo(3)">dockr ps (erro de digitação)</button>
+          <button class="demo-chip" id="chip-1" onclick="runInteractiveDemo(1)">ai como ver portas abertas</button>
+          <button class="demo-chip" id="chip-2" onclick="runInteractiveDemo(2)">ai qual meu ip local na saída?</button>
+          <button class="demo-chip" id="chip-3" onclick="runInteractiveDemo(3)">dockr ps (erro de digitação)</button>
         </div>
       </div>
 
@@ -880,6 +926,7 @@
         hero_title: "A inteligência do terminal, direto na sua máquina.",
         hero_desc: "Interprete saídas de comandos, corrija erros e execute ações com um toque. Local-first com Ollama, zero telemetria e respostas instantâneas.",
         copy_btn: "Copiar",
+        copied_btn: "Copiado!",
         demo_try: "Exemplos interativos:",
         b1_title: "Local-First & Offline",
         b1_desc: "Execução 100% offline via Ollama com aceleração de GPU. Seus comandos e dados nunca saem da sua máquina.",
@@ -905,6 +952,7 @@
         hero_title: "Terminal intelligence, built for your local machine.",
         hero_desc: "Analyze outputs, auto-heal typos, and execute CLI actions instantly. Local-first via Ollama with zero telemetry and sub-second inference.",
         copy_btn: "Copy",
+        copied_btn: "Copied!",
         demo_try: "Interactive examples:",
         b1_title: "Local-First & Offline",
         b1_desc: "100% offline execution via Ollama with GPU acceleration. Your data never leaves your computer.",
@@ -930,6 +978,7 @@
         hero_title: "La inteligencia de la terminal, directo en tu equipo.",
         hero_desc: "Analiza salidas, corrige errores y ejecuta acciones al instante. Local-first con Ollama, cero telemetría y respuestas inmediatas.",
         copy_btn: "Copiar",
+        copied_btn: "¡Copiado!",
         demo_try: "Ejemplos interactivos:",
         b1_title: "Local-First y Offline",
         b1_desc: "Ejecución 100% offline vía Ollama com aceleración de GPU. Tus dados nunca salen de tu equipo.",
@@ -981,6 +1030,11 @@
       html.setAttribute('data-theme', next);
       localStorage.setItem('powerai-theme', next);
       updateThemeIcon(next);
+      
+      const metaTheme = document.querySelector('meta[name="theme-color"]');
+      if (metaTheme) {
+        metaTheme.setAttribute('content', next === 'dark' ? '#070709' : '#f7f7fa');
+      }
     }
 
     function updateThemeIcon(theme) {
@@ -1022,11 +1076,20 @@
 
     function copyInstallCmd() {
       const text = document.getElementById('installCmdText').innerText;
+      const btn = document.getElementById('copyBtn');
+      const btnText = document.getElementById('copyBtnText');
+      const btnIcon = document.getElementById('copyBtnIcon');
+
       navigator.clipboard.writeText(text).then(() => {
-        const btn = document.getElementById('copyBtnText');
-        const original = btn.innerText;
-        btn.innerText = currentLang === 'en' ? 'Copied!' : (currentLang === 'es' ? '¡Copiado!' : 'Copiado!');
-        setTimeout(() => { btn.innerText = original; }, 2000);
+        btn.classList.add('copied');
+        btnText.innerText = translations[currentLang].copied_btn || 'Copiado!';
+        btnIcon.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>';
+        
+        setTimeout(() => {
+          btn.classList.remove('copied');
+          btnText.innerText = translations[currentLang].copy_btn || 'Copiar';
+          btnIcon.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>';
+        }, 2000);
       });
     }
 
@@ -1060,6 +1123,10 @@
     function runInteractiveDemo(id) {
       if (isTyping) return;
       isTyping = true;
+
+      document.querySelectorAll('.demo-chip').forEach(c => c.classList.remove('active-chip'));
+      const activeChip = document.getElementById(`chip-${id}`);
+      if (activeChip) activeChip.classList.add('active-chip');
 
       const demo = demoDemos[id];
       activeDemoData = demo;
