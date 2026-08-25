@@ -10,6 +10,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500;600&family=Geist:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
     :root {
+      /* Dark Theme */
       --bg: #070709;
       --card-bg: #0d0d11;
       --card-border: #1a1a20;
@@ -19,17 +20,36 @@
       --text-subtle: #52525c;
       --accent: #ffffff;
       --accent-invert: #000000;
-      --terminal-bg: #0a0a0d;
-      --terminal-header: #121216;
       --code-bg: rgba(255, 255, 255, 0.035);
       --nav-bg: rgba(7, 7, 9, 0.8);
       --radial-glow: rgba(255, 255, 255, 0.04);
       --font-sans: 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       --font-mono: 'Geist Mono', 'SF Mono', Consolas, Monaco, monospace;
+
+      /* Terminal Dark */
+      --terminal-bg: #0a0a0d;
+      --terminal-header: #121216;
+      --terminal-border: rgba(255, 255, 255, 0.08);
+      --terminal-text: #f4f4f5;
+      --terminal-user: #ffffff;
+      --terminal-prompt: #52525c;
+      --terminal-muted: #8e8e96;
+      --terminal-cmd-box: rgba(255, 255, 255, 0.03);
+      --terminal-cmd-border: #ffffff;
+      --terminal-cmd-text: #ffffff;
+      --terminal-cursor: #ffffff;
+      --terminal-chip-bg: rgba(255, 255, 255, 0.05);
+      --terminal-chip-border: rgba(255, 255, 255, 0.08);
+      --terminal-chip-hover: rgba(255, 255, 255, 0.1);
+      --terminal-chip-text: #a1a1aa;
+      --dot-1: #38383f;
+      --dot-2: #4b4b54;
+      --dot-3: #62626e;
     }
 
     [data-theme="light"] {
-      --bg: #fafafc;
+      /* Light Theme */
+      --bg: #f7f7fa;
       --card-bg: #ffffff;
       --card-border: #e6e6eb;
       --card-hover-border: #cfcfd8;
@@ -38,11 +58,29 @@
       --text-subtle: #71717a;
       --accent: #09090b;
       --accent-invert: #ffffff;
-      --terminal-bg: #111116;
-      --terminal-header: #18181f;
       --code-bg: rgba(0, 0, 0, 0.035);
-      --nav-bg: rgba(250, 250, 252, 0.85);
+      --nav-bg: rgba(247, 247, 250, 0.85);
       --radial-glow: rgba(0, 0, 0, 0.025);
+
+      /* Terminal Light (Apple macOS Terminal / Ghostty Light) */
+      --terminal-bg: #ffffff;
+      --terminal-header: #f0f0f3;
+      --terminal-border: #e2e2e8;
+      --terminal-text: #18181b;
+      --terminal-user: #09090b;
+      --terminal-prompt: #71717a;
+      --terminal-muted: #52525b;
+      --terminal-cmd-box: #f5f5f7;
+      --terminal-cmd-border: #09090b;
+      --terminal-cmd-text: #09090b;
+      --terminal-cursor: #09090b;
+      --terminal-chip-bg: #f0f0f3;
+      --terminal-chip-border: #e2e2e8;
+      --terminal-chip-hover: #e5e5eb;
+      --terminal-chip-text: #52525b;
+      --dot-1: #d4d4d8;
+      --dot-2: #a1a1aa;
+      --dot-3: #71717a;
     }
 
     * {
@@ -97,7 +135,6 @@
       text-decoration: none;
     }
 
-    /* Abstract Geometric Logo */
     .abstract-logo {
       width: 26px;
       height: 26px;
@@ -210,7 +247,7 @@
       align-items: center;
       justify-content: space-between;
       gap: 12px;
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
     }
 
     .install-tabs {
@@ -270,8 +307,8 @@
       margin: 0 auto 72px;
       border-radius: 10px;
       background: var(--terminal-bg);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      box-shadow: 0 24px 64px rgba(0, 0, 0, 0.4);
+      border: 1px solid var(--terminal-border);
+      box-shadow: 0 20px 48px rgba(0, 0, 0, 0.15);
       overflow: hidden;
       text-align: left;
       font-family: var(--font-mono);
@@ -283,7 +320,7 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      border-bottom: 1px solid var(--terminal-border);
     }
 
     .terminal-dots {
@@ -297,13 +334,13 @@
       border-radius: 50%;
     }
 
-    .dot-1 { background: #38383f; }
-    .dot-2 { background: #4b4b54; }
-    .dot-3 { background: #62626e; }
+    .dot-1 { background: var(--dot-1); }
+    .dot-2 { background: var(--dot-2); }
+    .dot-3 { background: var(--dot-3); }
 
     .terminal-title {
       font-size: 0.78rem;
-      color: #8e8e96;
+      color: var(--terminal-muted);
       font-weight: 500;
     }
 
@@ -312,13 +349,13 @@
       min-height: 220px;
       font-size: 0.9rem;
       line-height: 1.7;
-      color: #f4f4f5;
+      color: var(--terminal-text);
     }
 
-    .t-prompt { color: #52525c; }
-    .t-user { color: #ffffff; font-weight: 500; }
+    .t-prompt { color: var(--terminal-prompt); }
+    .t-user { color: var(--terminal-user); font-weight: 500; }
     .t-spinner {
-      color: #a1a1aa;
+      color: var(--terminal-muted);
       display: flex;
       align-items: center;
       gap: 8px;
@@ -328,19 +365,19 @@
     .t-cmd-box {
       margin: 12px 0;
       padding: 12px 16px;
-      background: rgba(255, 255, 255, 0.03);
-      border-left: 2px solid #ffffff;
+      background: var(--terminal-cmd-box);
+      border-left: 2px solid var(--terminal-cmd-border);
       border-radius: 0 6px 6px 0;
     }
 
-    .t-cmd { color: #ffffff; font-weight: 600; font-size: 0.95rem; }
-    .t-exp { color: #a1a1aa; font-size: 0.85rem; margin-top: 4px; }
+    .t-cmd { color: var(--terminal-cmd-text); font-weight: 600; font-size: 0.95rem; }
+    .t-exp { color: var(--terminal-muted); font-size: 0.85rem; margin-top: 4px; }
 
     .t-cursor {
       display: inline-block;
       width: 8px;
       height: 15px;
-      background: #ffffff;
+      background: var(--terminal-cursor);
       vertical-align: middle;
       animation: blink 1s infinite;
       margin-left: 2px;
@@ -355,16 +392,16 @@
       display: flex;
       gap: 8px;
       padding: 12px 20px;
-      background: rgba(255, 255, 255, 0.015);
-      border-top: 1px solid rgba(255, 255, 255, 0.04);
+      background: var(--terminal-header);
+      border-top: 1px solid var(--terminal-border);
       flex-wrap: wrap;
       align-items: center;
     }
 
     .demo-chip {
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      color: #a1a1aa;
+      background: var(--terminal-chip-bg);
+      border: 1px solid var(--terminal-chip-border);
+      color: var(--terminal-chip-text);
       padding: 5px 12px;
       border-radius: 6px;
       font-size: 0.78rem;
@@ -373,8 +410,8 @@
     }
 
     .demo-chip:hover {
-      background: rgba(255, 255, 255, 0.1);
-      color: #ffffff;
+      background: var(--terminal-chip-hover);
+      color: var(--terminal-user);
     }
 
     /* Minimalist Bento Cards (3 Core Pillars) */
@@ -470,7 +507,7 @@
   <header>
     <div class="container nav-wrap">
       <a href="#" class="logo">
-        <!-- Bespoke Abstract Geometric Logo (Monochrome Isometric Prism Spark) -->
+        <!-- Abstract Isometric Prism SVG Logo -->
         <svg class="abstract-logo" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path d="M16 2L29 9.5V22.5L16 30L3 22.5V9.5L16 2Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
           <path d="M16 2V16M16 16L29 22.5M16 16L3 22.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -536,7 +573,7 @@
         </button>
       </div>
 
-      <!-- Live Interactive Terminal -->
+      <!-- Live Interactive Terminal (Adapts to Light & Dark) -->
       <div class="terminal-container">
         <div class="terminal-header">
           <div class="terminal-dots">
@@ -560,14 +597,14 @@
         </div>
 
         <div class="terminal-demo-actions">
-          <span style="font-size: 0.78rem; color: #8e8e96; align-self: center; margin-right: 4px;" data-i18n="demo_try">Exemplos interativos:</span>
+          <span style="font-size: 0.78rem; color: var(--terminal-muted); align-self: center; margin-right: 4px;" data-i18n="demo_try">Exemplos interativos:</span>
           <button class="demo-chip" onclick="runInteractiveDemo(1)">ai como ver portas abertas</button>
           <button class="demo-chip" onclick="runInteractiveDemo(2)">ai qual meu ip local na saída?</button>
           <button class="demo-chip" onclick="runInteractiveDemo(3)">dockr ps (erro de digitação)</button>
         </div>
       </div>
 
-      <!-- 3 Core Pillars (Clean Minimalist Cards) -->
+      <!-- 3 Core Pillars -->
       <div class="bento-grid">
         <div class="bento-card">
           <div class="bento-icon">
