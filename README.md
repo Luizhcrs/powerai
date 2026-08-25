@@ -6,7 +6,7 @@
 
 <br/><br/>
 
-[Landing Page & Web Simulator](https://luizhcrs.github.io/nuno) • [Quick Install](#quick-install) • [Commands](#commands) • [How It Works](#how-it-works) • [License](#license--terms)
+[Landing Page & Web Simulator](https://luizhcrs.github.io/nuno) • [Quick Install](#quick-install) • [Commands](#commands) • [How It Works](#how-it-works) • [License](#license)
 
 ---
 
@@ -118,7 +118,7 @@ Run locally:
 
 ---
 
-## License & Terms
+## License
 
 PowerAI is distributed under the **PolyForm Noncommercial License 1.0.0**.
 
