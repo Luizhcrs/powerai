@@ -438,10 +438,10 @@ function ai {
     }
 
     if ($question.Trim() -in @("version", "-v", "--version", "versao")) {
-        Write-Host "PowerAI v1.0.1 (Windows PowerShell & CMD)" -ForegroundColor Green
+        Write-Host "PowerAI v1.0.2 (Windows PowerShell & CMD)" -ForegroundColor Green
         try {
             $latest = (Invoke-RestMethod -Uri "https://api.github.com/repos/Luizhcrs/powerai/releases/latest" -TimeoutSec 3 -ErrorAction SilentlyContinue).tag_name
-            if ($latest -and $latest -ne "v1.0.1") {
+            if ($latest -and $latest -ne "v1.0.2") {
                 Write-Host "Nova versao disponivel: $latest. Digite 'ai update' para atualizar." -ForegroundColor Yellow
             } else {
                 Write-Host "Voce esta na versao mais recente." -ForegroundColor DarkGray
