@@ -44,6 +44,8 @@ The installer is self-healing: missing dependencies (`curl`, `jq` — Zero Pytho
 | :--- | :--- |
 | `ai <query>` | Natural language terminal query |
 | `? <query>` | Fast shorthand alias |
+| `ai update` | Self-update to latest release from GitHub |
+| `ai version` | Check installed and remote version |
 | `ai language <pt\|en\|es>` | Change assistant language |
 | `ai config` | Display current configuration |
 | `ai uninstall` | Completely uninstall PowerAI |

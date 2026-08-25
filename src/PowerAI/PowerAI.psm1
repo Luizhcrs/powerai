@@ -431,6 +431,25 @@ function ai {
         return
     }
 
+    if ($question.Trim() -in @("update", "upgrade", "atualizar", "--update")) {
+        Write-Host "[PowerAI] Atualizando para a versao mais recente..." -ForegroundColor Cyan
+        irm "https://raw.githubusercontent.com/Luizhcrs/powerai/main/install.ps1" | iex
+        return
+    }
+
+    if ($question.Trim() -in @("version", "-v", "--version", "versao")) {
+        Write-Host "PowerAI v1.0.0 (Windows PowerShell & CMD)" -ForegroundColor Green
+        try {
+            $latest = (Invoke-RestMethod -Uri "https://api.github.com/repos/Luizhcrs/powerai/releases/latest" -TimeoutSec 3 -ErrorAction SilentlyContinue).tag_name
+            if ($latest -and $latest -ne "v1.0.0") {
+                Write-Host "Nova versao disponivel: $latest. Digite 'ai update' para atualizar." -ForegroundColor Yellow
+            } else {
+                Write-Host "Voce esta na versao mais recente." -ForegroundColor DarkGray
+            }
+        } catch {}
+        return
+    }
+
     $cwd = (Get-Location).Path
 
     Write-Host "[PowerAI] Processando..." -ForegroundColor DarkGray

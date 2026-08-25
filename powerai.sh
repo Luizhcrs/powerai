@@ -2,9 +2,65 @@
 # powerai.sh - Native Linux & macOS Terminal AI Harness (Bash & Zsh)
 # Usage: source ~/.powerai/powerai.sh or ai <query>
 
+POWERAI_VERSION="v1.0.0"
 POWERAI_CONFIG_DIR="$HOME/.powerai"
 POWERAI_CONFIG_FILE="$POWERAI_CONFIG_DIR/config.json"
 POWERAI_SPINNER_PID=""
+
+_powerai_check_update() {
+    local quiet="$1"
+    local latest_tag=""
+    if command -v curl >/dev/null 2>&1; then
+        latest_tag=$(curl -s --max-time 2 "https://api.github.com/repos/Luizhcrs/powerai/releases/latest" 2>/dev/null | jq -r '.tag_name // empty' 2>/dev/null)
+    fi
+
+    if [ -n "$latest_tag" ] && [ "$latest_tag" != "null" ]; then
+        if [ "$latest_tag" != "$POWERAI_VERSION" ]; then
+            echo ""
+            echo -e "  \033[1;33m✦ Nova versão disponível:\033[0m \033[1m$latest_tag\033[0m \033[38;5;244m(Versão atual: $POWERAI_VERSION)\033[0m"
+            echo -e "    Execute \033[1;37mai update\033[0m para atualizar instantaneamente."
+            echo ""
+            return 0
+        elif [ "$quiet" != "true" ]; then
+            echo "  ✓ PowerAI já está na versão mais recente ($POWERAI_VERSION)."
+            return 0
+        fi
+    elif [ "$quiet" != "true" ]; then
+        echo "  [PowerAI] Versão atual: $POWERAI_VERSION"
+    fi
+}
+
+_powerai_self_update() {
+    echo "=========================================================="
+    echo " [PowerAI] Atualização do Sistema"
+    echo "=========================================================="
+    echo -n "  Baixando versão mais recente do GitHub... "
+
+    local tmp_sh=$(mktemp /tmp/powerai_update.XXXXXX 2>/dev/null || echo "/tmp/powerai_update_$$.sh")
+    if curl -fsSL "https://raw.githubusercontent.com/Luizhcrs/powerai/main/powerai.sh" -o "$tmp_sh" 2>/dev/null; then
+        if bash -n "$tmp_sh" 2>/dev/null || zsh -n "$tmp_sh" 2>/dev/null; then
+            mv "$tmp_sh" "$POWERAI_CONFIG_DIR/powerai.sh"
+            chmod +x "$POWERAI_CONFIG_DIR/powerai.sh"
+            
+            curl -fsSL "https://raw.githubusercontent.com/Luizhcrs/powerai/main/uninstall.sh" -o "$POWERAI_CONFIG_DIR/uninstall.sh" 2>/dev/null || true
+            chmod +x "$POWERAI_CONFIG_DIR/uninstall.sh" 2>/dev/null || true
+            
+            echo -e "\033[1;32m[OK]\033[0m"
+            echo ""
+            echo "  ✓ PowerAI atualizado com sucesso para a versão mais recente!"
+            echo "    Para recarregar imediatamente no terminal atual: source ~/.powerai/powerai.sh"
+            echo ""
+        else
+            echo -e "\033[1;31m[Falha]\033[0m"
+            echo "  Erro na validação do script baixado. A versão anterior foi mantida."
+            rm -f "$tmp_sh"
+        fi
+    else
+        echo -e "\033[1;31m[Falha]\033[0m"
+        echo "  Não foi possível conectar ao GitHub. Verifique sua conexão com a internet."
+        rm -f "$tmp_sh"
+    fi
+}
 
 # In-Memory Volatile Session Memory (lives and dies with this terminal tab)
 declare -a POWERAI_SESSION_MEMORY=()
@@ -576,6 +632,16 @@ _powerai_ai_entry() {
         return 0
     fi
 
+    if [ "$1" = "version" ] || [ "$1" = "-v" ] || [ "$1" = "--version" ] || [ "$1" = "versao" ]; then
+        _powerai_check_update false
+        return 0
+    fi
+
+    if [ "$1" = "update" ] || [ "$1" = "upgrade" ] || [ "$1" = "atualizar" ]; then
+        _powerai_self_update
+        return 0
+    fi
+
     if [ "$1" = "language" ] || [ "$1" = "lang" ] || [ "$1" = "idioma" ]; then
         local new_lang="$2"
         if [ "$new_lang" = "pt" ] || [ "$new_lang" = "pt-BR" ] || [ "$new_lang" = "pt_BR" ]; then
@@ -601,6 +667,7 @@ _powerai_ai_entry() {
     if [ "$1" = "config" ]; then
         _powerai_load_config
         echo "=== PowerAI Active Configuration ==="
+        echo "Version: $POWERAI_VERSION"
         echo "Config File: $POWERAI_CONFIG_FILE"
         echo "Language: $POWERAI_LANGUAGE"
         echo "Mode: $POWERAI_MODE"
@@ -617,9 +684,11 @@ _powerai_ai_entry() {
     fi
 
     if [ $# -eq 0 ]; then
-        echo "  [PowerAI] Invisible Cognitive Terminal Layer"
+        echo "  [PowerAI] Invisible Cognitive Terminal Layer ($POWERAI_VERSION)"
         echo "  Usage: ai <query or natural language request>"
         echo "         ? <query>"
+        echo "         ai update (update to latest release)"
+        echo "         ai version (check current & remote version)"
         echo "         ai language <pt|en|es> (change language)"
         echo "         ai config (view active settings)"
         echo "         ai uninstall (remove PowerAI)"
