@@ -13,6 +13,10 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500;600&family=Geist:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
+    html {
+      scroll-behavior: smooth;
+    }
+
     :root {
       /* Dark Theme */
       --bg: #070709;
@@ -123,9 +127,10 @@
       max-width: 1040px;
       margin: 0 auto;
       padding: 0 24px;
+      position: relative;
     }
 
-    /* Enhanced Header & Navbar */
+    /* Balanced 3-Column Navbar */
     header {
       position: sticky;
       top: 0;
@@ -141,13 +146,6 @@
       align-items: center;
       justify-content: space-between;
       height: 60px;
-      gap: 16px;
-    }
-
-    .nav-left {
-      display: flex;
-      align-items: center;
-      gap: 24px;
     }
 
     .logo {
@@ -168,16 +166,20 @@
       color: var(--text-main);
     }
 
-    .nav-links {
+    /* Centered Navigation Links */
+    .nav-center {
       display: flex;
       align-items: center;
-      gap: 16px;
+      gap: 22px;
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
     }
 
     .nav-item {
       color: var(--text-muted);
       text-decoration: none;
-      font-size: 0.84rem;
+      font-size: 0.85rem;
       font-weight: 500;
       transition: color 0.15s ease;
     }
@@ -186,6 +188,7 @@
       color: var(--text-main);
     }
 
+    /* Right Controls */
     .nav-right {
       display: flex;
       align-items: center;
@@ -519,7 +522,7 @@
       color: var(--terminal-user);
     }
 
-    /* 3 Core Pillars */
+    /* 3 Core Pillars (Features) */
     .bento-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -646,7 +649,7 @@
 
     @media (max-width: 768px) {
       .hero { padding: 56px 0 28px; }
-      .nav-links { display: none; }
+      .nav-center { display: none; }
       .install-box { flex-direction: column; align-items: stretch; }
       .copy-btn { justify-content: center; width: 100%; }
       .terminal-body { padding: 18px; min-height: 200px; }
@@ -662,27 +665,28 @@
 </head>
 <body>
 
-  <!-- Clean Minimalist Header with Navigation -->
+  <!-- Clean Minimalist Header with Balanced 3-Column Navigation -->
   <header>
     <div class="container nav-wrap">
-      <div class="nav-left">
-        <a href="#" class="logo">
-          <!-- Isometric Faceted Cube SVG -->
-          <svg class="abstract-logo" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M16 2L29 9.5V22.5L16 30L3 22.5V9.5L16 2Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
-            <path d="M16 2V16M16 16L29 22.5M16 16L3 22.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            <circle cx="16" cy="16" r="3" fill="currentColor"/>
-          </svg>
-          <span>PowerAI</span>
-        </a>
+      <!-- Left: Logo -->
+      <a href="#" class="logo">
+        <svg class="abstract-logo" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M16 2L29 9.5V22.5L16 30L3 22.5V9.5L16 2Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+          <path d="M16 2V16M16 16L29 22.5M16 16L3 22.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="16" cy="16" r="3" fill="currentColor"/>
+        </svg>
+        <span>PowerAI</span>
+      </a>
 
-        <div class="nav-links">
-          <a href="#install" class="nav-item" data-i18n="nav_install">Instalação</a>
-          <a href="#demo" class="nav-item" data-i18n="nav_demo">Simulador</a>
-          <a href="https://github.com/Luizhcrs/nuno#recursos" target="_blank" class="nav-item" data-i18n="nav_docs">Docs</a>
-        </div>
-      </div>
+      <!-- Center: Navigation Links -->
+      <nav class="nav-center">
+        <a href="#features" class="nav-item" data-i18n="nav_features">Recursos</a>
+        <a href="#install" class="nav-item" data-i18n="nav_install">Instalação</a>
+        <a href="#demo" class="nav-item" data-i18n="nav_demo">Simulador</a>
+        <a href="https://github.com/Luizhcrs/nuno#readme" target="_blank" class="nav-item" data-i18n="nav_docs">Docs</a>
+      </nav>
 
+      <!-- Right: Utility Controls (Language, Theme, GitHub) -->
       <div class="nav-right">
         <div class="lang-switcher">
           <button class="lang-btn active" onclick="setLanguage('pt')">PT</button>
@@ -784,8 +788,8 @@
         </div>
       </div>
 
-      <!-- 3 Core Pillars -->
-      <div class="bento-grid">
+      <!-- 3 Core Pillars (Features) -->
+      <div class="bento-grid" id="features">
         <div class="bento-card">
           <div class="bento-icon">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
@@ -843,7 +847,7 @@
           <div class="footer-col-title" data-i18n="foot_col_product">Produto</div>
           <div class="footer-col-links">
             <a href="#install" class="footer-col-link" data-i18n="foot_install">Instalação</a>
-            <a href="https://github.com/Luizhcrs/nuno#recursos" target="_blank" class="footer-col-link" data-i18n="foot_features">Recursos</a>
+            <a href="#features" class="footer-col-link" data-i18n="foot_features">Recursos</a>
             <a href="https://github.com/Luizhcrs/nuno#arquitetura-hexagonal" target="_blank" class="footer-col-link" data-i18n="foot_arch">Arquitetura</a>
             <a href="https://ollama.com" target="_blank" class="footer-col-link">Ollama Engine</a>
           </div>
@@ -869,6 +873,7 @@
   <script>
     const translations = {
       pt: {
+        nav_features: "Recursos",
         nav_install: "Instalação",
         nav_demo: "Simulador",
         nav_docs: "Docs",
@@ -893,6 +898,7 @@
         confirm_no: "Não (Esc)"
       },
       en: {
+        nav_features: "Features",
         nav_install: "Installation",
         nav_demo: "Simulator",
         nav_docs: "Docs",
@@ -917,6 +923,7 @@
         confirm_no: "No (Esc)"
       },
       es: {
+        nav_features: "Funciones",
         nav_install: "Instalación",
         nav_demo: "Simulador",
         nav_docs: "Docs",
@@ -925,7 +932,7 @@
         copy_btn: "Copiar",
         demo_try: "Ejemplos interactivos:",
         b1_title: "Local-First y Offline",
-        b1_desc: "Ejecución 100% offline vía Ollama con aceleración de GPU. Tus dados nunca salen de tu equipo.",
+        b1_desc: "Ejecución 100% offline vía Ollama com aceleración de GPU. Tus dados nunca salen de tu equipo.",
         b2_title: "Memoria de Salida",
         b2_desc: "Pregunta directamente sobre datos impresos en la terminal sin copiar y pegar.",
         b3_title: "Cero Riesgo por Defecto",
@@ -976,7 +983,7 @@
       if (theme === 'light') {
         icon.innerHTML = '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>';
       } else {
-        icon.innerHTML = '<circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>';
+        icon.innerHTML = '<circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
       }
     }
 
