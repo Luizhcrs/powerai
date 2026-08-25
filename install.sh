@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# install.sh - Modern, Multilingual & Interactive Installer for PowerAI
+# install.sh - Modern, Multilingual & Self-Healing Installer for PowerAI
 # Usage: curl -fsSL https://raw.githubusercontent.com/Luizhcrs/nuno/main/install.sh | bash
 #        or ./install.sh [--quick] [--lang=pt|en|es]
 
@@ -40,6 +40,73 @@ _detect_os_language() {
     else
         echo "en-US"
     fi
+}
+
+_auto_install_pkg() {
+    local pkg_name="$1"
+    if command -v brew >/dev/null 2>&1; then
+        brew install "$pkg_name" >/dev/null 2>&1 || true
+    elif command -v apt-get >/dev/null 2>&1; then
+        if [ "${EUID:-$(id -u)}" -eq 0 ]; then
+            apt-get update -qq >/dev/null 2>&1 && apt-get install -y -qq "$pkg_name" >/dev/null 2>&1 || true
+        elif command -v sudo >/dev/null 2>&1; then
+            sudo apt-get update -qq >/dev/null 2>&1 && sudo apt-get install -y -qq "$pkg_name" >/dev/null 2>&1 || true
+        fi
+    elif command -v dnf >/dev/null 2>&1; then
+        if [ "${EUID:-$(id -u)}" -eq 0 ]; then
+            dnf install -y -q "$pkg_name" >/dev/null 2>&1 || true
+        elif command -v sudo >/dev/null 2>&1; then
+            sudo dnf install -y -q "$pkg_name" >/dev/null 2>&1 || true
+        fi
+    elif command -v pacman >/dev/null 2>&1; then
+        if [ "${EUID:-$(id -u)}" -eq 0 ]; then
+            pacman -Sy --noconfirm "$pkg_name" >/dev/null 2>&1 || true
+        elif command -v sudo >/dev/null 2>&1; then
+            sudo pacman -Sy --noconfirm "$pkg_name" >/dev/null 2>&1 || true
+        fi
+    elif command -v apk >/dev/null 2>&1; then
+        apk add --no-cache "$pkg_name" >/dev/null 2>&1 || true
+    fi
+}
+
+_ensure_dependencies() {
+    # Check and auto-install curl, python3, jq
+    if ! command -v curl >/dev/null 2>&1; then
+        _auto_install_pkg curl
+    fi
+    if ! command -v python3 >/dev/null 2>&1; then
+        _auto_install_pkg python3
+    fi
+    if ! command -v jq >/dev/null 2>&1; then
+        _auto_install_pkg jq
+    fi
+}
+
+_install_ollama_engine() {
+    if [ "$(uname -s)" = "Darwin" ]; then
+        if command -v brew >/dev/null 2>&1; then
+            brew install ollama >/dev/null 2>&1 || curl -fsSL https://ollama.com/install.sh | sh >/dev/null 2>&1 || true
+            brew services start ollama >/dev/null 2>&1 || (ollama serve >/dev/null 2>&1 &) || true
+        else
+            curl -fsSL https://ollama.com/install.sh | sh >/dev/null 2>&1 || true
+            (ollama serve >/dev/null 2>&1 &) || true
+        fi
+    else
+        curl -fsSL https://ollama.com/install.sh | sh >/dev/null 2>&1 || true
+        if command -v systemctl >/dev/null 2>&1; then
+            systemctl start ollama >/dev/null 2>&1 || (ollama serve >/dev/null 2>&1 &) || true
+        else
+            (ollama serve >/dev/null 2>&1 &) || true
+        fi
+    fi
+
+    # Wait up to 5s for Ollama server to become available
+    for _ in {1..10}; do
+        if curl -s --max-time 1 http://localhost:11434/api/tags >/dev/null 2>&1; then
+            break
+        fi
+        sleep 0.5
+    done
 }
 
 _select_menu() {
@@ -278,11 +345,11 @@ step1_text="1. Idioma do Sistema:       $lang_label (Auto-detectado)"
 
 _spin_step "$step1_text" "sleep 0.2"
 
-# Step 2: Detect Dependencies
-msg_dep="2. Ambiente & Dependências:  curl, python3, jq detectados"
-[ "$CHOSEN_LANG" = "en-US" ] && msg_dep="2. Environment & Tools:      curl, python3, jq detected"
-[ "$CHOSEN_LANG" = "es-ES" ] && msg_dep="2. Entorno y Herramientas:   curl, python3, jq detectados"
-_spin_step "$msg_dep" "sleep 0.3"
+# Step 2: Detect and auto-resolve dependencies
+msg_dep="2. Ambiente & Dependências:  curl, python3, jq prontos"
+[ "$CHOSEN_LANG" = "en-US" ] && msg_dep="2. Environment & Tools:      curl, python3, jq ready"
+[ "$CHOSEN_LANG" = "es-ES" ] && msg_dep="2. Entorno y Herramientas:   curl, python3, jq listos"
+_spin_step "$msg_dep" "_ensure_dependencies"
 
 OLLAMA_INSTALLED=false
 if command -v ollama >/dev/null 2>&1; then
@@ -383,6 +450,33 @@ if [ "$QUICK_MODE" = false ]; then
         *)
             CHOSEN_MODE="Auto"
             CHOSEN_LOCAL_TYPE="Ollama"
+
+            # Auto-install Ollama engine if not present
+            if [ "$OLLAMA_INSTALLED" = false ]; then
+                title_inst_ollama="Instalar Ollama no sistema?"
+                [ "$CHOSEN_LANG" = "en-US" ] && title_inst_ollama="Install Ollama on your system?"
+                [ "$CHOSEN_LANG" = "es-ES" ] && title_inst_ollama="¿Instalar Ollama en el sistema?"
+                menu_inst_ollama=(
+                    "1) Sim, instalar Ollama automaticamente (Recomendado)"
+                    "2) Não, vou configurar manualmente"
+                )
+                [ "$CHOSEN_LANG" = "en-US" ] && menu_inst_ollama=(
+                    "1) Yes, install Ollama automatically (Recommended)"
+                    "2) No, I will setup manually"
+                )
+                [ "$CHOSEN_LANG" = "es-ES" ] && menu_inst_ollama=(
+                    "1) Sí, instalar Ollama automáticamente (Recomendado)"
+                    "2) No, configuraré manualmente"
+                )
+
+                CHOSEN_INST_OLLAMA_IDX=0
+                _select_menu CHOSEN_INST_OLLAMA_IDX "$title_inst_ollama" "${menu_inst_ollama[@]}"
+                if [ "$CHOSEN_INST_OLLAMA_IDX" -eq 0 ]; then
+                    _spin_step "Instalando e iniciando Ollama..." "_install_ollama_engine"
+                    OLLAMA_INSTALLED=true
+                fi
+            fi
+
             title_om="4. Modelo Ollama:"
             [ "$CHOSEN_LANG" = "en-US" ] && title_om="4. Ollama Model:"
             [ "$CHOSEN_LANG" = "es-ES" ] && title_om="4. Modelo Ollama:"
@@ -411,6 +505,15 @@ if [ "$QUICK_MODE" = false ]; then
                         "1) Sim, baixar agora via ollama pull"
                         "2) Não, vou baixar manualmente mais tarde"
                     )
+                    [ "$CHOSEN_LANG" = "en-US" ] && menu_dl=(
+                        "1) Yes, download now via ollama pull"
+                        "2) Skip, I will download later manually"
+                    )
+                    [ "$CHOSEN_LANG" = "es-ES" ] && menu_dl=(
+                        "1) Sí, descargar ahora vía ollama pull"
+                        "2) Omitir, descargaré manualmente más tarde"
+                    )
+
                     CHOSEN_DL_IDX=0
                     _select_menu CHOSEN_DL_IDX "$title_dl" "${menu_dl[@]}"
                     if [ "$CHOSEN_DL_IDX" -eq 0 ]; then
