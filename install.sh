@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # install.sh - Modern, Multilingual & Interactive Installer for PowerAI
 # Usage: curl -fsSL https://raw.githubusercontent.com/Luizhcrs/nuno/main/install.sh | bash
-#        or ./install.sh [--quick]
+#        or ./install.sh [--quick] [--lang=pt|en|es]
 
 set -e
 
@@ -22,6 +22,23 @@ _read_line() {
         echo "$default_val"
     else
         echo "$user_val"
+    fi
+}
+
+_detect_os_language() {
+    local sys_locale=""
+    if [ "$(uname -s)" = "Darwin" ]; then
+        sys_locale=$(defaults read -g AppleLocale 2>/dev/null || echo "${LANG:-}")
+    else
+        sys_locale="${LANG:-${LC_ALL:-${LC_MESSAGES:-}}}"
+    fi
+
+    if [[ "$sys_locale" =~ ^pt ]] || [[ "$sys_locale" =~ ^PT ]]; then
+        echo "pt-BR"
+    elif [[ "$sys_locale" =~ ^es ]] || [[ "$sys_locale" =~ ^ES ]]; then
+        echo "es-ES"
+    else
+        echo "en-US"
     fi
 }
 
@@ -239,32 +256,27 @@ if [ "$1" = "--quick" ] || [ "$1" = "-y" ] || [ "$1" = "--yes" ]; then
     QUICK_MODE=true
 fi
 
-# Auto-detect language default
-CHOSEN_LANG="pt-BR"
-if [[ "${LANG:-}" =~ ^es ]] || [[ "${LC_ALL:-}" =~ ^es ]]; then
-    CHOSEN_LANG="es-ES"
-elif [[ "${LANG:-}" =~ ^en ]] || [[ "${LC_ALL:-}" =~ ^en ]]; then
-    CHOSEN_LANG="en-US"
-fi
+# Step 1: Automatic System Language Detection
+CHOSEN_LANG=$(_detect_os_language)
 
-if [ "$QUICK_MODE" = false ]; then
-    # Step 1: Language Selection Menu
-    menu_languages=(
-        "1) Português (Brasil)  · Idioma padrão do sistema"
-        "2) English (US)        · International default"
-        "3) Español             · Idioma en español"
-    )
-    LANG_IDX=0
-    [ "$CHOSEN_LANG" = "en-US" ] && LANG_IDX=1
-    [ "$CHOSEN_LANG" = "es-ES" ] && LANG_IDX=2
-
-    _select_menu LANG_IDX "1. Idioma / Language:" "${menu_languages[@]}"
-    case "$LANG_IDX" in
-        1) CHOSEN_LANG="en-US" ;;
-        2) CHOSEN_LANG="es-ES" ;;
-        *) CHOSEN_LANG="pt-BR" ;;
+# CLI flags override if provided (e.g. --lang=en or --lang=es)
+for arg in "$@"; do
+    case "$arg" in
+        --lang=en|--lang=en-US|--en) CHOSEN_LANG="en-US" ;;
+        --lang=es|--lang=es-ES|--es) CHOSEN_LANG="es-ES" ;;
+        --lang=pt|--lang=pt-BR|--pt) CHOSEN_LANG="pt-BR" ;;
     esac
-fi
+done
+
+lang_label="Português (Brasil)"
+[ "$CHOSEN_LANG" = "en-US" ] && lang_label="English (US)"
+[ "$CHOSEN_LANG" = "es-ES" ] && lang_label="Español"
+
+step1_text="1. Idioma do Sistema:       $lang_label (Auto-detectado)"
+[ "$CHOSEN_LANG" = "en-US" ] && step1_text="1. System Language:         $lang_label (Auto-detected)"
+[ "$CHOSEN_LANG" = "es-ES" ] && step1_text="1. Idioma del Sistema:      $lang_label (Auto-detectado)"
+
+_spin_step "$step1_text" "sleep 0.2"
 
 # Step 2: Detect Dependencies
 msg_dep="2. Ambiente & Dependências:  curl, python3, jq detectados"
@@ -329,19 +341,19 @@ if [ "$QUICK_MODE" = false ]; then
             [ "$CHOSEN_LANG" = "en-US" ] && title_lm="4. Local API Model:"
             [ "$CHOSEN_LANG" = "es-ES" ] && title_lm="4. Modelo de API Local:"
             menu_local_models=(
-                "1) qwen2.5-coder:1.5b                       · Ultra-fast (<1s)"
-                "2) mlx-community--Qwen2.5-7B-Instruct-4bit  · High capability"
-                "3) Custom                                   · Type manually"
+                "1) qwen2.5-coder:1.5b                       · Mais leve (<1s)"
+                "2) mlx-community--Qwen2.5-7B-Instruct-4bit  · Alta capacidade"
+                "3) Personalizado                            · Digitar manualmente"
             )
             CHOSEN_LM_IDX=0
             _select_menu CHOSEN_LM_IDX "$title_lm" "${menu_local_models[@]}"
             case "$CHOSEN_LM_IDX" in
                 0) CHOSEN_LOCAL_MODEL="qwen2.5-coder:1.5b" ;;
                 1) CHOSEN_LOCAL_MODEL="mlx-community--Qwen2.5-7B-Instruct-4bit" ;;
-                *) CHOSEN_LOCAL_MODEL=$(_read_line "     Model name: " "qwen2.5-coder:1.5b") ;;
+                *) CHOSEN_LOCAL_MODEL=$(_read_line "     Nome do modelo: " "qwen2.5-coder:1.5b") ;;
             esac
-            CHOSEN_LOCAL_ENDPOINT=$(_read_line "     Endpoint [Default: http://127.0.0.1:5151/v1]: " "http://127.0.0.1:5151/v1")
-            CHOSEN_LOCAL_API_KEY=$(_read_line "     API Key (optional): " "")
+            CHOSEN_LOCAL_ENDPOINT=$(_read_line "     Endpoint [Padrão: http://127.0.0.1:5151/v1]: " "http://127.0.0.1:5151/v1")
+            CHOSEN_LOCAL_API_KEY=$(_read_line "     API Key (opcional se não exigir): " "")
             ;;
         2)
             CHOSEN_MODE="Cloud"
@@ -349,10 +361,10 @@ if [ "$QUICK_MODE" = false ]; then
             [ "$CHOSEN_LANG" = "en-US" ] && title_cm="4. Cloud Model:"
             [ "$CHOSEN_LANG" = "es-ES" ] && title_cm="4. Modelo de Nube:"
             menu_cloud_models=(
-                "1) gpt-4o-mini               · Recommended (Fast & lightweight)"
-                "2) gpt-4o                    · Full flagship reasoning model"
-                "3) llama-3.3-70b-versatile   · Ultra-fast Groq Cloud"
-                "4) Custom                    · Type custom model name"
+                "1) gpt-4o-mini               · Recomendado (Rápido e econômico)"
+                "2) gpt-4o                    · Modelo completo de alta inteligência"
+                "3) llama-3.3-70b-versatile   · Groq Cloud ultrarrápido"
+                "4) Personalizado             · Digitar outro nome de modelo"
             )
             CHOSEN_CM_IDX=0
             _select_menu CHOSEN_CM_IDX "$title_cm" "${menu_cloud_models[@]}"
@@ -375,10 +387,10 @@ if [ "$QUICK_MODE" = false ]; then
             [ "$CHOSEN_LANG" = "en-US" ] && title_om="4. Ollama Model:"
             [ "$CHOSEN_LANG" = "es-ES" ] && title_om="4. Modelo Ollama:"
             menu_ollama_models=(
-                "1) qwen2.5-coder:1.5b  · Recommended (Ultra-light, <1s, GPU accelerated)"
-                "2) qwen2.5-coder:7b    · Smarter (Requires ~5GB RAM)"
-                "3) deepseek-coder:1.3b · Compact fast alternative"
-                "4) Custom              · Type custom model name"
+                "1) qwen2.5-coder:1.5b  · Recomendado (Ultraleve, <1s, Apple Metal GPU)"
+                "2) qwen2.5-coder:7b    · Mais inteligente (Requer ~5GB de RAM)"
+                "3) deepseek-coder:1.3b · Alternativa compacta e rápida"
+                "4) Personalizado       · Digitar outro nome de modelo"
             )
             CHOSEN_OM_IDX=0
             _select_menu CHOSEN_OM_IDX "$title_om" "${menu_ollama_models[@]}"
@@ -386,7 +398,7 @@ if [ "$QUICK_MODE" = false ]; then
                 0) CHOSEN_LOCAL_MODEL="qwen2.5-coder:1.5b" ;;
                 1) CHOSEN_LOCAL_MODEL="qwen2.5-coder:7b" ;;
                 2) CHOSEN_LOCAL_MODEL="deepseek-coder:1.3b" ;;
-                *) CHOSEN_LOCAL_MODEL=$(_read_line "     Ollama Model Name: " "qwen2.5-coder:1.5b") ;;
+                *) CHOSEN_LOCAL_MODEL=$(_read_line "     Nome do modelo Ollama: " "qwen2.5-coder:1.5b") ;;
             esac
 
             # Offer model download if Ollama is available
@@ -396,14 +408,14 @@ if [ "$QUICK_MODE" = false ]; then
                     [ "$CHOSEN_LANG" = "en-US" ] && title_dl="Download model now?"
                     [ "$CHOSEN_LANG" = "es-ES" ] && title_dl="¿Descargar modelo ahora?"
                     menu_dl=(
-                        "1) Download now via ollama pull"
-                        "2) Skip, I will download later manually"
+                        "1) Sim, baixar agora via ollama pull"
+                        "2) Não, vou baixar manualmente mais tarde"
                     )
                     CHOSEN_DL_IDX=0
                     _select_menu CHOSEN_DL_IDX "$title_dl" "${menu_dl[@]}"
                     if [ "$CHOSEN_DL_IDX" -eq 0 ]; then
                         echo ""
-                        echo -e "     \033[38;5;244mPulling model from Ollama registry...\033[0m"
+                        echo -e "     \033[38;5;244mBaixando modelo no Ollama (aguarde alguns instantes)...\033[0m"
                         ollama pull "$CHOSEN_LOCAL_MODEL" || true
                     fi
                 fi
