@@ -264,8 +264,6 @@ _spin_step() {
 
 _animate_intro() {
     clear 2>/dev/null || true
-    printf "\n"
-    
     tput civis 2>/dev/null || printf "\033[?25l"
 
     echo -e "\033[38;5;238m  ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣄⠈⣄⢈⣷⣶⡀⣀⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀\033[0m"
@@ -285,9 +283,7 @@ _animate_intro() {
     echo -e "\033[38;5;242m  ⠀⠀⠀⠀⠀⠀⠀⠀⣻⠷⠃⠠⠁⠀⠀⠀⠀⠀⠀⠈⠀⠂⠀⠀⠀⠂⡀⡆⡿⠇⠀⠀⠀⠈⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⢱⣪⢟⣂⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀\033[0m"
     echo -e "\033[38;5;240m  ⠀⠀⠀⠀⠀⠀⠀⠁⢿⣃⡢⠁⠀⠀⠀⠂⠐⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⡒⠛⢊⠀⠀⠀⠀⠀⠀⠀⠀⠀⡀⠀⠀⠂⠈⠀⣪⢮⣝⠇⠃⠀⠀⠀⠀⠀⠀⠀⠀⠀\033[0m"
     echo -e "\033[38;5;238m  ⠀⠀⠀⠀⠀⠀⠀⢈⣵⡟⠀⡀⠠⠀⠀⠀⠀⠀⠀⢄⠀⡢⠈⣁⢀⣕⣲⣷⣧⣶⣦⡀⠀⠀⠂⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⢒⡒⣍⣗⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀\033[0m"
-    echo ""
     printf "     \033[1;37mP O W E R A I\033[0m   \033[38;5;244mCamada Cognitiva & Copiloto para Terminal\033[0m\n"
-    printf "\n"
 
     # Sweeping light beam
     local width=58
