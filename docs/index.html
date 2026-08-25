@@ -975,11 +975,11 @@
         cmd: "lsof -iTCP -sTCP:LISTEN -P",
         exp: "Lista todos os processos ativos ouvindo em portas TCP no sistema.",
         requiresConfirm: true,
-        output: "[Executando] lsof -iTCP -sTCP:LISTEN -P\n\nCOMMAND   PID   USER   FD   TYPE             DEVICE NODE NAME\nnode    49202   luiz   23u  IPv4 0x7c94b291   0t0  TCP *:3000 (LISTEN)\nollama  11434   luiz   12u  IPv6 0x8a92f012   0t0  TCP *:11434 (LISTEN)\npostgres  5432  luiz    4u  IPv4 0x12a884c1   0t0  TCP *:5432 (LISTEN)"
+        output: "[Executando] lsof -iTCP -sTCP:LISTEN -P\n\nCOMMAND   PID   USER      FD   TYPE             DEVICE NODE NAME\nnode    49202   dev       23u  IPv4 0x7c94b291   0t0  TCP *:3000 (LISTEN)\nollama  11434   dev       12u  IPv6 0x8a92f012   0t0  TCP *:11434 (LISTEN)\npostgres  5432  postgres   4u  IPv4 0x12a884c1   0t0  TCP *:5432 (LISTEN)"
       },
       2: {
         query: "ai qual meu ip local na saída acima?",
-        cmd: "✦ 192.168.0.102 (na interface en0)",
+        cmd: "✦ 192.168.1.100 (na interface en0 / eth0)",
         exp: "Dado extraído diretamente do buffer de memória da sessão anterior.",
         requiresConfirm: false,
         output: ""
