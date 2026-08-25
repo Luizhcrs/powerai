@@ -4,6 +4,14 @@
 
 A cognitive layer and local-first copilot for macOS, Linux, and Windows terminals.
 
+<br/>
+
+<a href="https://luizhcrs.github.io/nuno">
+  <img src="assets/terminal-preview.svg" alt="PowerAI Terminal Preview" width="800">
+</a>
+
+<br/>
+
 [Landing Page & Web Simulator](https://luizhcrs.github.io/nuno) • [Quick Install](#quick-install) • [Commands](#commands) • [How It Works](#how-it-works) • [License](#license--terms)
 
 ---
