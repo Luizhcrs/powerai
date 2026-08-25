@@ -1,0 +1,48 @@
+name: CI & Cross-Platform Verification
+
+on:
+  push:
+    branches: [ main, dev ]
+  pull_request:
+    branches: [ main, dev ]
+
+jobs:
+  test-unix:
+    name: Test Unix (macOS & Linux)
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies (jq, curl)
+        run: |
+          if [ "$RUNNER_OS" == "Linux" ]; then
+            sudo apt-get update && sudo apt-get install -y jq curl
+          elif [ "$RUNNER_OS" == "macOS" ]; then
+            brew install jq curl || true
+          fi
+
+      - name: Run Test Suite Harness
+        run: |
+          chmod +x tests/test_harness.sh
+          ./tests/test_harness.sh
+
+      - name: Verify POSIX Shell Syntax
+        run: |
+          bash -n src/powerai.sh
+          bash -n install.sh
+
+  test-windows:
+    name: Test Windows (PowerShell)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Test PowerShell Module Syntax & Manifest
+        shell: pwsh
+        run: |
+          Test-ModuleManifest -Path "src/PowerAI.psd1" -ErrorAction Stop
+          Import-Module "./src/PowerAI.psm1" -Force -ErrorAction Stop
+          Write-Host "PowerAI PowerShell module imported successfully!"
