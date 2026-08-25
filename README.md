@@ -8,13 +8,12 @@
 
 [![GitHub Release](https://img.shields.io/badge/release-v1.2.0-white?style=flat-square&logo=github)](https://github.com/Luizhcrs/nuno/releases)
 [![License: PolyForm Noncommercial](https://img.shields.io/badge/license-PolyForm%20Noncommercial-black?style=flat-square)](LICENSE)
-[![Platforms](https://img.shields.io/badge/platforms-macOS%20%7C%20Linux%20%7C%20Windows-blue?style=flat-square)](#instalação-rápida)
+[![Platforms](https://img.shields.io/badge/platforms-macOS%20%7C%20Linux%20%7C%20Windows-blue?style=flat-square)](#-instalação-rápida)
 [![Inference: Local-First](https://img.shields.io/badge/inference-Local--First%20(Ollama)-emerald?style=flat-square)](https://ollama.com)
-[![Architecture: Hexagonal](https://img.shields.io/badge/architecture-Hexagonal%20(.NET)-purple?style=flat-square)](#arquitetura-hexagonal)
 
 <br/>
 
-[**🌐 Experimente a Landing Page & Simulador Web**](https://luizhcrs.github.io/nuno) • [**Instalação Rápida**](#-instalação-rápida) • [**Recursos**](#-recursos-principais) • [**Comandos**](#-guia-de-comandos) • [**Arquitetura**](#-arquitetura-hexagonal) • [**Licença**](#-licença--propriedade-intelectual)
+[**🌐 Experimente a Landing Page & Simulador Web**](https://luizhcrs.github.io/nuno) • [**Instalação Rápida**](#-instalação-rápida) • [**Recursos**](#-recursos-principais) • [**Comandos**](#-guia-de-comandos) • [**Como Funciona**](#-como-funciona-por-baixo-dos-panos) • [**Licença**](#-licença--propriedade-intelectual)
 
 ---
 
@@ -128,57 +127,14 @@ irm https://raw.githubusercontent.com/Luizhcrs/nuno/main/install.ps1 | iex
 
 ---
 
-## 📐 Arquitetura Hexagonal
+## ⚙️ Como Funciona por Baixo dos Panos
 
-O núcleo do projeto segue o padrão **Ports & Adapters (Hexagonal Architecture)** em C# (.NET Core), desacoplando totalmente as regras de negócio dos provedores de IA e terminais:
+O PowerAI opera de forma leve e direta no seu terminal:
 
-```mermaid
-graph TD
-    subgraph DrivingAdapters ["Adaptadores Primários (Entrada / Inbound)"]
-        A1["PowerShell Module (PowerAI.psm1)"]
-        A2["Bash & Zsh Harness (powerai.sh)"]
-        A3["Response Parser (parse_response.py)"]
-    end
-
-    subgraph InboundPorts ["Portas de Entrada (Inbound Ports)"]
-        P1["IAIRouter"]
-        P2["IContextCollector"]
-    end
-
-    subgraph CoreApplication ["Aplicação & Domínio (Core Domain)"]
-        C1["AIRouter Orchestrator"]
-        C2["ContextCollector Service"]
-        C3["Models: PowerAIConfig, SuggestionResult, SessionTurn, EnvironmentContext"]
-    end
-
-    subgraph OutboundPorts ["Portas de Saída (Outbound Ports)"]
-        P3["ILLMProvider"]
-        P4["IConfigRepository"]
-        P5["ICliExecutor"]
-    end
-
-    subgraph DrivenAdapters ["Adaptadores Secundários (Saída / Outbound)"]
-        D1["OllamaProvider (Local-First)"]
-        D2["OpenAICompatibleProvider (Local & Cloud)"]
-        D3["JsonConfigRepository (~/.powerai/config.json)"]
-        D4["ProcessCliExecutor (Git / OS commands)"]
-    end
-
-    A1 --> P1
-    A2 --> P1
-    A3 --> P1
-    P1 --> C1
-    P2 --> C2
-    C1 --> C3
-    C2 --> C3
-    C1 --> P3
-    C1 --> P4
-    C2 --> P5
-    P3 --> D1
-    P3 --> D2
-    P4 --> D3
-    P5 --> D4
-```
+1. **Captura do Comando ou Pergunta**: Quando você digita `ai <pergunta>` ou `? <pergunta>`, o terminal encaminha o texto para o interpretador.
+2. **Contexto do Ambiente**: O copiloto lê apenas o necessário para responder com precisão (seu sistema operacional, pasta atual e a última saída de comando impressa).
+3. **Inferência 100% Local**: A consulta é processada instantaneamente pelo **Ollama** ou API local, sem enviar nenhum dado para a internet.
+4. **Confirmação e Execução**: Você visualiza o comando formatado com uma explicação clara e decide se quer rodar com `Enter` ou cancelar com `Esc`.
 
 ---
 
