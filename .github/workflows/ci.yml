@@ -16,12 +16,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install dependencies (jq, curl)
+      - name: Ensure Dependencies
         run: |
           if [ "$RUNNER_OS" == "Linux" ]; then
-            sudo apt-get update && sudo apt-get install -y jq curl
-          elif [ "$RUNNER_OS" == "macOS" ]; then
-            brew install jq curl || true
+            sudo apt-get update -qq && sudo apt-get install -y -qq jq curl
           fi
 
       - name: Run Test Suite Harness
@@ -31,8 +29,9 @@ jobs:
 
       - name: Verify POSIX Shell Syntax
         run: |
-          bash -n src/powerai.sh
+          bash -n powerai.sh
           bash -n install.sh
+          bash -n uninstall.sh
 
   test-windows:
     name: Test Windows (PowerShell)
@@ -43,6 +42,6 @@ jobs:
       - name: Test PowerShell Module Syntax & Manifest
         shell: pwsh
         run: |
-          Test-ModuleManifest -Path "src/PowerAI.psd1" -ErrorAction Stop
-          Import-Module "./src/PowerAI.psm1" -Force -ErrorAction Stop
-          Write-Host "PowerAI PowerShell module imported successfully!"
+          Test-ModuleManifest -Path "src/PowerAI/PowerAI.psd1" -ErrorAction Stop
+          Import-Module "./src/PowerAI/PowerAI.psm1" -Force -ErrorAction Stop
+          Write-Host "PowerAI PowerShell module verified and imported successfully!"
