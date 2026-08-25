@@ -19,15 +19,18 @@
   <!-- Isometric Faceted Cube Favicon -->
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32' fill='none'%3E%3Cpath d='M16 2L29 9.5V22.5L16 30L3 22.5V9.5L16 2Z' stroke='%23ffffff' stroke-width='2' stroke-linejoin='round'/%3E%3Cpath d='M16 2V16M16 16L29 22.5M16 16L3 22.5' stroke='%23ffffff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3Ccircle cx='16' cy='16' r='3' fill='%23ffffff'/%3E%3C/svg%3E">
   
-  <!-- Zero-Flash Theme Boot Script -->
+  <!-- Zero-Flash Dynamic System & User Theme Boot Script -->
   <script>
     (function() {
       try {
+        var userChoice = localStorage.getItem('powerai-theme-user-choice');
         var saved = localStorage.getItem('powerai-theme');
-        if (saved) {
+        if (userChoice && saved) {
           document.documentElement.setAttribute('data-theme', saved);
         } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) {
           document.documentElement.setAttribute('data-theme', 'light');
+        } else {
+          document.documentElement.setAttribute('data-theme', 'dark');
         }
       } catch(e) {}
     })();
@@ -1212,6 +1215,7 @@
       const next = current === 'dark' ? 'light' : 'dark';
       html.setAttribute('data-theme', next);
       localStorage.setItem('powerai-theme', next);
+      localStorage.setItem('powerai-theme-user-choice', 'true');
       updateThemeIcon(next);
       
       const metaTheme = document.querySelector('meta[name="theme-color"]');
@@ -1231,13 +1235,36 @@
     }
 
     (function initTheme() {
+      const userChoice = localStorage.getItem('powerai-theme-user-choice');
       const saved = localStorage.getItem('powerai-theme');
-      if (saved) {
-        document.documentElement.setAttribute('data-theme', saved);
-        updateThemeIcon(saved);
+      let activeTheme = 'dark';
+
+      if (userChoice && saved) {
+        activeTheme = saved;
       } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) {
-        document.documentElement.setAttribute('data-theme', 'light');
-        updateThemeIcon('light');
+        activeTheme = 'light';
+      }
+
+      document.documentElement.setAttribute('data-theme', activeTheme);
+      updateThemeIcon(activeTheme);
+
+      const metaTheme = document.querySelector('meta[name="theme-color"]');
+      if (metaTheme) {
+        metaTheme.setAttribute('content', activeTheme === 'dark' ? '#070709' : '#f7f7fa');
+      }
+
+      // Live OS Theme Change Listener
+      if (window.matchMedia) {
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+          if (!localStorage.getItem('powerai-theme-user-choice')) {
+            const systemTheme = e.matches ? 'dark' : 'light';
+            document.documentElement.setAttribute('data-theme', systemTheme);
+            updateThemeIcon(systemTheme);
+            if (metaTheme) {
+              metaTheme.setAttribute('content', systemTheme === 'dark' ? '#070709' : '#f7f7fa');
+            }
+          }
+        });
       }
     })();
 
