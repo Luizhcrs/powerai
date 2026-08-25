@@ -6,8 +6,8 @@
   <title>PowerAI — Copiloto Inteligente para Terminal</title>
   <meta name="description" content="A camada cognitiva invisível para o seu terminal. Local-First via Ollama, memória de saída em tempo real e privacidade absoluta.">
   
-  <!-- 3D Transparent Isometric Hypercube Favicon -->
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32' fill='none'%3E%3Cpolygon points='16 2, 29 9.5, 29 22.5, 16 30, 3 22.5, 3 9.5' stroke='%23ffffff' stroke-width='2' stroke-linejoin='round'/%3E%3Cpolygon points='16 9, 23 13, 23 19, 16 23, 9 19, 9 13' stroke='%23ffffff' stroke-width='1.5' stroke-linejoin='round' stroke-opacity='0.6'/%3E%3Cline x1='16' y1='2' x2='16' y2='9' stroke='%23ffffff' stroke-width='1.8'/%3E%3Cline x1='29' y1='9.5' x2='23' y2='13' stroke='%23ffffff' stroke-width='1.8'/%3E%3Cline x1='29' y1='22.5' x2='23' y2='19' stroke='%23ffffff' stroke-width='1.8'/%3E%3Cline x1='16' y1='30' x2='16' y2='23' stroke='%23ffffff' stroke-width='1.8'/%3E%3Cline x1='3' y1='22.5' x2='9' y2='19' stroke='%23ffffff' stroke-width='1.8'/%3E%3Cline x1='3' y1='9.5' x2='9' y2='13' stroke='%23ffffff' stroke-width='1.8'/%3E%3Ccircle cx='16' cy='16' r='2.5' fill='%23ffffff'/%3E%3C/svg%3E">
+  <!-- Isometric Faceted Cube Favicon -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32' fill='none'%3E%3Cpath d='M16 2L29 9.5V22.5L16 30L3 22.5V9.5L16 2Z' stroke='%23ffffff' stroke-width='2' stroke-linejoin='round'/%3E%3Cpath d='M16 2V16M16 16L29 22.5M16 16L3 22.5' stroke='%23ffffff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3Ccircle cx='16' cy='16' r='3' fill='%23ffffff'/%3E%3C/svg%3E">
   
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -25,7 +25,7 @@
       --accent: #ffffff;
       --accent-invert: #000000;
       --code-bg: rgba(255, 255, 255, 0.035);
-      --nav-bg: rgba(7, 7, 9, 0.85);
+      --nav-bg: rgba(7, 7, 9, 0.75);
       --radial-glow-1: rgba(255, 255, 255, 0.05);
       --radial-glow-2: rgba(120, 119, 198, 0.03);
       --font-sans: 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -65,7 +65,7 @@
       --accent: #09090b;
       --accent-invert: #ffffff;
       --code-bg: rgba(0, 0, 0, 0.035);
-      --nav-bg: rgba(247, 247, 250, 0.9);
+      --nav-bg: rgba(247, 247, 250, 0.85);
       --radial-glow-1: rgba(0, 0, 0, 0.03);
       --radial-glow-2: rgba(100, 100, 200, 0.02);
 
@@ -110,8 +110,7 @@
         radial-gradient(ellipse 60% 30% at 50% 35%, var(--radial-glow-2), transparent);
     }
 
-    /* Tactile UI/UX Micro-Interactions */
-    button, .github-btn, .demo-chip, .install-tab, .copy-btn {
+    button, .github-btn, .demo-chip, .install-tab, .copy-btn, .nav-item {
       user-select: none;
       -webkit-user-select: none;
     }
@@ -126,13 +125,13 @@
       padding: 0 24px;
     }
 
-    /* Header & Navigation Bar */
+    /* Enhanced Header & Navbar */
     header {
       position: sticky;
       top: 0;
       z-index: 50;
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
       border-bottom: 1px solid var(--card-border);
       background: var(--nav-bg);
     }
@@ -141,28 +140,53 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      height: 64px;
+      height: 60px;
+      gap: 16px;
+    }
+
+    .nav-left {
+      display: flex;
+      align-items: center;
+      gap: 24px;
     }
 
     .logo {
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 10px;
       font-weight: 700;
-      font-size: 1.05rem;
+      font-size: 1.02rem;
       letter-spacing: -0.03em;
       color: var(--text-main);
       text-decoration: none;
     }
 
     .abstract-logo {
-      width: 24px;
-      height: 24px;
+      width: 22px;
+      height: 22px;
       flex-shrink: 0;
       color: var(--text-main);
     }
 
-    .nav-controls {
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .nav-item {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 0.84rem;
+      font-weight: 500;
+      transition: color 0.15s ease;
+    }
+
+    .nav-item:hover {
+      color: var(--text-main);
+    }
+
+    .nav-right {
       display: flex;
       align-items: center;
       gap: 10px;
@@ -232,7 +256,7 @@
 
     /* Hero */
     .hero {
-      padding: 96px 0 52px;
+      padding: 92px 0 52px;
       text-align: center;
       position: relative;
     }
@@ -622,6 +646,7 @@
 
     @media (max-width: 768px) {
       .hero { padding: 56px 0 28px; }
+      .nav-links { display: none; }
       .install-box { flex-direction: column; align-items: stretch; }
       .copy-btn { justify-content: center; width: 100%; }
       .terminal-body { padding: 18px; min-height: 200px; }
@@ -637,25 +662,28 @@
 </head>
 <body>
 
-  <!-- Clean Minimalist Header -->
+  <!-- Clean Minimalist Header with Navigation -->
   <header>
     <div class="container nav-wrap">
-      <a href="#" class="logo">
-        <svg class="abstract-logo" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <polygon points="16 2, 29 9.5, 29 22.5, 16 30, 3 22.5, 3 9.5" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
-          <polygon points="16 9, 23 13, 23 19, 16 23, 9 19, 9 13" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" stroke-opacity="0.6"/>
-          <line x1="16" y1="2" x2="16" y2="9" stroke="currentColor" stroke-width="1.8"/>
-          <line x1="29" y1="9.5" x2="23" y2="13" stroke="currentColor" stroke-width="1.8"/>
-          <line x1="29" y1="22.5" x2="23" y2="19" stroke="currentColor" stroke-width="1.8"/>
-          <line x1="16" y1="30" x2="16" y2="23" stroke="currentColor" stroke-width="1.8"/>
-          <line x1="3" y1="22.5" x2="9" y2="19" stroke="currentColor" stroke-width="1.8"/>
-          <line x1="3" y1="9.5" x2="9" y2="13" stroke="currentColor" stroke-width="1.8"/>
-          <circle cx="16" cy="16" r="2.5" fill="currentColor"/>
-        </svg>
-        <span>PowerAI</span>
-      </a>
+      <div class="nav-left">
+        <a href="#" class="logo">
+          <!-- Isometric Faceted Cube SVG -->
+          <svg class="abstract-logo" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M16 2L29 9.5V22.5L16 30L3 22.5V9.5L16 2Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+            <path d="M16 2V16M16 16L29 22.5M16 16L3 22.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <circle cx="16" cy="16" r="3" fill="currentColor"/>
+          </svg>
+          <span>PowerAI</span>
+        </a>
 
-      <div class="nav-controls">
+        <div class="nav-links">
+          <a href="#install" class="nav-item" data-i18n="nav_install">Instalação</a>
+          <a href="#demo" class="nav-item" data-i18n="nav_demo">Simulador</a>
+          <a href="https://github.com/Luizhcrs/nuno#recursos" target="_blank" class="nav-item" data-i18n="nav_docs">Docs</a>
+        </div>
+      </div>
+
+      <div class="nav-right">
         <div class="lang-switcher">
           <button class="lang-btn active" onclick="setLanguage('pt')">PT</button>
           <button class="lang-btn" onclick="setLanguage('en')">EN</button>
@@ -695,7 +723,7 @@
       </p>
 
       <!-- Install Box -->
-      <div class="install-box">
+      <div class="install-box" id="install">
         <div class="install-tabs">
           <button class="install-tab active" onclick="switchInstallTab('mac')">macOS / Linux</button>
           <button class="install-tab" onclick="switchInstallTab('win')">Windows</button>
@@ -713,7 +741,7 @@
       </div>
 
       <!-- Live Interactive Terminal -->
-      <div class="terminal-container">
+      <div class="terminal-container" id="demo">
         <div class="terminal-header">
           <div class="terminal-dots">
             <div class="dot dot-1"></div>
@@ -800,15 +828,9 @@
         <div>
           <a href="#" class="footer-brand">
             <svg class="abstract-logo" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <polygon points="16 2, 29 9.5, 29 22.5, 16 30, 3 22.5, 3 9.5" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
-              <polygon points="16 9, 23 13, 23 19, 16 23, 9 19, 9 13" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" stroke-opacity="0.6"/>
-              <line x1="16" y1="2" x2="16" y2="9" stroke="currentColor" stroke-width="1.8"/>
-              <line x1="29" y1="9.5" x2="23" y2="13" stroke="currentColor" stroke-width="1.8"/>
-              <line x1="29" y1="22.5" x2="23" y2="19" stroke="currentColor" stroke-width="1.8"/>
-              <line x1="16" y1="30" x2="16" y2="23" stroke="currentColor" stroke-width="1.8"/>
-              <line x1="3" y1="22.5" x2="9" y2="19" stroke="currentColor" stroke-width="1.8"/>
-              <line x1="3" y1="9.5" x2="9" y2="13" stroke="currentColor" stroke-width="1.8"/>
-              <circle cx="16" cy="16" r="2.5" fill="currentColor"/>
+              <path d="M16 2L29 9.5V22.5L16 30L3 22.5V9.5L16 2Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+              <path d="M16 2V16M16 16L29 22.5M16 16L3 22.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <circle cx="16" cy="16" r="3" fill="currentColor"/>
             </svg>
             <span>PowerAI</span>
           </a>
@@ -847,6 +869,9 @@
   <script>
     const translations = {
       pt: {
+        nav_install: "Instalação",
+        nav_demo: "Simulador",
+        nav_docs: "Docs",
         hero_title: "A inteligência do terminal, direto na sua máquina.",
         hero_desc: "Interprete saídas de comandos, corrija erros e execute ações com um toque. Local-first com Ollama, zero telemetria e respostas instantâneas.",
         copy_btn: "Copiar",
@@ -868,6 +893,9 @@
         confirm_no: "Não (Esc)"
       },
       en: {
+        nav_install: "Installation",
+        nav_demo: "Simulator",
+        nav_docs: "Docs",
         hero_title: "Terminal intelligence, built for your local machine.",
         hero_desc: "Analyze outputs, auto-heal typos, and execute CLI actions instantly. Local-first via Ollama with zero telemetry and sub-second inference.",
         copy_btn: "Copy",
@@ -889,6 +917,9 @@
         confirm_no: "No (Esc)"
       },
       es: {
+        nav_install: "Instalación",
+        nav_demo: "Simulador",
+        nav_docs: "Docs",
         hero_title: "La inteligencia de la terminal, directo en tu equipo.",
         hero_desc: "Analiza salidas, corrige errores y ejecuta acciones al instante. Local-first con Ollama, cero telemetría y respuestas inmediatas.",
         copy_btn: "Copiar",
