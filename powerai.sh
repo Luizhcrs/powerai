@@ -300,6 +300,9 @@ _powerai_parse_response() {
     fi
     [ -z "$content" ] && content="$raw"
 
+    # Unescape escaped quotes if present
+    content=$(echo "$content" | sed 's/\\\"/"/g')
+
     local cmd=""
     local exp=""
 
@@ -321,13 +324,13 @@ _powerai_parse_response() {
 
     # 3. Native Regex Fallback
     if [ -z "$cmd" ] && [ -z "$exp" ]; then
-        cmd=$(echo "$content" | grep -o '"suggested_command"[^,}]*' | head -n 1 | sed -E 's/.*:[[:space:]]*"?([^",}]+)"?.*/\1/')
-        exp=$(echo "$content" | grep -o '"explanation"[^,}]*' | head -n 1 | sed -E 's/.*:[[:space:]]*"?([^",}]+)"?.*/\1/')
+        cmd=$(echo "$content" | grep -i 'suggested_command' | head -n 1 | sed -E 's/.*:[[:space:]]*[\\"]*([^",}]+)[\\"]*.*/\1/' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+        exp=$(echo "$content" | grep -i 'explanation' | head -n 1 | sed -E 's/.*:[[:space:]]*[\\"]*([^",}]+)[\\"]*.*/\1/' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
     fi
 
     # 4. Raw Codeblock fallback
     if [ -z "$cmd" ]; then
-        local raw_cmd=$(echo "$content" | sed -n '/```/,/```/p' | sed '/```/d' | grep -v '^[[:space:]]*#' | grep -v '^[[:space:]]*{' | head -n 1)
+        local raw_cmd=$(echo "$content" | sed -n '/```/,/```/p' | sed '/```/d' | grep -v '^[[:space:]]*#' | grep -v '^[[:space:]]*{' | grep -v '^[[:space:]]*}' | grep -v 'suggested_command' | grep -v 'explanation' | head -n 1)
         [ -n "$raw_cmd" ] && cmd="$raw_cmd"
     fi
 
@@ -466,6 +469,7 @@ Responda APENAS com um objeto JSON válido:
             --arg user "$user_prompt" \
             '{
                 model: $model,
+                format: "json",
                 stream: false,
                 options: { temperature: 0.0 },
                 messages: [
