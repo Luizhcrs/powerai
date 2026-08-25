@@ -1,8 +1,10 @@
 <div align="center">
 
-# PowerAI
+<a href="https://luizhcrs.github.io/nuno">
+  <img src="assets/banner.svg" alt="PowerAI Banner" width="100%">
+</a>
 
-A cognitive layer and local-first copilot for macOS, Linux, and Windows terminals.
+<br/><br/>
 
 [Landing Page & Web Simulator](https://luizhcrs.github.io/nuno) • [Quick Install](#quick-install) • [Commands](#commands) • [How It Works](#how-it-works) • [License](#license--terms)
 
