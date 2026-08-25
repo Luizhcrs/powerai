@@ -2,7 +2,7 @@
 # powerai.sh - Native Linux & macOS Terminal AI Harness (Bash & Zsh)
 # Usage: source ~/.powerai/powerai.sh or ai <query>
 
-POWERAI_VERSION="v1.0.0"
+POWERAI_VERSION="v1.0.1"
 POWERAI_CONFIG_DIR="$HOME/.powerai"
 POWERAI_CONFIG_FILE="$POWERAI_CONFIG_DIR/config.json"
 POWERAI_SPINNER_PID=""
