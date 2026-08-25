@@ -14,11 +14,11 @@ _powerai_add_session() {
     local cmd="$2"
     local output="$3"
 
-    local turn_data="Pergunta: $query"
-    [ -n "$cmd" ] && turn_data="$turn_data\nComando: $cmd"
+    local turn_data="Query: $query"
+    [ -n "$cmd" ] && turn_data="$turn_data\nCommand: $cmd"
     if [ -n "$output" ]; then
         local truncated_out=$(echo "$output" | head -n 120)
-        turn_data="$turn_data\nSaída do Terminal:\n$truncated_out"
+        turn_data="$turn_data\nTerminal Output:\n$truncated_out"
     fi
 
     POWERAI_SESSION_MEMORY+=("$turn_data")
@@ -39,6 +39,14 @@ _powerai_load_config() {
     POWERAI_CLOUD_MODEL="gpt-4o-mini"
     POWERAI_TIMEOUT=25
     POWERAI_AUTO_SUGGEST=true
+    POWERAI_LANGUAGE="pt-BR"
+
+    # Auto-detect language if not explicitly configured
+    if [[ "${LANG:-}" =~ ^es ]] || [[ "${LC_ALL:-}" =~ ^es ]]; then
+        POWERAI_LANGUAGE="es-ES"
+    elif [[ "${LANG:-}" =~ ^en ]] || [[ "${LC_ALL:-}" =~ ^en ]]; then
+        POWERAI_LANGUAGE="en-US"
+    fi
 
     if [ -f "$POWERAI_CONFIG_FILE" ]; then
         local m=$(jq -r '.Mode // empty' "$POWERAI_CONFIG_FILE" 2>/dev/null)
@@ -73,11 +81,14 @@ _powerai_load_config() {
 
         local as=$(jq -r '.AutoSuggestOnErrors // empty' "$POWERAI_CONFIG_FILE" 2>/dev/null)
         [ -n "$as" ] && POWERAI_AUTO_SUGGEST="$as"
+
+        local lang=$(jq -r '.Language // empty' "$POWERAI_CONFIG_FILE" 2>/dev/null)
+        [ -n "$lang" ] && POWERAI_LANGUAGE="$lang"
     fi
 }
 
 _powerai_spinner() {
-    local initial_status="${1:-analisando ambiente}"
+    local is_error="$1"
     local frames=("⠋" "⠙" "⠹" "⠸" "⠼" "⠴" "⠦" "⠧" "⠇" "⠏")
     local grays=(
         "\033[38;5;239m"
@@ -95,6 +106,27 @@ _powerai_spinner() {
     local n_grays=${#grays[@]}
     local i=0
 
+    # Localized labels
+    local lbl_thinking="pensando"
+    local lbl_env="analisando ambiente"
+    local lbl_model="consultando modelo"
+    local lbl_synth="sintetizando comando"
+    local lbl_err="analisando erro"
+
+    if [[ "$POWERAI_LANGUAGE" =~ ^en ]]; then
+        lbl_thinking="thinking"
+        lbl_env="analyzing environment"
+        lbl_model="querying model"
+        lbl_synth="synthesizing command"
+        lbl_err="analyzing error"
+    elif [[ "$POWERAI_LANGUAGE" =~ ^es ]]; then
+        lbl_thinking="pensando"
+        lbl_env="analizando entorno"
+        lbl_model="consultando modelo"
+        lbl_synth="sintetizando comando"
+        lbl_err="analizando error"
+    fi
+
     # Hide cursor
     tput civis 2>/dev/null || printf "\033[?25l"
 
@@ -104,23 +136,25 @@ _powerai_spinner() {
         local frame="${frames[$f_idx]}"
         local color="${grays[$c_idx]}"
 
-        local sub="$initial_status"
-        if [ $i -gt 25 ]; then
-            sub="sintetizando comando"
+        local sub="$lbl_env"
+        if [ "$is_error" = "true" ]; then
+            sub="$lbl_err"
+        elif [ $i -gt 25 ]; then
+            sub="$lbl_synth"
         elif [ $i -gt 10 ]; then
-            sub="consultando modelo"
+            sub="$lbl_model"
         fi
 
-        printf "\r  ${color}${frame}\033[0m  \033[38;5;245mpensando\033[0m \033[38;5;238m·\033[0m \033[38;5;241m%s\033[0m\033[K" "$sub"
+        printf "\r  ${color}${frame}\033[0m  \033[38;5;245m%s\033[0m \033[38;5;238m·\033[0m \033[38;5;241m%s\033[0m\033[K" "$lbl_thinking" "$sub"
         sleep 0.08
         ((i++))
     done
 }
 
 _powerai_start_spinner() {
-    local msg="$1"
+    local is_err="${1:-false}"
     _powerai_stop_spinner
-    _powerai_spinner "$msg" &
+    _powerai_spinner "$is_err" &
     POWERAI_SPINNER_PID=$!
 }
 
@@ -182,21 +216,21 @@ _powerai_get_context() {
     local session_history=""
     local turn_count=1
     for item in "${POWERAI_SESSION_MEMORY[@]}"; do
-        session_history="$session_history\n[Turno $turn_count]\n$item\n"
+        session_history="$session_history\n[Turn $turn_count]\n$item\n"
         ((turn_count++))
     done
 
     cat <<EOF
-=== CONTEXTO DO SISTEMA E AMBIENTE ===
-- Diretorio Atual (CWD): $cwd
-- Sistema Operacional: $os_name
-- Usuario: $USER (Home: $HOME)
-- Branch Git Ativa: ${git_branch:-N/A}
-- Pastas no Diretorio: $top_dirs
-- Arquivos no Diretorio: $top_files
+=== SYSTEM & ENVIRONMENT CONTEXT ===
+- Current Working Directory (CWD): $cwd
+- Operating System: $os_name
+- User: $USER (Home: $HOME)
+- Active Git Branch: ${git_branch:-N/A}
+- Subdirectories: $top_dirs
+- Key Files: $top_files
 
-=== HISTORICO RECENTE DA SESSAO (PERGUNTAS, COMANDOS E SAIDAS GERADAS) ===
-${session_history:-Nenhum comando anterior nesta sessao.}
+=== RECENT SESSION HISTORY (COMMANDS, QUERIES & TERMINAL OUTPUT) ===
+${session_history:-No prior commands in this session.}
 EOF
 }
 
@@ -239,35 +273,43 @@ _powerai_query() {
             use_cloud=true
         else
             echo ""
-            echo "  [PowerAI] Nenhum provedor de IA disponivel no momento:"
-            echo "  1. Local Ollama: Inicie o Ollama em $POWERAI_OLLAMA_ENDPOINT ('ollama run $POWERAI_LOCAL_MODEL')"
-            echo "  2. Local OpenAI-Compatible: Verifique se o servidor esta rodando em $POWERAI_LOCAL_ENDPOINT"
-            echo "  3. Nuvem (OpenAI): Configure 'CloudApiKey' em ~/.powerai/config.json ou export OPENAI_API_KEY='sua-chave'"
+            echo "  [PowerAI] No AI provider available:"
+            echo "  1. Local Ollama: Start Ollama at $POWERAI_OLLAMA_ENDPOINT ('ollama run $POWERAI_LOCAL_MODEL')"
+            echo "  2. Local OpenAI-Compatible: Verify server running at $POWERAI_LOCAL_ENDPOINT"
+            echo "  3. Cloud (OpenAI): Set 'CloudApiKey' in ~/.powerai/config.json or export OPENAI_API_KEY='your-key'"
             echo ""
             return 1
         fi
     fi
 
-    # Iniciar animacao minimalista de pensamento
-    if [ "$is_error" = "true" ]; then
-        _powerai_start_spinner "analisando erro"
-    else
-        _powerai_start_spinner "analisando ambiente"
+    # Iniciar animacao de pensamento
+    _powerai_start_spinner "$is_error"
+
+    # Multilingual language directive
+    local lang_directive="Responda em Português do Brasil de forma clara e direta."
+    if [[ "$POWERAI_LANGUAGE" =~ ^en ]]; then
+        lang_directive="Respond strictly in English clearly and concisely."
+    elif [[ "$POWERAI_LANGUAGE" =~ ^es ]]; then
+        lang_directive="Responde estrictamente en Español de forma clara y directa."
     fi
 
     local harness_ctx="$(_powerai_get_context)"
-    local sys_prompt="Voce e o PowerAI, assistente inteligente e copiloto de terminal macOS e Linux (Bash/Zsh).
+    local sys_prompt="You are PowerAI, an expert terminal assistant and CLI copilot for macOS and Linux (Bash/Zsh).
 $harness_ctx
-DIRETRIZES DE RESPOSTA:
-1. PERGUNTAS SOBRE A SAÍDA ANTERIOR OU DÚVIDAS (ex: 'qual meu ip ali?', 'qual o status?', 'o que significa o erro?', 'qual processo devo matar?'):
-   - Responda no campo 'explanation' de forma DIRETA, CLARA e EXTRAINDO o dado exato da 'Saída do Terminal' do histórico.
-   - Deixe o campo 'suggested_command' como \"\" (vazio). NUNCA repita comandos que ja foram executados.
+LANGUAGE RULE:
+$lang_directive
 
-2. PEDIDOS DE EXECUÇÃO / NOVO COMANDO (ex: 'matar o processo 123', 'listar arquivos', 'criar pasta', 'verificar porta 3000'):
-   - Preencha 'suggested_command' com o comando shell exato POSIX/macOS.
-   - Preencha 'explanation' com uma breve descricao.
+BEHAVIOR RULES:
+1. INFORMATIONAL QUERIES / OUTPUT ANALYSIS (e.g. 'what is my local IP?', 'explain this error', 'which process to kill?'):
+   - Answer the question directly in the 'explanation' field using the exact data extracted from the Terminal Output history.
+   - Leave 'suggested_command' as \"\" (empty). NEVER repeat previously executed commands.
 
-Responda OBRIGATORIAMENTE em JSON:
+2. COMMAND EXECUTION / NEW ACTION REQUESTS (e.g. 'kill process 123', 'list files', 'create folder', 'check port 3000'):
+   - Fill 'suggested_command' with the exact POSIX/macOS shell command.
+   - Fill 'explanation' with a short 1-sentence description.
+
+OUTPUT FORMAT:
+Respond ONLY with a valid JSON object:
 {\"suggested_command\": \"...\", \"explanation\": \"...\"}"
 
     local response=""
@@ -345,7 +387,7 @@ Responda OBRIGATORIAMENTE em JSON:
     _powerai_stop_spinner
 
     if [ -z "$response" ]; then
-        echo -e "  \033[38;5;240m[Erro] Falha ao conectar ao servidor de IA (resposta vazia ou timeout).\033[0m"
+        echo -e "  \033[38;5;240m[Error] Failed to connect to AI provider (empty response or timeout).\033[0m"
         return 1
     fi
 
@@ -371,12 +413,12 @@ Responda OBRIGATORIAMENTE em JSON:
         return 0
     fi
 
-    # Verificar se o comando sugerido apenas repete o comando executado no turno anterior
+    # Verificar se o comando sugerido apenas repete o comando anterior
     local is_repeat=false
     if [ ${#POWERAI_SESSION_MEMORY[@]} -gt 0 ]; then
         local last_turn="${POWERAI_SESSION_MEMORY[-1]}"
         [ -z "$last_turn" ] && last_turn="${POWERAI_SESSION_MEMORY[${#POWERAI_SESSION_MEMORY[@]}]}"
-        if [[ "$last_turn" == *"Comando: $cmd"* ]]; then
+        if [[ "$last_turn" == *"Command: $cmd"* ]]; then
             is_repeat=true
         fi
     fi
@@ -391,6 +433,21 @@ Responda OBRIGATORIAMENTE em JSON:
         fi
     fi
 
+    # Localized prompt strings
+    local lbl_confirm="  \033[38;5;242mExecutar comando? \033[38;5;248m[Enter/S = Sim | Esc/N = Não]:\033[0m "
+    local lbl_exec="[Executando]"
+    local lbl_cancel="Cancelado."
+
+    if [[ "$POWERAI_LANGUAGE" =~ ^en ]]; then
+        lbl_confirm="  \033[38;5;242mExecute command? \033[38;5;248m[Enter/Y = Yes | Esc/N = No]:\033[0m "
+        lbl_exec="[Executing]"
+        lbl_cancel="Canceled."
+    elif [[ "$POWERAI_LANGUAGE" =~ ^es ]]; then
+        lbl_confirm="  \033[38;5;242m¿Ejecutar comando? \033[38;5;248m[Enter/S = Sí | Esc/N = No]:\033[0m "
+        lbl_exec="[Ejecutando]"
+        lbl_cancel="Cancelado."
+    fi
+
     if [ -n "$cmd" ] && [ "$cmd" != "null" ]; then
         echo ""
         echo -e "  \033[1;37m✦ $cmd\033[0m"
@@ -398,14 +455,14 @@ Responda OBRIGATORIAMENTE em JSON:
             echo -e "    \033[38;5;244m↳ $exp\033[0m"
         fi
         echo ""
-        if _powerai_confirm "  \033[38;5;242mExecutar comando? \033[38;5;248m[Enter/S = Sim | Esc/N = Não]:\033[0m "; then
-            echo -e "  \033[38;5;250m[Executando] $cmd\033[0m"
+        if _powerai_confirm "$lbl_confirm"; then
+            echo -e "  \033[38;5;250m$lbl_exec $cmd\033[0m"
             echo ""
 
             local cmd_output=""
             if [[ "$cmd" =~ ^[[:space:]]*cd([[:space:]]|$) ]] || [[ "$cmd" =~ ^[[:space:]]*export([[:space:]]|$) ]] || [[ "$cmd" =~ ^[[:space:]]*source([[:space:]]|$) ]]; then
                 eval "$cmd"
-                cmd_output="Diretorio alterado para: $PWD"
+                cmd_output="Working directory changed to: $PWD"
             else
                 local tmp_out=$(mktemp /tmp/powerai_out.XXXXXX 2>/dev/null || mktemp 2>/dev/null || echo "/tmp/powerai_cmd_$$.log")
                 eval "$cmd" 2>&1 | tee "$tmp_out"
@@ -415,7 +472,7 @@ Responda OBRIGATORIAMENTE em JSON:
 
             _powerai_add_session "$user_prompt" "$cmd" "$cmd_output"
         else
-            echo -e "  \033[38;5;240mCancelado.\033[0m"
+            echo -e "  \033[38;5;240m$lbl_cancel\033[0m"
         fi
     elif [ -n "$exp" ]; then
         echo ""
@@ -428,43 +485,67 @@ Responda OBRIGATORIAMENTE em JSON:
 _powerai_ai_entry() {
     if [ "$1" = "uninstall" ] || [ "$1" = "--uninstall" ] || [ "$1" = "desinstalar" ]; then
         echo "=========================================================="
-        echo " [PowerAI] Confirmacao de Desinstalacao"
+        echo " [PowerAI] Uninstall Confirmation"
         echo "=========================================================="
-        if _powerai_confirm "Deseja realmente desinstalar o PowerAI do seu sistema? [Enter/S = Sim | Esc/N = Nao]: "; then
+        if _powerai_confirm "Do you want to uninstall PowerAI from your system? [Enter/Y = Yes | Esc/N = No]: "; then
             if [ -f "$POWERAI_CONFIG_DIR/uninstall.sh" ]; then
                 bash "$POWERAI_CONFIG_DIR/uninstall.sh"
             else
                 curl -fsSL "https://raw.githubusercontent.com/Luizhcrs/nuno/main/uninstall.sh" | bash
             fi
         else
-            echo "Desinstalacao cancelada."
+            echo "Uninstallation canceled."
+        fi
+        return 0
+    fi
+
+    if [ "$1" = "language" ] || [ "$1" = "lang" ] || [ "$1" = "idioma" ]; then
+        local new_lang="$2"
+        if [ "$new_lang" = "pt" ] || [ "$new_lang" = "pt-BR" ] || [ "$new_lang" = "pt_BR" ]; then
+            new_lang="pt-BR"
+        elif [ "$new_lang" = "en" ] || [ "$new_lang" = "en-US" ] || [ "$new_lang" = "en_US" ]; then
+            new_lang="en-US"
+        elif [ "$new_lang" = "es" ] || [ "$new_lang" = "es-ES" ] || [ "$new_lang" = "es_ES" ]; then
+            new_lang="es-ES"
+        else
+            echo "Usage: ai language <pt | en | es>"
+            return 0
+        fi
+
+        if [ -f "$POWERAI_CONFIG_FILE" ]; then
+            local tmp_cfg=$(mktemp)
+            jq --arg l "$new_lang" '.Language = $l' "$POWERAI_CONFIG_FILE" > "$tmp_cfg" && mv "$tmp_cfg" "$POWERAI_CONFIG_FILE"
+            POWERAI_LANGUAGE="$new_lang"
+            echo "  ✓ Idioma alterado para: $new_lang"
         fi
         return 0
     fi
 
     if [ "$1" = "config" ]; then
         _powerai_load_config
-        echo "=== Configuracao Atual do PowerAI ==="
-        echo "Arquivo: $POWERAI_CONFIG_FILE"
-        echo "Modo: $POWERAI_MODE"
+        echo "=== PowerAI Active Configuration ==="
+        echo "Config File: $POWERAI_CONFIG_FILE"
+        echo "Language: $POWERAI_LANGUAGE"
+        echo "Mode: $POWERAI_MODE"
         echo "Local Type: $POWERAI_LOCAL_TYPE"
         echo "Local Endpoint: $POWERAI_LOCAL_ENDPOINT"
-        echo "Local API Key: $([ -n "$POWERAI_LOCAL_API_KEY" ] && echo "***configurada***" || echo "nao configurada")"
+        echo "Local API Key: $([ -n "$POWERAI_LOCAL_API_KEY" ] && echo "***configured***" || echo "not configured")"
         echo "Local Model: $POWERAI_LOCAL_MODEL"
         echo "Ollama Endpoint: $POWERAI_OLLAMA_ENDPOINT"
         echo "Cloud Endpoint: $POWERAI_CLOUD_ENDPOINT"
         echo "Cloud Model: $POWERAI_CLOUD_MODEL"
-        echo "Cloud API Key: $([ -n "$POWERAI_CLOUD_API_KEY" ] && echo "***configurada***" || echo "nao configurada")"
-        echo "Auto-Suggest em Erros: $POWERAI_AUTO_SUGGEST"
+        echo "Cloud API Key: $([ -n "$POWERAI_CLOUD_API_KEY" ] && echo "***configured***" || echo "not configured")"
+        echo "Auto-Suggest on Errors: $POWERAI_AUTO_SUGGEST"
         return 0
     fi
 
     if [ $# -eq 0 ]; then
-        echo "  [PowerAI] Camada Cognitiva para Terminal"
-        echo "  Uso: ai <pergunta ou comando em linguagem natural>"
-        echo "       ? <pergunta>"
-        echo "       ai config (ver configuracoes ativas)"
-        echo "       ai uninstall (desinstalar)"
+        echo "  [PowerAI] Invisible Cognitive Terminal Layer"
+        echo "  Usage: ai <query or natural language request>"
+        echo "         ? <query>"
+        echo "         ai language <pt|en|es> (change language)"
+        echo "         ai config (view active settings)"
+        echo "         ai uninstall (remove PowerAI)"
         return 0
     fi
     local query="$*"
@@ -484,7 +565,7 @@ else
     alias '?'='ai'
 fi
 
-# --- INTERCEPTOR AUTOMATICO DE COMANDOS DESCONHECIDOS (BASH & ZSH) ---
+# --- AUTOMATIC UNKNOWN COMMAND INTERCEPTOR (BASH & ZSH) ---
 
 # Para o Bash: command_not_found_handle
 command_not_found_handle() {

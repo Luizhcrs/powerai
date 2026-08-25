@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# install.sh - Modern & Interactive Installer for PowerAI (Linux & macOS)
+# install.sh - Modern, Multilingual & Interactive Installer for PowerAI
 # Usage: curl -fsSL https://raw.githubusercontent.com/Luizhcrs/nuno/main/install.sh | bash
 #        or ./install.sh [--quick]
 
@@ -64,17 +64,18 @@ _select_menu() {
     }
 
     # Print step title header
-    printf "  \033[38;5;248m%s\033[0m \033[38;5;240m(Navegue com ↑/↓ e Enter)\033[0m\n" "$step_title"
+    local nav_hint="(Navegue com ↑/↓ e Enter)"
+    [ "$CHOSEN_LANG" = "en-US" ] && nav_hint="(Navigate with ↑/↓ and Enter)"
+    [ "$CHOSEN_LANG" = "es-ES" ] && nav_hint="(Navega con ↑/↓ y Enter)"
+    printf "  \033[38;5;248m%s\033[0m \033[38;5;240m%s\033[0m\n" "$step_title" "$nav_hint"
 
     while true; do
         # Render options
         local idx=0
         for opt in "${options[@]}"; do
             if [ "$idx" -eq "$selected" ]; then
-                # Selected: Soft dark-gray background pill + bright white text + arrow
                 printf "     \033[1;37;48;5;236m ▸ %-62s \033[0m\033[K\n" "$opt"
             else
-                # Unselected: clean subtle gray
                 printf "     \033[38;5;244m   %-62s \033[0m\033[K\n" "$opt"
             fi
             idx=$((idx + 1))
@@ -89,7 +90,6 @@ _select_menu() {
         fi
 
         if [ "$c1" = $'\x1b' ]; then
-            # Read escape sequence
             if [ -e /dev/tty ]; then
                 c2=$(dd bs=1 count=1 < /dev/tty 2>/dev/null || true)
                 if [ "$c2" = "[" ]; then
@@ -102,15 +102,13 @@ _select_menu() {
                 fi
             fi
 
-            if [ "$c3" = "A" ]; then
-                # UP
+            if [ "$c3" = "A" ]; then # UP
                 if [ $selected -gt 0 ]; then
                     selected=$((selected - 1))
                 else
                     selected=$((count - 1))
                 fi
-            elif [ "$c3" = "B" ]; then
-                # DOWN
+            elif [ "$c3" = "B" ]; then # DOWN
                 if [ $selected -lt $((count - 1)) ]; then
                     selected=$((selected + 1))
                 else
@@ -118,35 +116,23 @@ _select_menu() {
                 fi
             fi
         elif [ "$c1" = "k" ] || [ "$c1" = "K" ]; then
-            if [ $selected -gt 0 ]; then
-                selected=$((selected - 1))
-            else
-                selected=$((count - 1))
-            fi
+            [ $selected -gt 0 ] && selected=$((selected - 1)) || selected=$((count - 1))
         elif [ "$c1" = "j" ] || [ "$c1" = "J" ]; then
-            if [ $selected -lt $((count - 1)) ]; then
-                selected=$((selected + 1))
-            else
-                selected=0
-            fi
+            [ $selected -lt $((count - 1)) ] && selected=$((selected + 1)) || selected=0
         elif [ "$c1" = "1" ]; then
-            selected=0
-            break
+            selected=0; break
         elif [ "$c1" = "2" ] && [ $count -gt 1 ]; then
-            selected=1
-            break
+            selected=1; break
         elif [ "$c1" = "3" ] && [ $count -gt 2 ]; then
-            selected=2
-            break
+            selected=2; break
         elif [ "$c1" = "4" ] && [ $count -gt 3 ]; then
-            selected=3
-            break
+            selected=3; break
         elif [ "$c1" = "" ] || [ "$c1" = $'\n' ] || [ "$c1" = $'\r' ]; then
             break
         elif [ "$c1" = $'\x03' ]; then # Ctrl+C
             _cleanup_menu
             echo ""
-            echo "Instalação cancelada."
+            echo "Installation canceled."
             exit 130
         fi
 
@@ -156,10 +142,9 @@ _select_menu() {
 
     _cleanup_menu
 
-    # Dynamic in-place collapse: clear the menu options and replace with single completed line
+    # Dynamic in-place collapse
     printf "\033[%dA\033[J" "$((count + 1))"
     local raw_chosen="${options[$selected]}"
-    # Extract clean display name (strip leading number prefix)
     local clean_name=$(echo "$raw_chosen" | sed -E 's/^[0-9]+\)[[:space:]]*//' | sed -E 's/[[:space:]]*·.*//')
     printf "  \033[1;37m✓\033[0m  \033[38;5;250m%-28s\033[0m \033[1;37m%s\033[0m\n" "$step_title" "$clean_name"
 
@@ -216,11 +201,10 @@ _animate_intro() {
         sleep 0.025
     done
 
-    # Print final crisp title
     printf "\r  \033[1;37m%s\033[0m\n" "$text"
-    printf "     \033[38;5;244mCamada Cognitiva & Copiloto para Terminal\033[0m\n"
+    printf "     \033[38;5;244mInvisible Cognitive Layer & Terminal Copilot\033[0m\n"
 
-    # 2. Sweeping light beam on divider line
+    # 2. Sweeping light beam
     local width=58
     for pos in $(seq 0 3 $width); do
         printf "\r     "
@@ -242,7 +226,6 @@ _animate_intro() {
         sleep 0.015
     done
     
-    # Settle divider line into subtle dark gray
     printf "\r     \033[38;5;238m──────────────────────────────────────────────────────────\033[0m\n\n"
     tput cnorm 2>/dev/null || printf "\033[?25h"
 }
@@ -256,8 +239,38 @@ if [ "$1" = "--quick" ] || [ "$1" = "-y" ] || [ "$1" = "--yes" ]; then
     QUICK_MODE=true
 fi
 
-# Step 1: Detect Dependencies
-_spin_step "1. Ambiente & Dependências:  curl, python3, jq detectados" "sleep 0.3"
+# Auto-detect language default
+CHOSEN_LANG="pt-BR"
+if [[ "${LANG:-}" =~ ^es ]] || [[ "${LC_ALL:-}" =~ ^es ]]; then
+    CHOSEN_LANG="es-ES"
+elif [[ "${LANG:-}" =~ ^en ]] || [[ "${LC_ALL:-}" =~ ^en ]]; then
+    CHOSEN_LANG="en-US"
+fi
+
+if [ "$QUICK_MODE" = false ]; then
+    # Step 1: Language Selection Menu
+    menu_languages=(
+        "1) Português (Brasil)  · Idioma padrão do sistema"
+        "2) English (US)        · International default"
+        "3) Español             · Idioma en español"
+    )
+    LANG_IDX=0
+    [ "$CHOSEN_LANG" = "en-US" ] && LANG_IDX=1
+    [ "$CHOSEN_LANG" = "es-ES" ] && LANG_IDX=2
+
+    _select_menu LANG_IDX "1. Idioma / Language:" "${menu_languages[@]}"
+    case "$LANG_IDX" in
+        1) CHOSEN_LANG="en-US" ;;
+        2) CHOSEN_LANG="es-ES" ;;
+        *) CHOSEN_LANG="pt-BR" ;;
+    esac
+fi
+
+# Step 2: Detect Dependencies
+msg_dep="2. Ambiente & Dependências:  curl, python3, jq detectados"
+[ "$CHOSEN_LANG" = "en-US" ] && msg_dep="2. Environment & Tools:      curl, python3, jq detected"
+[ "$CHOSEN_LANG" = "es-ES" ] && msg_dep="2. Entorno y Herramientas:   curl, python3, jq detectados"
+_spin_step "$msg_dep" "sleep 0.3"
 
 OLLAMA_INSTALLED=false
 if command -v ollama >/dev/null 2>&1; then
@@ -277,50 +290,77 @@ CHOSEN_CLOUD_MODEL="gpt-4o-mini"
 CHOSEN_AUTO_SUGGEST=true
 
 if [ "$QUICK_MODE" = false ]; then
-    menu_providers=(
-        "1) Ollama Local     · Recomendado: ultrarrápido, offline, <1s"
-        "2) API Local        · OMLX, LM Studio, vLLM em :5151 / :8000"
-        "3) Nuvem            · OpenAI gpt-4o-mini / Groq / OpenRouter"
-        "4) Automático       · Detecta localmente e faz fallback nuvem"
-    )
+    # Step 3: Provider Selection
+    title_prov="3. Provedor de IA:"
+    [ "$CHOSEN_LANG" = "en-US" ] && title_prov="3. AI Provider:"
+    [ "$CHOSEN_LANG" = "es-ES" ] && title_prov="3. Proveedor de IA:"
+
+    if [ "$CHOSEN_LANG" = "en-US" ]; then
+        menu_providers=(
+            "1) Local Ollama     · Recommended: ultra-fast, offline, <1s"
+            "2) Local API        · OMLX, LM Studio, vLLM on :5151 / :8000"
+            "3) Cloud            · OpenAI gpt-4o-mini / Groq / OpenRouter"
+            "4) Automatic        · Detects locally with cloud fallback"
+        )
+    elif [ "$CHOSEN_LANG" = "es-ES" ]; then
+        menu_providers=(
+            "1) Ollama Local     · Recomendado: ultrarrápido, offline, <1s"
+            "2) API Local        · OMLX, LM Studio, vLLM en :5151 / :8000"
+            "3) Nube             · OpenAI gpt-4o-mini / Groq / OpenRouter"
+            "4) Automático       · Detecta localmente con fallback a nube"
+        )
+    else
+        menu_providers=(
+            "1) Ollama Local     · Recomendado: ultrarrápido, offline, <1s"
+            "2) API Local        · OMLX, LM Studio, vLLM em :5151 / :8000"
+            "3) Nuvem            · OpenAI gpt-4o-mini / Groq / OpenRouter"
+            "4) Automático       · Detecta localmente e faz fallback nuvem"
+        )
+    fi
 
     CHOSEN_PROV_IDX=0
-    _select_menu CHOSEN_PROV_IDX "2. Provedor de IA:" "${menu_providers[@]}"
+    _select_menu CHOSEN_PROV_IDX "$title_prov" "${menu_providers[@]}"
 
     case "$CHOSEN_PROV_IDX" in
         1)
             CHOSEN_MODE="Local"
             CHOSEN_LOCAL_TYPE="OpenAICompatible"
+            title_lm="4. Modelo da API Local:"
+            [ "$CHOSEN_LANG" = "en-US" ] && title_lm="4. Local API Model:"
+            [ "$CHOSEN_LANG" = "es-ES" ] && title_lm="4. Modelo de API Local:"
             menu_local_models=(
-                "1) qwen2.5-coder:1.5b                       · Mais leve (<1s)"
-                "2) mlx-community--Qwen2.5-7B-Instruct-4bit  · Alta capacidade"
-                "3) Personalizado                            · Digitar manualmente"
+                "1) qwen2.5-coder:1.5b                       · Ultra-fast (<1s)"
+                "2) mlx-community--Qwen2.5-7B-Instruct-4bit  · High capability"
+                "3) Custom                                   · Type manually"
             )
             CHOSEN_LM_IDX=0
-            _select_menu CHOSEN_LM_IDX "3. Modelo da API Local:" "${menu_local_models[@]}"
+            _select_menu CHOSEN_LM_IDX "$title_lm" "${menu_local_models[@]}"
             case "$CHOSEN_LM_IDX" in
                 0) CHOSEN_LOCAL_MODEL="qwen2.5-coder:1.5b" ;;
                 1) CHOSEN_LOCAL_MODEL="mlx-community--Qwen2.5-7B-Instruct-4bit" ;;
-                *) CHOSEN_LOCAL_MODEL=$(_read_line "     Nome do modelo: " "qwen2.5-coder:1.5b") ;;
+                *) CHOSEN_LOCAL_MODEL=$(_read_line "     Model name: " "qwen2.5-coder:1.5b") ;;
             esac
-            CHOSEN_LOCAL_ENDPOINT=$(_read_line "     Endpoint [Padrão: http://127.0.0.1:5151/v1]: " "http://127.0.0.1:5151/v1")
-            CHOSEN_LOCAL_API_KEY=$(_read_line "     API Key (opcional se não exigir): " "")
+            CHOSEN_LOCAL_ENDPOINT=$(_read_line "     Endpoint [Default: http://127.0.0.1:5151/v1]: " "http://127.0.0.1:5151/v1")
+            CHOSEN_LOCAL_API_KEY=$(_read_line "     API Key (optional): " "")
             ;;
         2)
             CHOSEN_MODE="Cloud"
+            title_cm="4. Modelo de Nuvem:"
+            [ "$CHOSEN_LANG" = "en-US" ] && title_cm="4. Cloud Model:"
+            [ "$CHOSEN_LANG" = "es-ES" ] && title_cm="4. Modelo de Nube:"
             menu_cloud_models=(
-                "1) gpt-4o-mini               · Recomendado (Rápido e econômico)"
-                "2) gpt-4o                    · Modelo completo de alta inteligência"
-                "3) llama-3.3-70b-versatile   · Groq Cloud ultrarrápido"
-                "4) Personalizado             · Digitar outro nome de modelo"
+                "1) gpt-4o-mini               · Recommended (Fast & lightweight)"
+                "2) gpt-4o                    · Full flagship reasoning model"
+                "3) llama-3.3-70b-versatile   · Ultra-fast Groq Cloud"
+                "4) Custom                    · Type custom model name"
             )
             CHOSEN_CM_IDX=0
-            _select_menu CHOSEN_CM_IDX "3. Modelo de Nuvem:" "${menu_cloud_models[@]}"
+            _select_menu CHOSEN_CM_IDX "$title_cm" "${menu_cloud_models[@]}"
             case "$CHOSEN_CM_IDX" in
                 0) CHOSEN_CLOUD_MODEL="gpt-4o-mini" ;;
                 1) CHOSEN_CLOUD_MODEL="gpt-4o" ;;
                 2) CHOSEN_CLOUD_MODEL="llama-3.3-70b-versatile" ;;
-                *) CHOSEN_CLOUD_MODEL=$(_read_line "     Nome do modelo: " "gpt-4o-mini") ;;
+                *) CHOSEN_CLOUD_MODEL=$(_read_line "     Model name: " "gpt-4o-mini") ;;
             esac
             CHOSEN_CLOUD_API_KEY=$(_read_line "     OpenAI / Groq API Key: " "${OPENAI_API_KEY:-}")
             ;;
@@ -331,33 +371,39 @@ if [ "$QUICK_MODE" = false ]; then
         *)
             CHOSEN_MODE="Auto"
             CHOSEN_LOCAL_TYPE="Ollama"
+            title_om="4. Modelo Ollama:"
+            [ "$CHOSEN_LANG" = "en-US" ] && title_om="4. Ollama Model:"
+            [ "$CHOSEN_LANG" = "es-ES" ] && title_om="4. Modelo Ollama:"
             menu_ollama_models=(
-                "1) qwen2.5-coder:1.5b  · Recomendado (Ultraleve, <1s, Apple Metal GPU)"
-                "2) qwen2.5-coder:7b    · Mais inteligente (Requer ~5GB de RAM)"
-                "3) deepseek-coder:1.3b · Alternativa compacta e rápida"
-                "4) Personalizado       · Digitar outro nome de modelo"
+                "1) qwen2.5-coder:1.5b  · Recommended (Ultra-light, <1s, GPU accelerated)"
+                "2) qwen2.5-coder:7b    · Smarter (Requires ~5GB RAM)"
+                "3) deepseek-coder:1.3b · Compact fast alternative"
+                "4) Custom              · Type custom model name"
             )
             CHOSEN_OM_IDX=0
-            _select_menu CHOSEN_OM_IDX "3. Modelo Ollama:" "${menu_ollama_models[@]}"
+            _select_menu CHOSEN_OM_IDX "$title_om" "${menu_ollama_models[@]}"
             case "$CHOSEN_OM_IDX" in
                 0) CHOSEN_LOCAL_MODEL="qwen2.5-coder:1.5b" ;;
                 1) CHOSEN_LOCAL_MODEL="qwen2.5-coder:7b" ;;
                 2) CHOSEN_LOCAL_MODEL="deepseek-coder:1.3b" ;;
-                *) CHOSEN_LOCAL_MODEL=$(_read_line "     Nome do modelo Ollama: " "qwen2.5-coder:1.5b") ;;
+                *) CHOSEN_LOCAL_MODEL=$(_read_line "     Ollama Model Name: " "qwen2.5-coder:1.5b") ;;
             esac
 
             # Offer model download if Ollama is available
             if [ "$OLLAMA_INSTALLED" = true ]; then
                 if ! ollama list 2>/dev/null | grep -q "$CHOSEN_LOCAL_MODEL"; then
+                    title_dl="Baixar modelo agora?"
+                    [ "$CHOSEN_LANG" = "en-US" ] && title_dl="Download model now?"
+                    [ "$CHOSEN_LANG" = "es-ES" ] && title_dl="¿Descargar modelo ahora?"
                     menu_dl=(
-                        "1) Sim, baixar agora via ollama pull"
-                        "2) Não, vou baixar manualmente mais tarde"
+                        "1) Download now via ollama pull"
+                        "2) Skip, I will download later manually"
                     )
                     CHOSEN_DL_IDX=0
-                    _select_menu CHOSEN_DL_IDX "Baixar modelo agora?" "${menu_dl[@]}"
+                    _select_menu CHOSEN_DL_IDX "$title_dl" "${menu_dl[@]}"
                     if [ "$CHOSEN_DL_IDX" -eq 0 ]; then
                         echo ""
-                        echo -e "     \033[38;5;244mBaixando modelo no Ollama (aguarde alguns instantes)...\033[0m"
+                        echo -e "     \033[38;5;244mPulling model from Ollama registry...\033[0m"
                         ollama pull "$CHOSEN_LOCAL_MODEL" || true
                     fi
                 fi
@@ -365,20 +411,40 @@ if [ "$QUICK_MODE" = false ]; then
             ;;
     esac
 
-    menu_features=(
-        "1) Sugestões e correções automáticas em erros ativadas (Padrão)"
-        "2) Apenas responder a consultas manuais ('ai' ou '?')"
-    )
+    # Step 5: Terminal Features
+    title_ft="5. Recursos de Terminal:"
+    [ "$CHOSEN_LANG" = "en-US" ] && title_ft="5. Terminal Features:"
+    [ "$CHOSEN_LANG" = "es-ES" ] && title_ft="5. Funciones de Terminal:"
+
+    if [ "$CHOSEN_LANG" = "en-US" ]; then
+        menu_features=(
+            "1) Enable automatic error fixes & suggestions (Default)"
+            "2) Manual queries only (Explicit 'ai' or '?' commands)"
+        )
+    elif [ "$CHOSEN_LANG" = "es-ES" ]; then
+        menu_features=(
+            "1) Activar corrección y sugerencia automática de errores (Predeterminado)"
+            "2) Solo responder a consultas manuales ('ai' o '?')"
+        )
+    else
+        menu_features=(
+            "1) Sugestões e correções automáticas em erros ativadas (Padrão)"
+            "2) Apenas responder a consultas manuais ('ai' ou '?')"
+        )
+    fi
     CHOSEN_FT_IDX=0
-    _select_menu CHOSEN_FT_IDX "4. Recursos de Terminal:" "${menu_features[@]}"
+    _select_menu CHOSEN_FT_IDX "$title_ft" "${menu_features[@]}"
     if [ "$CHOSEN_FT_IDX" -eq 1 ]; then
         CHOSEN_AUTO_SUGGEST=false
     fi
 fi
 
-# Step 5: Installation Execution
+# Step 6: Installation Execution
+title_inst="6. Instalando arquivos e configurando:"
+[ "$CHOSEN_LANG" = "en-US" ] && title_inst="6. Installing and configuring files:"
+[ "$CHOSEN_LANG" = "es-ES" ] && title_inst="6. Instalando y configurando archivos:"
 echo ""
-echo -e "  \033[38;5;248m5. Instalando e configurando arquivos:\033[0m"
+echo -e "  \033[38;5;248m$title_inst\033[0m"
 
 INSTALL_DIR="$HOME/.powerai"
 _spin_step "Criando diretório $INSTALL_DIR..." "mkdir -p '$INSTALL_DIR'"
@@ -417,6 +483,7 @@ cat <<EOF > "$CONFIG_FILE"
   "CloudEndpoint": "$CHOSEN_CLOUD_ENDPOINT",
   "CloudApiKey": "$CHOSEN_CLOUD_API_KEY",
   "CloudModel": "$CHOSEN_CLOUD_MODEL",
+  "Language": "$CHOSEN_LANG",
   "AutoSuggestOnErrors": $CHOSEN_AUTO_SUGGEST,
   "AutoHealingRetries": 2,
   "TimeoutSeconds": 25
@@ -439,19 +506,57 @@ _spin_step "Integrando hooks nativos ao ~/.zshrc e ~/.bashrc..." "sleep 0.2"
 # Success Card
 echo ""
 echo -e "  \033[38;5;238m─────────────────────────────────────────────────────────────\033[0m"
-echo -e "  \033[1;37m✦  PowerAI instalado com sucesso!\033[0m"
-echo ""
-echo -e "    \033[38;5;244m• Provedor:\033[0m  \033[1;37m$CHOSEN_MODE ($CHOSEN_LOCAL_MODEL)\033[0m"
-echo -e "    \033[38;5;244m• Destino:\033[0m   \033[38;5;250m$INSTALL_DIR\033[0m"
-echo -e "    \033[38;5;244m• Config:\033[0m    \033[38;5;250m$CONFIG_FILE\033[0m"
-echo ""
-echo -e "    \033[38;5;245mPara ativar no terminal atual, execute:\033[0m"
-echo -e "      \033[1;37msource ~/.zshrc\033[0m \033[38;5;240m(ou source ~/.bashrc)\033[0m"
-echo ""
-echo -e "    \033[38;5;245mComandos disponíveis:\033[0m"
-echo -e "      \033[38;5;250mai <pergunta>\033[0m      \033[38;5;240m· Consulta em linguagem natural\033[0m"
-echo -e "      \033[38;5;250m? <pergunta>\033[0m       \033[38;5;240m· Atalho rápido\033[0m"
-echo -e "      \033[38;5;250mai config\033[0m          \033[38;5;240m· Ver configurações ativas\033[0m"
-echo -e "      \033[38;5;250mai uninstall\033[0m       \033[38;5;240m· Desinstalação completa\033[0m"
+if [ "$CHOSEN_LANG" = "en-US" ]; then
+    echo -e "  \033[1;37m✦  PowerAI successfully installed!\033[0m"
+    echo ""
+    echo -e "    \033[38;5;244m• Provider:\033[0m  \033[1;37m$CHOSEN_MODE ($CHOSEN_LOCAL_MODEL)\033[0m"
+    echo -e "    \033[38;5;244m• Language:\033[0m  \033[1;37m$CHOSEN_LANG\033[0m"
+    echo -e "    \033[38;5;244m• Path:\033[0m      \033[38;5;250m$INSTALL_DIR\033[0m"
+    echo -e "    \033[38;5;244m• Config:\033[0m    \033[38;5;250m$CONFIG_FILE\033[0m"
+    echo ""
+    echo -e "    \033[38;5;245mTo activate in current terminal, run:\033[0m"
+    echo -e "      \033[1;37msource ~/.zshrc\033[0m \033[38;5;240m(or source ~/.bashrc)\033[0m"
+    echo ""
+    echo -e "    \033[38;5;245mAvailable commands:\033[0m"
+    echo -e "      \033[38;5;250mai <query>\033[0m         · Natural language terminal query"
+    echo -e "      \033[38;5;250m? <query>\033[0m          · Fast shorthand alias"
+    echo -e "      \033[38;5;250mai language <lang>\033[0m· Change language (pt | en | es)"
+    echo -e "      \033[38;5;250mai config\033[0m          · View active configuration"
+    echo -e "      \033[38;5;250mai uninstall\033[0m       · Complete uninstallation"
+elif [ "$CHOSEN_LANG" = "es-ES" ]; then
+    echo -e "  \033[1;37m✦  ¡PowerAI instalado con éxito!\033[0m"
+    echo ""
+    echo -e "    \033[38;5;244m• Proveedor:\033[0m \033[1;37m$CHOSEN_MODE ($CHOSEN_LOCAL_MODEL)\033[0m"
+    echo -e "    \033[38;5;244m• Idioma:\033[0m    \033[1;37m$CHOSEN_LANG\033[0m"
+    echo -e "    \033[38;5;244m• Destino:\033[0m   \033[38;5;250m$INSTALL_DIR\033[0m"
+    echo -e "    \033[38;5;244m• Config:\033[0m    \033[38;5;250m$CONFIG_FILE\033[0m"
+    echo ""
+    echo -e "    \033[38;5;245mPara activar en la terminal actual, ejecuta:\033[0m"
+    echo -e "      \033[1;37msource ~/.zshrc\033[0m \033[38;5;240m(o source ~/.bashrc)\033[0m"
+    echo ""
+    echo -e "    \033[38;5;245mComandos disponibles:\033[0m"
+    echo -e "      \033[38;5;250mai <consulta>\033[0m      · Consulta en lenguaje natural"
+    echo -e "      \033[38;5;250m? <consulta>\033[0m       · Atajo rápido"
+    echo -e "      \033[38;5;250mai language <lang>\033[0m· Cambiar idioma (pt | en | es)"
+    echo -e "      \033[38;5;250mai config\033[0m          · Ver configuración activa"
+    echo -e "      \033[38;5;250mai uninstall\033[0m       · Desinstalación completa"
+else
+    echo -e "  \033[1;37m✦  PowerAI instalado com sucesso!\033[0m"
+    echo ""
+    echo -e "    \033[38;5;244m• Provedor:\033[0m  \033[1;37m$CHOSEN_MODE ($CHOSEN_LOCAL_MODEL)\033[0m"
+    echo -e "    \033[38;5;244m• Idioma:\033[0m    \033[1;37m$CHOSEN_LANG\033[0m"
+    echo -e "    \033[38;5;244m• Destino:\033[0m   \033[38;5;250m$INSTALL_DIR\033[0m"
+    echo -e "    \033[38;5;244m• Config:\033[0m    \033[38;5;250m$CONFIG_FILE\033[0m"
+    echo ""
+    echo -e "    \033[38;5;245mPara ativar no terminal atual, execute:\033[0m"
+    echo -e "      \033[1;37msource ~/.zshrc\033[0m \033[38;5;240m(ou source ~/.bashrc)\033[0m"
+    echo ""
+    echo -e "    \033[38;5;245mComandos disponíveis:\033[0m"
+    echo -e "      \033[38;5;250mai <pergunta>\033[0m      · Consulta em linguagem natural"
+    echo -e "      \033[38;5;250m? <pergunta>\033[0m       · Atalho rápido"
+    echo -e "      \033[38;5;250mai language <lang>\033[0m· Trocar idioma (pt | en | es)"
+    echo -e "      \033[38;5;250mai config\033[0m          · Ver configurações ativas"
+    echo -e "      \033[38;5;250mai uninstall\033[0m       · Desinstalação completa"
+fi
 echo -e "  \033[38;5;238m─────────────────────────────────────────────────────────────\033[0m"
 echo ""

@@ -13,6 +13,7 @@ namespace PowerAI.Core.Domain.Models
         public string CloudEndpoint { get; set; } = "https://api.openai.com/v1";
         public string CloudApiKey { get; set; } = string.Empty;
         public string CloudModel { get; set; } = "gpt-4o-mini";
+        public string Language { get; set; } = "pt-BR";
         public bool AutoSuggestOnErrors { get; set; } = true;
         public int AutoHealingRetries { get; set; } = 2;
         public int TimeoutSeconds { get; set; } = 25;
