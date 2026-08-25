@@ -2,7 +2,7 @@
 <html lang="pt-BR" data-theme="dark">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>PowerAI — Copiloto Inteligente para Terminal</title>
   <meta name="description" content="A camada cognitiva invisível para o seu terminal. Local-First via Ollama, memória de saída em tempo real e privacidade absoluta.">
   <meta name="theme-color" content="#070709">
@@ -53,7 +53,7 @@
       --accent: #ffffff;
       --accent-invert: #000000;
       --code-bg: rgba(255, 255, 255, 0.035);
-      --nav-bg: rgba(7, 7, 9, 0.75);
+      --nav-bg: rgba(7, 7, 9, 0.85);
       --radial-glow-1: rgba(255, 255, 255, 0.05);
       --radial-glow-2: rgba(120, 119, 198, 0.03);
       --font-sans: 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -94,7 +94,7 @@
       --accent: #09090b;
       --accent-invert: #ffffff;
       --code-bg: rgba(0, 0, 0, 0.035);
-      --nav-bg: rgba(247, 247, 250, 0.85);
+      --nav-bg: rgba(247, 247, 250, 0.9);
       --radial-glow-1: rgba(0, 0, 0, 0.03);
       --radial-glow-2: rgba(100, 100, 200, 0.02);
 
@@ -140,7 +140,7 @@
         radial-gradient(ellipse 60% 30% at 50% 35%, var(--radial-glow-2), transparent);
     }
 
-    button, .github-btn, .demo-chip, .install-tab, .copy-btn, .nav-item {
+    button, .github-btn, .demo-chip, .install-tab, .copy-btn, .nav-item, .mobile-nav-link {
       user-select: none;
       -webkit-user-select: none;
     }
@@ -164,7 +164,7 @@
     header {
       position: sticky;
       top: 0;
-      z-index: 50;
+      z-index: 100;
       backdrop-filter: blur(24px);
       -webkit-backdrop-filter: blur(24px);
       border-bottom: 1px solid var(--card-border);
@@ -176,6 +176,7 @@
       align-items: center;
       justify-content: space-between;
       height: 60px;
+      position: relative;
     }
 
     .logo {
@@ -187,6 +188,7 @@
       letter-spacing: -0.03em;
       color: var(--text-main);
       text-decoration: none;
+      z-index: 102;
     }
 
     .abstract-logo {
@@ -223,6 +225,7 @@
       display: flex;
       align-items: center;
       gap: 10px;
+      z-index: 102;
     }
 
     .lang-switcher {
@@ -287,6 +290,73 @@
       border-color: var(--card-hover-border);
     }
 
+    /* Mobile Hamburger Button */
+    .mobile-menu-btn {
+      display: none;
+      background: var(--code-bg);
+      border: 1px solid var(--card-border);
+      color: var(--text-main);
+      width: 34px;
+      height: 34px;
+      border-radius: 6px;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+
+    /* Mobile Menu Drawer */
+    .mobile-drawer {
+      display: none;
+      position: absolute;
+      top: 60px;
+      left: 0;
+      width: 100%;
+      background: var(--bg);
+      border-bottom: 1px solid var(--card-border);
+      padding: 20px 24px 28px;
+      flex-direction: column;
+      gap: 16px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+      z-index: 99;
+      transform: translateY(-10px);
+      opacity: 0;
+      transition: transform 0.2s ease, opacity 0.2s ease;
+      pointer-events: none;
+    }
+
+    .mobile-drawer.open {
+      display: flex;
+      transform: translateY(0);
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .mobile-nav-links {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      border-bottom: 1px solid var(--card-border);
+      padding-bottom: 16px;
+    }
+
+    .mobile-nav-link {
+      color: var(--text-main);
+      text-decoration: none;
+      font-size: 1rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .mobile-drawer-bottom {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding-top: 4px;
+    }
+
     /* Hero */
     .hero {
       padding: 92px 0 52px;
@@ -295,7 +365,7 @@
     }
 
     .hero-title {
-      font-size: clamp(2.5rem, 5.5vw, 4.4rem);
+      font-size: clamp(2.3rem, 5.5vw, 4.4rem);
       font-weight: 800;
       letter-spacing: -0.04em;
       line-height: 1.08;
@@ -307,7 +377,7 @@
     }
 
     .hero-desc {
-      font-size: clamp(1.05rem, 1.9vw, 1.22rem);
+      font-size: clamp(1rem, 1.9vw, 1.22rem);
       color: var(--text-muted);
       max-width: 660px;
       margin: 0 auto 40px;
@@ -435,6 +505,7 @@
       font-size: 0.92rem;
       line-height: 1.7;
       color: var(--terminal-text);
+      overflow-x: auto;
     }
 
     .t-prompt { color: var(--terminal-prompt); }
@@ -691,25 +762,99 @@
       gap: 12px;
     }
 
+    /* Enhanced Mobile Media Queries */
     @media (max-width: 768px) {
-      .hero { padding: 56px 0 28px; }
+      .container { padding: 0 16px; }
+      .hero { padding: 48px 0 24px; }
       .nav-center { display: none; }
-      .install-box { flex-direction: column; align-items: stretch; }
-      .copy-btn { justify-content: center; width: 100%; }
-      .terminal-body { padding: 18px; min-height: 200px; }
-      .terminal-demo-actions { padding: 12px 16px; }
-      .t-confirm-box { flex-direction: column; align-items: stretch; }
-      .t-confirm-actions { width: 100%; justify-content: space-between; }
-      .t-confirm-btn { flex: 1; text-align: center; }
-      .bento-grid { grid-template-columns: 1fr; }
-      .footer-grid { grid-template-columns: 1fr; gap: 32px; }
-      .footer-bottom { flex-direction: column; align-items: flex-start; }
+      .github-btn { display: none; }
+      .mobile-menu-btn { display: flex; }
+
+      .install-box {
+        flex-direction: column;
+        align-items: stretch;
+        padding: 12px;
+        gap: 10px;
+      }
+      .install-tabs {
+        justify-content: center;
+      }
+      .install-cmd {
+        text-align: center;
+        font-size: 0.78rem;
+        padding: 6px 0;
+      }
+      .copy-btn {
+        justify-content: center;
+        width: 100%;
+        padding: 10px;
+      }
+
+      .terminal-container {
+        margin-bottom: 56px;
+        border-radius: 8px;
+      }
+      .terminal-body {
+        padding: 16px;
+        min-height: 180px;
+        font-size: 0.82rem;
+      }
+      .t-cmd-box {
+        padding: 10px 12px;
+      }
+      .terminal-demo-actions {
+        padding: 10px 14px;
+        overflow-x: auto;
+        flex-wrap: nowrap;
+        -webkit-overflow-scrolling: touch;
+      }
+      .terminal-demo-actions::-webkit-scrollbar {
+        display: none;
+      }
+      .demo-chip {
+        flex-shrink: 0;
+        white-space: nowrap;
+      }
+
+      .t-confirm-box {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .t-confirm-actions {
+        width: 100%;
+        display: flex;
+        gap: 8px;
+      }
+      .t-confirm-btn {
+        flex: 1;
+        text-align: center;
+        padding: 8px;
+      }
+
+      .bento-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+        margin-bottom: 64px;
+      }
+      .bento-card {
+        padding: 20px;
+      }
+
+      .footer-grid {
+        grid-template-columns: 1fr;
+        gap: 28px;
+      }
+      .footer-bottom {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+      }
     }
   </style>
 </head>
 <body>
 
-  <!-- Clean Minimalist Header with Balanced 3-Column Navigation -->
+  <!-- Clean Minimalist Header with Balanced 3-Column Navigation & Mobile Drawer -->
   <header>
     <div class="container nav-wrap">
       <!-- Left: Logo -->
@@ -722,7 +867,7 @@
         <span>PowerAI</span>
       </a>
 
-      <!-- Center: Navigation Links -->
+      <!-- Center: Navigation Links (Desktop) -->
       <nav class="nav-center">
         <a href="#features" class="nav-item" data-i18n="nav_features">Recursos</a>
         <a href="#install" class="nav-item" data-i18n="nav_install">Instalação</a>
@@ -730,7 +875,7 @@
         <a href="https://github.com/Luizhcrs/nuno#readme" target="_blank" class="nav-item" data-i18n="nav_docs">Docs</a>
       </nav>
 
-      <!-- Right: Utility Controls (Language, Theme, GitHub) -->
+      <!-- Right: Utility Controls (Language, Theme, GitHub, Mobile Hamburger) -->
       <div class="nav-right">
         <div class="lang-switcher">
           <button class="lang-btn active" data-lang="pt" onclick="setLanguage('pt')">PT</button>
@@ -756,6 +901,44 @@
           <svg height="14" width="14" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path></svg>
           <span>GitHub</span>
         </a>
+
+        <!-- Mobile Hamburger Toggle -->
+        <button class="mobile-menu-btn" id="mobileMenuBtn" onclick="toggleMobileMenu()" aria-label="Toggle navigation menu">
+          <svg id="mobileMenuIcon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="3" y1="12" x2="21" y2="12"></line>
+            <line x1="3" y1="6" x2="21" y2="6"></line>
+            <line x1="3" y1="18" x2="21" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Mobile Dropdown Drawer -->
+      <div class="mobile-drawer" id="mobileDrawer">
+        <div class="mobile-nav-links">
+          <a href="#features" class="mobile-nav-link" onclick="closeMobileMenu()" data-i18n="nav_features">
+            <span>Recursos</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
+          </a>
+          <a href="#install" class="mobile-nav-link" onclick="closeMobileMenu()" data-i18n="nav_install">
+            <span>Instalação</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
+          </a>
+          <a href="#demo" class="mobile-nav-link" onclick="closeMobileMenu()" data-i18n="nav_demo">
+            <span>Simulador</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
+          </a>
+          <a href="https://github.com/Luizhcrs/nuno#readme" target="_blank" class="mobile-nav-link" onclick="closeMobileMenu()" data-i18n="nav_docs">
+            <span>Documentação</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
+          </a>
+        </div>
+
+        <div class="mobile-drawer-bottom">
+          <a href="https://github.com/Luizhcrs/nuno" target="_blank" class="github-btn" style="display:inline-flex; width:100%; justify-content:center; padding:10px;">
+            <svg height="15" width="15" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path></svg>
+            <span>Ver no GitHub</span>
+          </a>
+        </div>
       </div>
     </div>
   </header>
@@ -827,7 +1010,7 @@
         </div>
 
         <div class="terminal-demo-actions">
-          <span style="font-size: 0.78rem; color: var(--terminal-muted); align-self: center; margin-right: 4px;" data-i18n="demo_try">Exemplos interativos:</span>
+          <span style="font-size: 0.78rem; color: var(--terminal-muted); align-self: center; margin-right: 4px; white-space: nowrap;" data-i18n="demo_try">Exemplos:</span>
           <button class="demo-chip" id="chip-1" onclick="runInteractiveDemo(1)">ai como ver portas abertas</button>
           <button class="demo-chip" id="chip-2" onclick="runInteractiveDemo(2)">ai qual meu ip local na saída?</button>
           <button class="demo-chip" id="chip-3" onclick="runInteractiveDemo(3)">dockr ps (erro de digitação)</button>
@@ -927,7 +1110,7 @@
         hero_desc: "Interprete saídas de comandos, corrija erros e execute ações com um toque. Local-first com Ollama, zero telemetria e respostas instantâneas.",
         copy_btn: "Copiar",
         copied_btn: "Copiado!",
-        demo_try: "Exemplos interativos:",
+        demo_try: "Exemplos:",
         b1_title: "Local-First & Offline",
         b1_desc: "Execução 100% offline via Ollama com aceleração de GPU. Seus comandos e dados nunca saem da sua máquina.",
         b2_title: "Memória de Saída",
@@ -953,7 +1136,7 @@
         hero_desc: "Analyze outputs, auto-heal typos, and execute CLI actions instantly. Local-first via Ollama with zero telemetry and sub-second inference.",
         copy_btn: "Copy",
         copied_btn: "Copied!",
-        demo_try: "Interactive examples:",
+        demo_try: "Examples:",
         b1_title: "Local-First & Offline",
         b1_desc: "100% offline execution via Ollama with GPU acceleration. Your data never leaves your computer.",
         b2_title: "Output Memory Buffer",
@@ -979,7 +1162,7 @@
         hero_desc: "Analiza salidas, corrige errores y ejecuta acciones al instante. Local-first con Ollama, cero telemetría y respuestas inmediatas.",
         copy_btn: "Copiar",
         copied_btn: "¡Copiado!",
-        demo_try: "Ejemplos interactivos:",
+        demo_try: "Ejemplos:",
         b1_title: "Local-First y Offline",
         b1_desc: "Ejecución 100% offline vía Ollama com aceleración de GPU. Tus dados nunca salen de tu equipo.",
         b2_title: "Memoria de Salida",
@@ -1057,6 +1240,28 @@
         updateThemeIcon('light');
       }
     })();
+
+    function toggleMobileMenu() {
+      const drawer = document.getElementById('mobileDrawer');
+      const icon = document.getElementById('mobileMenuIcon');
+      const isOpen = drawer.classList.contains('open');
+
+      if (isOpen) {
+        closeMobileMenu();
+      } else {
+        drawer.classList.add('open');
+        icon.innerHTML = '<line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line>';
+      }
+    }
+
+    function closeMobileMenu() {
+      const drawer = document.getElementById('mobileDrawer');
+      const icon = document.getElementById('mobileMenuIcon');
+      if (drawer) drawer.classList.remove('open');
+      if (icon) {
+        icon.innerHTML = '<line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line>';
+      }
+    }
 
     function switchInstallTab(os) {
       document.querySelectorAll('.install-tab').forEach(t => {
