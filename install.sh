@@ -266,29 +266,16 @@ _animate_intro() {
     clear 2>/dev/null || true
     echo ""
     
-    local text="✦  P O W E R A I"
-    local len=${#text}
-    local grays=(236 238 240 243 246 250 255 250 246 243 240 238 236)
-    local n_grays=${#grays[@]}
-
     tput civis 2>/dev/null || printf "\033[?25l"
 
-    # 1. Shimmer on title
-    for step in {0..14}; do
-        printf "\r  "
-        for ((i=0; i<len; i++)); do
-            local char="${text:$i:1}"
-            local g_idx=$(( (i + step) % n_grays ))
-            printf "\033[38;5;%dm%s\033[0m" "${grays[$g_idx]}" "$char"
-        done
-        printf "\033[K"
-        sleep 0.025
-    done
+    echo -e "       \033[38;5;255m▲\033[0m"
+    echo -e "     \033[38;5;250m/ | \\\033[0m"
+    echo -e "    \033[38;5;246m|  \033[1;37m●\033[0m  |\033[0m   \033[1;37mP O W E R A I\033[0m"
+    echo -e "     \033[38;5;240m\\ | /\033[0m    \033[38;5;244mCamada Cognitiva & Copiloto para Terminal\033[0m"
+    echo -e "       \033[38;5;236m▼\033[0m"
+    echo ""
 
-    printf "\r  \033[1;37m%s\033[0m\n" "$text"
-    printf "     \033[38;5;244mInvisible Cognitive Layer & Terminal Copilot\033[0m\n"
-
-    # 2. Sweeping light beam
+    # Sweeping light beam
     local width=58
     for pos in $(seq 0 3 $width); do
         printf "\r     "
