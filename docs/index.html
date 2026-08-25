@@ -1,30 +1,64 @@
 <!DOCTYPE html>
-<html lang="pt-BR" class="dark">
+<html lang="pt-BR" data-theme="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>PowerAI - Camada Cognitiva Invisível para Terminais</title>
-  <meta name="description" content="Harness cognitivo e copiloto inteligente para terminal (macOS, Linux e Windows). Local-First via Ollama, memória de saída e arquitetura hexagonal.">
+  <title>PowerAI — A Inteligência do seu Terminal, Sem Sair da sua Máquina</title>
+  <meta name="description" content="Copiloto cognitivo para terminal (macOS, Linux e Windows). Local-First via Ollama, memória de saída em tempo real e arquitetura hexagonal.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500;600;700&family=Geist:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg: #070709;
+      /* Dark Theme (Default) */
+      --bg: #08080a;
+      --bg-elevated: #111116;
       --card-bg: #0f0f13;
       --card-border: #1e1e24;
-      --card-hover-border: #32323a;
+      --card-hover-border: #383842;
       --text-main: #f4f4f5;
       --text-muted: #a1a1aa;
-      --text-subtle: #63636e;
+      --text-subtle: #71717a;
+      --accent: #ffffff;
+      --accent-invert: #000000;
+      --terminal-bg: #0b0b0e;
+      --terminal-header: #141418;
+      --code-bg: rgba(255, 255, 255, 0.04);
+      --nav-bg: rgba(8, 8, 10, 0.8);
+      --radial-glow-1: rgba(255, 255, 255, 0.05);
+      --radial-glow-2: rgba(120, 119, 198, 0.04);
+      --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.3);
+      --shadow-lg: 0 24px 64px rgba(0, 0, 0, 0.6);
       --font-sans: 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       --font-mono: 'Geist Mono', 'SF Mono', Consolas, Monaco, monospace;
+    }
+
+    [data-theme="light"] {
+      --bg: #fafafc;
+      --bg-elevated: #f0f0f4;
+      --card-bg: #ffffff;
+      --card-border: #e4e4e9;
+      --card-hover-border: #c8c8d2;
+      --text-main: #09090b;
+      --text-muted: #52525b;
+      --text-subtle: #71717a;
+      --accent: #09090b;
+      --accent-invert: #ffffff;
+      --terminal-bg: #141418;
+      --terminal-header: #1b1b22;
+      --code-bg: rgba(0, 0, 0, 0.04);
+      --nav-bg: rgba(250, 250, 252, 0.85);
+      --radial-glow-1: rgba(0, 0, 0, 0.03);
+      --radial-glow-2: rgba(100, 100, 200, 0.03);
+      --shadow-sm: 0 4px 16px rgba(0, 0, 0, 0.06);
+      --shadow-lg: 0 20px 48px rgba(0, 0, 0, 0.12);
     }
 
     * {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
+      transition: background-color 0.25s ease, border-color 0.25s ease, color 0.25s ease;
     }
 
     body {
@@ -35,8 +69,8 @@
       overflow-x: hidden;
       line-height: 1.6;
       background-image: 
-        radial-gradient(ellipse 70% 40% at 50% 0%, rgba(255, 255, 255, 0.05), transparent),
-        radial-gradient(ellipse 60% 30% at 50% 40%, rgba(120, 119, 198, 0.04), transparent);
+        radial-gradient(ellipse 70% 40% at 50% 0%, var(--radial-glow-1), transparent),
+        radial-gradient(ellipse 60% 30% at 50% 40%, var(--radial-glow-2), transparent);
     }
 
     .container {
@@ -52,8 +86,8 @@
       z-index: 50;
       backdrop-filter: blur(16px);
       -webkit-backdrop-filter: blur(16px);
-      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-      background: rgba(7, 7, 9, 0.75);
+      border-bottom: 1px solid var(--card-border);
+      background: var(--nav-bg);
     }
 
     .nav-wrap {
@@ -68,33 +102,40 @@
       align-items: center;
       gap: 10px;
       font-weight: 700;
-      font-size: 1.05rem;
-      letter-spacing: -0.02em;
+      font-size: 1.1rem;
+      letter-spacing: -0.025em;
       color: var(--text-main);
       text-decoration: none;
     }
 
-    .logo-icon {
-      width: 18px;
-      height: 18px;
-      color: #ffffff;
+    .logo-mark {
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+      background: var(--text-main);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--bg);
+      flex-shrink: 0;
     }
 
-    .logo-version {
-      font-size: 0.72rem;
-      padding: 2px 8px;
-      border-radius: 4px;
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      color: var(--text-muted);
-      font-family: var(--font-mono);
-      font-weight: 500;
+    .logo-mark svg {
+      width: 16px;
+      height: 16px;
+      stroke: var(--bg);
+    }
+
+    .nav-controls {
+      display: flex;
+      align-items: center;
+      gap: 12px;
     }
 
     .nav-links {
       display: flex;
       align-items: center;
-      gap: 20px;
+      gap: 18px;
     }
 
     .nav-link {
@@ -109,14 +150,32 @@
       color: var(--text-main);
     }
 
+    .theme-toggle-btn {
+      background: transparent;
+      border: 1px solid var(--card-border);
+      color: var(--text-muted);
+      width: 34px;
+      height: 34px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+
+    .theme-toggle-btn:hover {
+      color: var(--text-main);
+      border-color: var(--card-hover-border);
+    }
+
     .lang-switcher {
       display: flex;
       align-items: center;
       gap: 2px;
-      background: rgba(255, 255, 255, 0.03);
-      border: 1px solid rgba(255, 255, 255, 0.06);
+      background: var(--code-bg);
+      border: 1px solid var(--card-border);
       border-radius: 6px;
-      padding: 2px 4px;
+      padding: 2px;
     }
 
     .lang-btn {
@@ -126,14 +185,13 @@
       font-size: 0.75rem;
       font-weight: 600;
       cursor: pointer;
-      padding: 3px 6px;
+      padding: 4px 6px;
       border-radius: 4px;
-      transition: all 0.15s ease;
     }
 
     .lang-btn.active {
-      background: rgba(255, 255, 255, 0.12);
-      color: #fff;
+      background: var(--card-border);
+      color: var(--text-main);
     }
 
     .github-btn {
@@ -142,61 +200,59 @@
       gap: 8px;
       padding: 7px 14px;
       border-radius: 6px;
-      background: rgba(255, 255, 255, 0.06);
-      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: var(--code-bg);
+      border: 1px solid var(--card-border);
       color: var(--text-main);
       text-decoration: none;
       font-size: 0.85rem;
       font-weight: 600;
-      transition: all 0.2s ease;
     }
 
     .github-btn:hover {
-      background: rgba(255, 255, 255, 0.12);
-      border-color: rgba(255, 255, 255, 0.25);
+      border-color: var(--card-hover-border);
       transform: translateY(-1px);
     }
 
     /* Hero */
     .hero {
-      padding: 104px 0 64px;
+      padding: 96px 0 56px;
       text-align: center;
       position: relative;
     }
 
     .hero-title {
-      font-size: clamp(2.6rem, 5.8vw, 4.4rem);
+      font-size: clamp(2.3rem, 5.2vw, 4.2rem);
       font-weight: 800;
-      letter-spacing: -0.04em;
-      line-height: 1.08;
-      max-width: 860px;
-      margin: 0 auto 24px;
-      background: linear-gradient(180deg, #ffffff 40%, #8e8e99 100%);
+      letter-spacing: -0.035em;
+      line-height: 1.1;
+      max-width: 880px;
+      margin: 0 auto 20px;
+      background: linear-gradient(180deg, var(--text-main) 40%, var(--text-subtle) 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
     }
 
     .hero-desc {
-      font-size: clamp(1.08rem, 2vw, 1.25rem);
+      font-size: clamp(1.05rem, 1.8vw, 1.25rem);
       color: var(--text-muted);
       max-width: 680px;
-      margin: 0 auto 40px;
+      margin: 0 auto 36px;
       font-weight: 400;
     }
 
     /* Install Box */
     .install-box {
-      max-width: 590px;
-      margin: 0 auto 52px;
+      max-width: 600px;
+      margin: 0 auto 48px;
       background: var(--card-bg);
       border: 1px solid var(--card-border);
       border-radius: 8px;
-      padding: 6px 8px 6px 16px;
+      padding: 6px 8px 6px 14px;
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 12px;
-      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5), 0 0 1px 1px rgba(255, 255, 255, 0.05);
+      box-shadow: var(--shadow-sm);
     }
 
     .install-tabs {
@@ -208,7 +264,7 @@
       background: transparent;
       border: none;
       color: var(--text-subtle);
-      font-size: 0.8rem;
+      font-size: 0.78rem;
       font-weight: 600;
       padding: 4px 8px;
       border-radius: 4px;
@@ -216,14 +272,14 @@
     }
 
     .install-tab.active {
-      background: rgba(255, 255, 255, 0.08);
-      color: #fff;
+      background: var(--code-bg);
+      color: var(--text-main);
     }
 
     .install-cmd {
       font-family: var(--font-mono);
-      font-size: 0.88rem;
-      color: #e4e4e7;
+      font-size: 0.85rem;
+      color: var(--text-main);
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -232,8 +288,8 @@
     }
 
     .copy-btn {
-      background: #ffffff;
-      color: #000000;
+      background: var(--accent);
+      color: var(--accent-invert);
       border: none;
       border-radius: 6px;
       padding: 7px 14px;
@@ -243,31 +299,30 @@
       display: flex;
       align-items: center;
       gap: 6px;
-      transition: all 0.15s ease;
       white-space: nowrap;
+      flex-shrink: 0;
     }
 
     .copy-btn:hover {
-      background: #f4f4f5;
+      opacity: 0.9;
     }
 
     /* Terminal Simulator */
     .terminal-container {
       max-width: 840px;
       margin: 0 auto;
-      border-radius: 12px;
-      background: #0b0b0e;
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      box-shadow: 0 32px 80px -20px rgba(0, 0, 0, 0.8), 0 0 1px 1px rgba(255, 255, 255, 0.06);
+      border-radius: 10px;
+      background: var(--terminal-bg);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: var(--shadow-lg);
       overflow: hidden;
       text-align: left;
       font-family: var(--font-mono);
-      position: relative;
     }
 
     .terminal-header {
-      background: #111116;
-      padding: 11px 18px;
+      background: var(--terminal-header);
+      padding: 10px 16px;
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -285,24 +340,25 @@
       border-radius: 50%;
     }
 
-    .dot-red { background: #38383f; }
-    .dot-yellow { background: #4b4b54; }
-    .dot-green { background: #62626e; }
+    .dot-red { background: #3f3f46; }
+    .dot-yellow { background: #52525b; }
+    .dot-green { background: #71717a; }
 
     .terminal-title {
       font-size: 0.78rem;
-      color: var(--text-subtle);
+      color: #a1a1aa;
       font-weight: 500;
     }
 
     .terminal-body {
-      padding: 28px;
-      min-height: 250px;
-      font-size: 0.92rem;
+      padding: 24px;
+      min-height: 240px;
+      font-size: 0.9rem;
       line-height: 1.7;
+      color: #f4f4f5;
     }
 
-    .t-prompt { color: #52525b; }
+    .t-prompt { color: #71717a; }
     .t-user { color: #ffffff; font-weight: 500; }
     .t-spinner {
       color: #a1a1aa;
@@ -313,15 +369,15 @@
     }
 
     .t-cmd-box {
-      margin: 14px 0;
-      padding: 14px 18px;
-      background: rgba(255, 255, 255, 0.025);
+      margin: 12px 0;
+      padding: 12px 16px;
+      background: rgba(255, 255, 255, 0.03);
       border-left: 2px solid #ffffff;
       border-radius: 0 6px 6px 0;
     }
 
-    .t-cmd { color: #ffffff; font-weight: 600; font-size: 0.98rem; }
-    .t-exp { color: #a1a1aa; font-size: 0.86rem; margin-top: 5px; }
+    .t-cmd { color: #ffffff; font-weight: 600; font-size: 0.95rem; }
+    .t-exp { color: #a1a1aa; font-size: 0.85rem; margin-top: 4px; }
 
     .t-cursor {
       display: inline-block;
@@ -341,39 +397,37 @@
     .terminal-demo-actions {
       display: flex;
       gap: 8px;
-      padding: 14px 28px;
-      background: rgba(255, 255, 255, 0.015);
-      border-top: 1px solid rgba(255, 255, 255, 0.04);
+      padding: 12px 24px;
+      background: rgba(255, 255, 255, 0.02);
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
       flex-wrap: wrap;
       align-items: center;
     }
 
     .demo-chip {
-      background: rgba(255, 255, 255, 0.05);
+      background: rgba(255, 255, 255, 0.06);
       border: 1px solid rgba(255, 255, 255, 0.08);
-      color: var(--text-muted);
+      color: #a1a1aa;
       padding: 5px 12px;
       border-radius: 6px;
-      font-size: 0.8rem;
+      font-size: 0.78rem;
       cursor: pointer;
-      transition: all 0.15s ease;
       font-family: var(--font-sans);
     }
 
     .demo-chip:hover {
-      background: rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.12);
       color: #ffffff;
-      border-color: rgba(255, 255, 255, 0.18);
     }
 
     /* Features Grid */
     .section {
-      padding: 88px 0;
+      padding: 80px 0;
     }
 
     .section-header {
       text-align: center;
-      margin-bottom: 56px;
+      margin-bottom: 48px;
     }
 
     .section-tag {
@@ -387,43 +441,41 @@
     }
 
     .section-title {
-      font-size: clamp(2rem, 3.5vw, 2.75rem);
+      font-size: clamp(1.8rem, 3.2vw, 2.5rem);
       font-weight: 700;
       letter-spacing: -0.025em;
-      color: #fff;
+      color: var(--text-main);
     }
 
     .features-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-      gap: 20px;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 18px;
     }
 
     .feature-card {
       background: var(--card-bg);
       border: 1px solid var(--card-border);
-      border-radius: 10px;
-      padding: 30px;
-      transition: all 0.2s ease;
+      border-radius: 8px;
+      padding: 26px;
     }
 
     .feature-card:hover {
       border-color: var(--card-hover-border);
-      transform: translateY(-2px);
-      box-shadow: 0 16px 36px rgba(0, 0, 0, 0.4);
+      box-shadow: var(--shadow-sm);
     }
 
     .feature-icon-wrap {
       width: 36px;
       height: 36px;
       border-radius: 6px;
-      background: rgba(255, 255, 255, 0.04);
-      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: var(--code-bg);
+      border: 1px solid var(--card-border);
       display: flex;
       align-items: center;
       justify-content: center;
-      margin-bottom: 18px;
-      color: #ffffff;
+      margin-bottom: 16px;
+      color: var(--text-main);
     }
 
     .feature-icon-wrap svg {
@@ -433,15 +485,15 @@
     }
 
     .feature-title {
-      font-size: 1.15rem;
+      font-size: 1.05rem;
       font-weight: 600;
       margin-bottom: 8px;
-      color: #ffffff;
+      color: var(--text-main);
       letter-spacing: -0.01em;
     }
 
     .feature-desc {
-      font-size: 0.92rem;
+      font-size: 0.9rem;
       color: var(--text-muted);
       line-height: 1.6;
     }
@@ -450,79 +502,85 @@
     .arch-box {
       background: var(--card-bg);
       border: 1px solid var(--card-border);
-      border-radius: 10px;
-      padding: 32px;
-      max-width: 900px;
+      border-radius: 8px;
+      padding: 28px;
+      max-width: 880px;
       margin: 0 auto;
     }
 
     .arch-row {
       display: flex;
       justify-content: space-between;
-      gap: 20px;
+      gap: 16px;
       flex-wrap: wrap;
     }
 
     .arch-col {
       flex: 1;
-      min-width: 240px;
-      background: rgba(255, 255, 255, 0.02);
-      border: 1px solid rgba(255, 255, 255, 0.05);
-      border-radius: 8px;
-      padding: 18px;
+      min-width: 220px;
+      background: var(--code-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 6px;
+      padding: 16px;
     }
 
     .arch-col-title {
-      font-size: 0.78rem;
+      font-size: 0.75rem;
       font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 0.05em;
       color: var(--text-subtle);
-      margin-bottom: 14px;
+      margin-bottom: 12px;
       font-family: var(--font-mono);
     }
 
     .arch-item {
       font-family: var(--font-mono);
-      font-size: 0.82rem;
-      color: #e4e4e7;
+      font-size: 0.8rem;
+      color: var(--text-main);
       padding: 6px 10px;
-      background: rgba(255, 255, 255, 0.04);
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
       border-radius: 4px;
       margin-bottom: 6px;
     }
 
     /* Footer */
     footer {
-      border-top: 1px solid rgba(255, 255, 255, 0.06);
-      padding: 48px 0;
+      border-top: 1px solid var(--card-border);
+      padding: 40px 0;
       margin-top: 40px;
       text-align: center;
       color: var(--text-subtle);
-      font-size: 0.88rem;
+      font-size: 0.85rem;
     }
 
     .footer-links {
       display: flex;
       justify-content: center;
-      gap: 24px;
-      margin-bottom: 16px;
+      gap: 20px;
+      margin-bottom: 14px;
     }
 
     .footer-link {
       color: var(--text-muted);
       text-decoration: none;
-      transition: color 0.15s ease;
     }
 
     .footer-link:hover {
-      color: #ffffff;
+      color: var(--text-main);
     }
 
-    @media (max-width: 640px) {
-      .hero { padding: 56px 0 32px; }
+    /* Mobile Responsive Polish */
+    @media (max-width: 768px) {
+      .hero { padding: 48px 0 28px; }
+      .nav-links { display: none; }
       .install-box { flex-direction: column; align-items: stretch; }
-      .copy-btn { justify-content: center; }
+      .copy-btn { justify-content: center; width: 100%; }
+      .terminal-body { padding: 16px; min-height: 220px; }
+      .terminal-demo-actions { padding: 12px 16px; }
+      .features-grid { grid-template-columns: 1fr; }
+      .arch-row { flex-direction: column; }
     }
   </style>
 </head>
@@ -532,23 +590,43 @@
   <header>
     <div class="container nav-wrap">
       <a href="#" class="logo">
-        <svg class="logo-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <polyline points="4 17 10 11 4 5"></polyline>
-          <line x1="12" y1="19" x2="20" y2="19"></line>
-        </svg>
+        <div class="logo-mark">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="5 17 11 11 5 5"></polyline>
+            <line x1="13" y1="19" x2="19" y2="19"></line>
+          </svg>
+        </div>
         <span>PowerAI</span>
-        <span class="logo-version">v2.0</span>
       </a>
-      <div class="nav-links">
-        <a href="#features" class="nav-link" data-i18n="nav_features">Recursos</a>
-        <a href="#architecture" class="nav-link" data-i18n="nav_architecture">Arquitetura</a>
+
+      <div class="nav-controls">
+        <div class="nav-links">
+          <a href="#features" class="nav-link" data-i18n="nav_features">Recursos</a>
+          <a href="#architecture" class="nav-link" data-i18n="nav_architecture">Arquitetura</a>
+        </div>
+
         <div class="lang-switcher">
           <button class="lang-btn active" onclick="setLanguage('pt')">PT</button>
           <button class="lang-btn" onclick="setLanguage('en')">EN</button>
           <button class="lang-btn" onclick="setLanguage('es')">ES</button>
         </div>
+
+        <button class="theme-toggle-btn" id="themeToggleBtn" onclick="toggleTheme()" aria-label="Toggle theme">
+          <svg id="themeIcon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="5"></circle>
+            <line x1="12" y1="1" x2="12" y2="3"></line>
+            <line x1="12" y1="21" x2="12" y2="23"></line>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+            <line x1="1" y1="12" x2="3" y2="12"></line>
+            <line x1="21" y1="12" x2="23" y2="12"></line>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+          </svg>
+        </button>
+
         <a href="https://github.com/Luizhcrs/nuno" target="_blank" class="github-btn">
-          <svg height="16" width="16" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path></svg>
+          <svg height="15" width="15" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path></svg>
           <span>GitHub</span>
         </a>
       </div>
@@ -559,10 +637,10 @@
   <section class="hero">
     <div class="container">
       <h1 class="hero-title" data-i18n="hero_title">
-        A Camada Cognitiva Invisível para o seu Terminal.
+        A inteligência do seu terminal, sem sair da sua máquina.
       </h1>
       <p class="hero-desc" data-i18n="hero_desc">
-        Harness inteligente para macOS, Linux e Windows. Interceptação automática de erros, memória de saída em tempo real e arquitetura hexagonal de alta performance.
+        Interprete saídas de comandos, corrija erros de digitação e navegue pela infraestrutura em linguagem natural. Local-first com Ollama, zero telemetria e respostas em milissegundos.
       </p>
 
       <!-- Install Box -->
@@ -579,7 +657,7 @@
             <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
             <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
           </svg>
-          <span id="copyBtnText">Copiar</span>
+          <span id="copyBtnText" data-i18n="copy_btn">Copiar</span>
         </button>
       </div>
 
@@ -598,7 +676,7 @@
         <div class="terminal-body" id="terminalBody">
           <div><span class="t-prompt">➜ ~/projetos/app </span><span class="t-user" id="demoUserQuery">ai como listar arquivos detalhados</span><span class="t-cursor" id="demoCursor" style="display:none;"></span></div>
           <div class="t-spinner" id="demoSpinner">
-            <span>⠋</span> <span>pensando · analisando ambiente</span>
+            <span>⠋</span> <span id="demoSpinnerText">pensando · analisando ambiente</span>
           </div>
           <div class="t-cmd-box" id="demoResult">
             <div class="t-cmd">✦ ls -la</div>
@@ -607,7 +685,7 @@
         </div>
 
         <div class="terminal-demo-actions">
-          <span style="font-size: 0.78rem; color: var(--text-subtle); align-self: center; margin-right: 4px;" data-i18n="demo_try">Exemplos interativos:</span>
+          <span style="font-size: 0.78rem; color: #a1a1aa; align-self: center; margin-right: 4px;" data-i18n="demo_try">Exemplos interativos:</span>
           <button class="demo-chip" onclick="runInteractiveDemo(1)">ai como ver portas abertas</button>
           <button class="demo-chip" onclick="runInteractiveDemo(2)">ai qual meu ip local na saída?</button>
           <button class="demo-chip" onclick="runInteractiveDemo(3)">dockr ps (erro de digitação)</button>
@@ -631,8 +709,8 @@
               <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
             </svg>
           </div>
-          <h3 class="feature-title" data-i18n="f1_title">Local-First & Ultrarrápido</h3>
-          <p class="feature-desc" data-i18n="f1_desc">Execução 100% offline via Ollama ou APIs locais (OMLX, LM Studio, vLLM) com aceleração Apple Metal. Respostas em menos de 800ms.</p>
+          <h3 class="feature-title" data-i18n="f1_title">Inferência Local & Offline</h3>
+          <p class="feature-desc" data-i18n="f1_desc">Execução 100% offline via Ollama ou APIs locais (OMLX, LM Studio, vLLM) com aceleração Apple Metal. Respostas em menos de 800ms sem enviar dados para a nuvem.</p>
         </div>
 
         <div class="feature-card">
@@ -643,8 +721,8 @@
               <line x1="12" y1="17" x2="12" y2="21"></line>
             </svg>
           </div>
-          <h3 class="feature-title" data-i18n="f2_title">Memória de Saída Contextual</h3>
-          <p class="feature-desc" data-i18n="f2_desc">Grava a saída real dos comandos (stdout/stderr) no buffer. Permite fazer perguntas sobre saídas anteriores (ex: 'qual meu IP nessa lista?').</p>
+          <h3 class="feature-title" data-i18n="f2_title">Memória de Buffer em Tempo Real</h3>
+          <p class="feature-desc" data-i18n="f2_desc">Grava a saída real dos comandos (stdout/stderr) em memória de sessão. Permite fazer perguntas sobre o que já está na tela sem copiar e colar nada.</p>
         </div>
 
         <div class="feature-card">
@@ -653,8 +731,8 @@
               <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
             </svg>
           </div>
-          <h3 class="feature-title" data-i18n="f3_title">Zero Risco & Transparência</h3>
-          <p class="feature-desc" data-i18n="f3_desc">Totalmente Read-Only. Nenhum comando é executado sem sua confirmação explícita no teclado [Enter/S]. Seus dados nunca saem da máquina.</p>
+          <h3 class="feature-title" data-i18n="f3_title">Segurança por Padrão (Read-Only)</h3>
+          <p class="feature-desc" data-i18n="f3_desc">Totalmente não-invasivo. Nenhum comando é executado sem sua confirmação explícita no teclado [Enter/S]. Você sempre mantém o controle total.</p>
         </div>
 
         <div class="feature-card">
@@ -666,7 +744,7 @@
             </svg>
           </div>
           <h3 class="feature-title" data-i18n="f4_title">Arquitetura Hexagonal (.NET)</h3>
-          <p class="feature-desc" data-i18n="f4_desc">Desacoplamento estrito entre Domínio, Portas e Adaptadores no PowerAI.Core, garantindo 100% de testabilidade e modularidade.</p>
+          <p class="feature-desc" data-i18n="f4_desc">Desacoplamento estrito entre Domínio, Portas e Adaptadores no PowerAI.Core, garantindo 100% de testabilidade, modularidade e fácil extensão.</p>
         </div>
 
         <div class="feature-card">
@@ -677,19 +755,19 @@
               <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
             </svg>
           </div>
-          <h3 class="feature-title" data-i18n="f5_title">Totalmente Multilíngue (i18n)</h3>
-          <p class="feature-desc" data-i18n="f5_desc">Auto-detecção do idioma do sistema operacional com suporte nativo a Português, Inglês e Espanhol em tempo real.</p>
+          <h3 class="feature-title" data-i18n="f5_title">Auto-Detecção Multilíngue (i18n)</h3>
+          <p class="feature-desc" data-i18n="f5_desc">Identificação automática do idioma do sistema operacional com suporte nativo a Português, Inglês e Espanhol em tempo real.</p>
         </div>
 
         <div class="feature-card">
           <div class="feature-icon-wrap">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="12" cy="12" r="3"></circle>
-              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+              <polyline points="4 17 10 11 4 5"></polyline>
+              <line x1="12" y1="19" x2="20" y2="19"></line>
             </svg>
           </div>
-          <h3 class="feature-title" data-i18n="f6_title">Design Monocromático</h3>
-          <p class="feature-desc" data-i18n="f6_desc">Interface visual minimalista inspirada no design da Apple e Linear, com indicadores em Braille e transições suaves em escala de cinza.</p>
+          <h3 class="feature-title" data-i18n="f6_title">Auto-Correção Interativa (Auto-Healing)</h3>
+          <p class="feature-desc" data-i18n="f6_desc">Errou a digitação de um comando ou parâmetro? O hook nativo intercepta a falha e sugere a sintaxe correta imediatamente com 1 clique.</p>
         </div>
       </div>
     </div>
@@ -736,7 +814,7 @@
         <a href="https://github.com/Luizhcrs/nuno/blob/main/README.md" target="_blank" class="footer-link">Documentação</a>
         <a href="https://github.com/Luizhcrs/nuno/releases" target="_blank" class="footer-link">Releases</a>
       </div>
-      <p>PowerAI © 2026 · Licença MIT · Criado com foco em privacidade e velocidade.</p>
+      <p>PowerAI © 2026 · Licença MIT · Desenvolvido com foco em privacidade local e velocidade.</p>
     </div>
   </footer>
 
@@ -745,67 +823,70 @@
       pt: {
         nav_features: "Recursos",
         nav_architecture: "Arquitetura",
-        hero_title: "A Camada Cognitiva Invisível para o seu Terminal.",
-        hero_desc: "Harness inteligente para macOS, Linux e Windows. Interceptação automática de erros, memória de saída em tempo real e arquitetura hexagonal de alta performance.",
+        hero_title: "A inteligência do seu terminal, sem sair da sua máquina.",
+        hero_desc: "Interprete saídas de comandos, corrija erros de digitação e navegue pela infraestrutura em linguagem natural. Local-first com Ollama, zero telemetria e respostas em milissegundos.",
+        copy_btn: "Copiar",
         demo_try: "Exemplos interativos:",
         feat_tag: "Engenharia & Performance",
         feat_main_title: "Projetado para Desenvolvedores Exigentes",
-        f1_title: "Local-First & Ultrarrápido",
-        f1_desc: "Execução 100% offline via Ollama ou APIs locais (OMLX, LM Studio, vLLM) com aceleração Apple Metal. Respostas em menos de 800ms.",
-        f2_title: "Memória de Saída Contextual",
-        f2_desc: "Grava a saída real dos comandos (stdout/stderr) no buffer. Permite fazer perguntas sobre saídas anteriores (ex: 'qual meu IP nessa lista?').",
-        f3_title: "Zero Risco & Transparência",
-        f3_desc: "Totalmente Read-Only. Nenhum comando é executado sem sua confirmação explícita no teclado [Enter/S]. Seus dados nunca saem da máquina.",
+        f1_title: "Inferência Local & Offline",
+        f1_desc: "Execução 100% offline via Ollama ou APIs locais (OMLX, LM Studio, vLLM) com aceleração Apple Metal. Respostas em menos de 800ms sem enviar dados para a nuvem.",
+        f2_title: "Memória de Buffer em Tempo Real",
+        f2_desc: "Grava a saída real dos comandos (stdout/stderr) em memória de sessão. Permite fazer perguntas sobre o que já está na tela sem copiar e colar nada.",
+        f3_title: "Segurança por Padrão (Read-Only)",
+        f3_desc: "Totalmente não-invasivo. Nenhum comando é executado sem sua confirmação explícita no teclado [Enter/S]. Você sempre mantém o controle total.",
         f4_title: "Arquitetura Hexagonal (.NET)",
-        f4_desc: "Desacoplamento estrito entre Domínio, Portas e Adaptadores no PowerAI.Core, garantindo 100% de testabilidade e modularidade.",
-        f5_title: "Totalmente Multilíngue (i18n)",
-        f5_desc: "Auto-detecção do idioma do sistema operacional com suporte nativo a Português, Inglês e Espanhol em tempo real.",
-        f6_title: "Design Monocromático",
-        f6_desc: "Interface visual minimalista inspirada no design da Apple e Linear, com indicadores em Braille e transições suaves em escala de cinza.",
+        f4_desc: "Desacoplamento estrito entre Domínio, Portas e Adaptadores no PowerAI.Core, garantindo 100% de testabilidade, modularidade e fácil extensão.",
+        f5_title: "Auto-Detecção Multilíngue (i18n)",
+        f5_desc: "Identificação automática do idioma do sistema operacional com suporte nativo a Português, Inglês e Espanhol em tempo real.",
+        f6_title: "Auto-Correção Interativa (Auto-Healing)",
+        f6_desc: "Errou a digitação de um comando ou parâmetro? O hook nativo intercepta a falha e sugere a sintaxe correta imediatamente com 1 clique.",
         arch_title: "Arquitetura de Portas & Adaptadores"
       },
       en: {
         nav_features: "Features",
         nav_architecture: "Architecture",
-        hero_title: "The Invisible Cognitive Layer for Your Terminal.",
-        hero_desc: "Smart terminal harness for macOS, Linux, and Windows. Automatic error healing, real-time command output memory, and high-performance hexagonal architecture.",
+        hero_title: "Your terminal's cognitive layer. Private, local, and instant.",
+        hero_desc: "Analyze command outputs, auto-heal typos, and manage infrastructure in plain English. Local-first via Ollama with zero telemetry and sub-second inference.",
+        copy_btn: "Copy",
         demo_try: "Interactive examples:",
         feat_tag: "Engineering & Performance",
         feat_main_title: "Engineered for Demanding Developers",
-        f1_title: "Local-First & Ultra-Fast",
-        f1_desc: "100% offline inference via Ollama or local APIs (OMLX, LM Studio, vLLM) with Apple Metal GPU acceleration. Sub-second response times.",
-        f2_title: "Contextual Output Memory",
-        f2_desc: "Captures actual command stdout/stderr into session buffer. Ask natural language questions about previously printed output.",
-        f3_title: "Zero Risk & Total Safety",
-        f3_desc: "Strictly Read-Only. No command is executed without your explicit [Enter/Y] keystroke. Your data never leaves your computer.",
+        f1_title: "Local-First & Offline Inference",
+        f1_desc: "100% offline execution via Ollama or local APIs (OMLX, LM Studio, vLLM) with Apple Metal acceleration. Sub-800ms responses with zero cloud leakage.",
+        f2_title: "Real-Time Output Memory Buffer",
+        f2_desc: "Captures actual command stdout/stderr directly into session memory. Ask natural questions about terminal output without copy-pasting.",
+        f3_title: "Security by Default (Read-Only)",
+        f3_desc: "Strictly non-destructive. No command executes without your explicit [Enter/Y] keystroke. You remain in full control at all times.",
         f4_title: "Hexagonal Architecture (.NET)",
-        f4_desc: "Strict separation of Domain, Ports, and Adapters in PowerAI.Core, enabling 100% testability, modularity, and easy provider swaps.",
-        f5_title: "Full Multilingual Support (i18n)",
-        f5_desc: "Automatic OS language detection with native real-time support for English, Portuguese, and Spanish.",
-        f6_title: "Monochrome Aesthetic",
-        f6_desc: "Minimalist terminal design inspired by Apple and Linear with smooth Braille thought streams and grayscale transitions.",
+        f4_desc: "Clean separation of Domain, Ports, and Adapters in PowerAI.Core, ensuring 100% testability, modularity, and easy extension.",
+        f5_title: "Multilingual Auto-Detection (i18n)",
+        f5_desc: "Automatic detection of operating system language with native real-time support for English, Portuguese, and Spanish.",
+        f6_title: "Interactive Auto-Healing",
+        f6_desc: "Mistyped a CLI flag or command? The shell hook intercepts the failure and synthesizes the exact syntax instantly.",
         arch_title: "Ports & Adapters Architecture"
       },
       es: {
         nav_features: "Funciones",
         nav_architecture: "Arquitectura",
-        hero_title: "La Capa Cognitiva Invisible para tu Terminal.",
-        hero_desc: "Harness inteligente para macOS, Linux y Windows. Corrección automática de errores, memoria de salida en tiempo real y arquitectura hexagonal.",
+        hero_title: "La inteligencia de tu terminal, sin salir de tu equipo.",
+        hero_desc: "Analiza salidas de comandos, corrige errores al instante y gestiona infraestructura en lenguaje natural. Local-first con Ollama y cero telemetría.",
+        copy_btn: "Copiar",
         demo_try: "Ejemplos interactivos:",
         feat_tag: "Ingeniería y Rendimiento",
         feat_main_title: "Diseñado para Desarrolladores Exigentes",
-        f1_title: "Local-First y Ultrarrápido",
-        f1_desc: "Ejecución 100% offline vía Ollama o APIs locales (OMLX, LM Studio, vLLM) con aceleración Apple Metal. Respuestas en menos de 800ms.",
-        f2_title: "Memoria de Salida Contextual",
-        f2_desc: "Guarda la salida real de comandos (stdout/stderr) para responder preguntas sobre datos mostrados en pantalla.",
-        f3_title: "Cero Riesgo y Seguridad",
-        f3_desc: "Totalmente de solo lectura. Ningún comando se ejecuta sin tu confirmación explícita [Enter/S]. Tus datos nunca salen de tu equipo.",
+        f1_title: "Inferencia Local y Offline",
+        f1_desc: "Ejecución 100% offline vía Ollama o APIs locales con aceleración Apple Metal. Respuestas en menos de 800ms sin enviar datos a la nube.",
+        f2_title: "Memoria de Salida en Tiempo Real",
+        f2_desc: "Guarda la salida real de comandos (stdout/stderr) para responder preguntas sobre datos mostrados en pantalla sin copiar y pegar.",
+        f3_title: "Seguridad por Defecto (Read-Only)",
+        f3_desc: "Totalmente seguro. Ningún comando se ejecuta sin tu confirmación explícita [Enter/S]. Tú siempre mantienes el control total.",
         f4_title: "Arquitectura Hexagonal (.NET)",
-        f4_desc: "Separación estricta entre Dominio, Puertos y Adaptadores en PowerAI.Core, garantizando máxima modularidad y pruebas.",
-        f5_title: "Totalmente Multilingüe (i18n)",
-        f5_desc: "Auto-detección del idioma del sistema con soporte nativo para Español, Inglés y Portugués en tiempo real.",
-        f6_title: "Diseño Monocromático",
-        f6_desc: "Interfaz minimalista inspirada en el diseño de Apple y Linear, con indicadores en Braille y tonos de gris.",
+        f4_desc: "Separación estricta entre Dominio, Puertos y Adaptadores en PowerAI.Core, garantizando máxima modularidad y cobertura de pruebas.",
+        f5_title: "Auto-Detección Multilingüe (i18n)",
+        f5_desc: "Identificación automática del idioma del sistema con soporte nativo para Español, Inglés y Portugués en tiempo real.",
+        f6_title: "Auto-Corrección Interactiva (Auto-Healing)",
+        f6_desc: "¿Error al escribir un comando? El hook nativo intercepta el fallo y sugiere la sintaxis correcta de inmediato.",
         arch_title: "Arquitectura de Puertos y Adaptadores"
       }
     };
@@ -825,6 +906,37 @@
       });
     }
 
+    /* Theme Toggle */
+    function toggleTheme() {
+      const html = document.documentElement;
+      const current = html.getAttribute('data-theme');
+      const next = current === 'dark' ? 'light' : 'dark';
+      html.setAttribute('data-theme', next);
+      localStorage.setItem('powerai-theme', next);
+      updateThemeIcon(next);
+    }
+
+    function updateThemeIcon(theme) {
+      const icon = document.getElementById('themeIcon');
+      if (theme === 'light') {
+        icon.innerHTML = '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>';
+      } else {
+        icon.innerHTML = '<circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>';
+      }
+    }
+
+    // Init theme from saved preference or OS
+    (function initTheme() {
+      const saved = localStorage.getItem('powerai-theme');
+      if (saved) {
+        document.documentElement.setAttribute('data-theme', saved);
+        updateThemeIcon(saved);
+      } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) {
+        document.documentElement.setAttribute('data-theme', 'light');
+        updateThemeIcon('light');
+      }
+    })();
+
     function switchInstallTab(os) {
       document.querySelectorAll('.install-tab').forEach(t => t.classList.remove('active'));
       event.target.classList.add('active');
@@ -840,8 +952,9 @@
       const text = document.getElementById('installCmdText').innerText;
       navigator.clipboard.writeText(text).then(() => {
         const btn = document.getElementById('copyBtnText');
-        btn.innerText = 'Copiado!';
-        setTimeout(() => { btn.innerText = 'Copiar'; }, 2000);
+        const original = btn.innerText;
+        btn.innerText = currentLang === 'en' ? 'Copied!' : (currentLang === 'es' ? '¡Copiado!' : 'Copiado!');
+        setTimeout(() => { btn.innerText = original; }, 2000);
       });
     }
 
