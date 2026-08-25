@@ -1,20 +1,20 @@
 <!DOCTYPE html>
-<html lang="pt-BR" data-theme="dark">
+<html lang="en" data-theme="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>PowerAI — Copiloto Inteligente para Terminal</title>
-  <meta name="description" content="A camada cognitiva invisível para o seu terminal. Local-First via Ollama, memória de saída em tempo real e privacidade absoluta.">
+  <title>PowerAI — Smart Terminal AI Copilot</title>
+  <meta name="description" content="The invisible cognitive layer for your terminal. Local-First via Ollama, real-time output memory buffer, and absolute privacy.">
   <meta name="theme-color" content="#070709">
 
   <!-- Open Graph & Social Sharing -->
   <meta property="og:type" content="website">
-  <meta property="og:title" content="PowerAI — Copiloto Inteligente para Terminal">
-  <meta property="og:description" content="A camada cognitiva invisível para o seu terminal. Local-First via Ollama, memória de saída em tempo real e privacidade absoluta.">
+  <meta property="og:title" content="PowerAI — Smart Terminal AI Copilot">
+  <meta property="og:description" content="The invisible cognitive layer for your terminal. Local-First via Ollama, real-time output memory buffer, and absolute privacy.">
   <meta property="og:url" content="https://luizhcrs.github.io/powerai/">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="PowerAI — Copiloto Inteligente para Terminal">
-  <meta name="twitter:description" content="Interprete saídas de comandos, corrija erros e execute ações com um toque. 100% Local-First e seguro.">
+  <meta name="twitter:title" content="PowerAI — Smart Terminal AI Copilot">
+  <meta name="twitter:description" content="Analyze command outputs, auto-heal typos, and execute CLI actions with a keystroke. 100% Local-First and private.">
   
   <!-- Isometric Faceted Cube Favicon -->
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32' fill='none'%3E%3Cpath d='M16 2L29 9.5V22.5L16 30L3 22.5V9.5L16 2Z' stroke='%23ffffff' stroke-width='2' stroke-linejoin='round'/%3E%3Cpath d='M16 2V16M16 16L29 22.5M16 16L3 22.5' stroke='%23ffffff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3Ccircle cx='16' cy='16' r='3' fill='%23ffffff'/%3E%3C/svg%3E">
@@ -872,17 +872,17 @@
 
       <!-- Center: Navigation Links (Desktop) -->
       <nav class="nav-center">
-        <a href="#features" class="nav-item" data-i18n="nav_features">Recursos</a>
-        <a href="#install" class="nav-item" data-i18n="nav_install">Instalação</a>
-        <a href="#demo" class="nav-item" data-i18n="nav_demo">Simulador</a>
+        <a href="#features" class="nav-item" data-i18n="nav_features">Features</a>
+        <a href="#install" class="nav-item" data-i18n="nav_install">Installation</a>
+        <a href="#demo" class="nav-item" data-i18n="nav_demo">Simulator</a>
         <a href="https://github.com/Luizhcrs/powerai#readme" target="_blank" class="nav-item" data-i18n="nav_docs">Docs</a>
       </nav>
 
       <!-- Right: Utility Controls (Language, Theme, GitHub, Mobile Hamburger) -->
       <div class="nav-right">
         <div class="lang-switcher">
-          <button class="lang-btn active" data-lang="pt" onclick="setLanguage('pt')">PT</button>
-          <button class="lang-btn" data-lang="en" onclick="setLanguage('en')">EN</button>
+          <button class="lang-btn" data-lang="pt" onclick="setLanguage('pt')">PT</button>
+          <button class="lang-btn active" data-lang="en" onclick="setLanguage('en')">EN</button>
           <button class="lang-btn" data-lang="es" onclick="setLanguage('es')">ES</button>
         </div>
 
@@ -919,19 +919,19 @@
       <div class="mobile-drawer" id="mobileDrawer">
         <div class="mobile-nav-links">
           <a href="#features" class="mobile-nav-link" onclick="closeMobileMenu()" data-i18n="nav_features">
-            <span>Recursos</span>
+            <span>Features</span>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
           </a>
           <a href="#install" class="mobile-nav-link" onclick="closeMobileMenu()" data-i18n="nav_install">
-            <span>Instalação</span>
+            <span>Installation</span>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
           </a>
           <a href="#demo" class="mobile-nav-link" onclick="closeMobileMenu()" data-i18n="nav_demo">
-            <span>Simulador</span>
+            <span>Simulator</span>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
           </a>
           <a href="https://github.com/Luizhcrs/powerai#readme" target="_blank" class="mobile-nav-link" onclick="closeMobileMenu()" data-i18n="nav_docs">
-            <span>Documentação</span>
+            <span>Documentation</span>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
           </a>
         </div>
@@ -939,7 +939,7 @@
         <div class="mobile-drawer-bottom">
           <a href="https://github.com/Luizhcrs/powerai" target="_blank" class="github-btn" style="display:inline-flex; width:100%; justify-content:center; padding:10px;">
             <svg height="15" width="15" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path></svg>
-            <span>Ver no GitHub</span>
+            <span>View on GitHub</span>
           </a>
         </div>
       </div>
@@ -950,10 +950,10 @@
   <section class="hero">
     <div class="container">
       <h1 class="hero-title" data-i18n="hero_title">
-        A inteligência do terminal, direto na sua máquina.
+        Terminal intelligence, built for your local machine.
       </h1>
       <p class="hero-desc" data-i18n="hero_desc">
-        Interprete saídas de comandos, corrija erros e execute ações com um toque. Local-first com Ollama, zero telemetria e respostas instantâneas.
+        Analyze outputs, auto-heal typos, and execute CLI actions instantly. Local-first via Ollama with zero telemetry and sub-second inference.
       </p>
 
       <!-- Install Box -->
@@ -972,7 +972,7 @@
               <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
             </svg>
           </span>
-          <span id="copyBtnText" data-i18n="copy_btn">Copiar</span>
+          <span id="copyBtnText" data-i18n="copy_btn">Copy</span>
         </button>
       </div>
 
@@ -989,23 +989,23 @@
         </div>
 
         <div class="terminal-body" id="terminalBody">
-          <div><span class="t-prompt">➜ ~/app </span><span class="t-user" id="demoUserQuery">ai como listar arquivos detalhados</span><span class="t-cursor" id="demoCursor" style="display:none;"></span></div>
+          <div><span class="t-prompt">➜ ~/app </span><span class="t-user" id="demoUserQuery">ai how to list all open listening ports</span><span class="t-cursor" id="demoCursor" style="display:none;"></span></div>
           
           <div class="t-spinner" id="demoSpinner">
-            <span>⠋</span> <span id="demoSpinnerText">pensando · analisando ambiente</span>
+            <span>⠋</span> <span id="demoSpinnerText">thinking · analyzing environment</span>
           </div>
 
           <div class="t-cmd-box" id="demoResult">
-            <div class="t-cmd" id="demoCmdText">✦ ls -la</div>
-            <div class="t-exp" id="demoExpText">↳ Lista todos os arquivos detalhados no diretório atual.</div>
+            <div class="t-cmd" id="demoCmdText">✦ lsof -iTCP -sTCP:LISTEN -P</div>
+            <div class="t-exp" id="demoExpText">↳ Lists all active processes listening on TCP ports.</div>
           </div>
 
           <!-- Interactive Confirmation Dialogue -->
           <div class="t-confirm-box" id="demoConfirmBox" style="display:none;">
-            <span class="t-confirm-text" id="demoConfirmPrompt">Executar comando? [Enter/S = Sim | Esc/N = Não]</span>
+            <span class="t-confirm-text" id="demoConfirmPrompt">Execute command? [Enter/Y = Yes | Esc/N = No]</span>
             <div class="t-confirm-actions">
-              <button class="t-confirm-btn t-btn-yes" onclick="confirmDemoExecution(true)">Sim (Enter)</button>
-              <button class="t-confirm-btn" onclick="confirmDemoExecution(false)">Não (Esc)</button>
+              <button class="t-confirm-btn t-btn-yes" onclick="confirmDemoExecution(true)">Yes (Enter)</button>
+              <button class="t-confirm-btn" onclick="confirmDemoExecution(false)">No (Esc)</button>
             </div>
           </div>
 
@@ -1013,10 +1013,10 @@
         </div>
 
         <div class="terminal-demo-actions">
-          <span style="font-size: 0.78rem; color: var(--terminal-muted); align-self: center; margin-right: 4px; white-space: nowrap;" data-i18n="demo_try">Exemplos:</span>
-          <button class="demo-chip" id="chip-1" onclick="runInteractiveDemo(1)">ai como ver portas abertas</button>
-          <button class="demo-chip" id="chip-2" onclick="runInteractiveDemo(2)">ai qual meu ip local na saída?</button>
-          <button class="demo-chip" id="chip-3" onclick="runInteractiveDemo(3)">dockr ps (erro de digitação)</button>
+          <span style="font-size: 0.78rem; color: var(--terminal-muted); align-self: center; margin-right: 4px; white-space: nowrap;" data-i18n="demo_try">Examples:</span>
+          <button class="demo-chip" id="chip-1" onclick="runInteractiveDemo(1)">ai how to list listening ports</button>
+          <button class="demo-chip" id="chip-2" onclick="runInteractiveDemo(2)">ai what is my local ip in output?</button>
+          <button class="demo-chip" id="chip-3" onclick="runInteractiveDemo(3)">dockr ps (typo auto-healing)</button>
         </div>
       </div>
 
@@ -1029,7 +1029,7 @@
             </svg>
           </div>
           <h3 class="bento-title" data-i18n="b1_title">Local-First & Offline</h3>
-          <p class="bento-desc" data-i18n="b1_desc">Execução 100% offline via Ollama com aceleração de GPU. Seus comandos e dados nunca saem da sua máquina.</p>
+          <p class="bento-desc" data-i18n="b1_desc">100% offline execution via Ollama with GPU acceleration. Your data never leaves your computer.</p>
         </div>
 
         <div class="bento-card">
@@ -1040,8 +1040,8 @@
               <line x1="12" y1="17" x2="12" y2="21"></line>
             </svg>
           </div>
-          <h3 class="bento-title" data-i18n="b2_title">Memória de Saída</h3>
-          <p class="bento-desc" data-i18n="b2_desc">Pergunte diretamente sobre dados impressos no terminal sem precisar copiar e colar nada.</p>
+          <h3 class="bento-title" data-i18n="b2_title">Output Memory Buffer</h3>
+          <p class="bento-desc" data-i18n="b2_desc">Ask questions directly about output printed on your terminal without copy-pasting.</p>
         </div>
 
         <div class="bento-card">
@@ -1050,8 +1050,8 @@
               <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
             </svg>
           </div>
-          <h3 class="bento-title" data-i18n="b3_title">Zero Risco por Padrão</h3>
-          <p class="bento-desc" data-i18n="b3_desc">Totalmente não-invasivo. Nenhum comando é executado sem sua confirmação explícita no teclado.</p>
+          <h3 class="bento-title" data-i18n="b3_title">Zero Risk by Default</h3>
+          <p class="bento-desc" data-i18n="b3_desc">Strictly non-destructive. No command executes without your explicit Enter keystroke.</p>
         </div>
       </div>
     </div>
@@ -1071,27 +1071,27 @@
             <span>PowerAI</span>
           </a>
           <p class="footer-summary" data-i18n="foot_summary">
-            A camada cognitiva invisível para terminais modernos. Local-first, privada e de código aberto.
+            The invisible cognitive layer for modern terminals. Local-first, private, and open source.
           </p>
         </div>
 
         <div>
-          <div class="footer-col-title" data-i18n="foot_col_product">Produto</div>
+          <div class="footer-col-title" data-i18n="foot_col_product">Product</div>
           <div class="footer-col-links">
-            <a href="#install" class="footer-col-link" data-i18n="foot_install">Instalação</a>
-            <a href="#features" class="footer-col-link" data-i18n="foot_features">Recursos</a>
-            <a href="https://github.com/Luizhcrs/powerai#-como-funciona-por-baixo-dos-panos" target="_blank" class="footer-col-link" data-i18n="foot_how">Como Funciona</a>
+            <a href="#install" class="footer-col-link" data-i18n="foot_install">Installation</a>
+            <a href="#features" class="footer-col-link" data-i18n="foot_features">Features</a>
+            <a href="https://github.com/Luizhcrs/powerai#-how-it-works" target="_blank" class="footer-col-link" data-i18n="foot_how">How it Works</a>
             <a href="https://ollama.com" target="_blank" class="footer-col-link">Ollama Engine</a>
           </div>
         </div>
 
         <div>
-          <div class="footer-col-title" data-i18n="foot_col_community">Código & Comunidade</div>
+          <div class="footer-col-title" data-i18n="foot_col_community">Code & Community</div>
           <div class="footer-col-links">
             <a href="https://github.com/Luizhcrs/powerai" target="_blank" class="footer-col-link">GitHub Repository</a>
             <a href="https://github.com/Luizhcrs/powerai/releases" target="_blank" class="footer-col-link">Releases</a>
             <a href="https://github.com/Luizhcrs/powerai/issues" target="_blank" class="footer-col-link">Issues</a>
-            <a href="https://github.com/Luizhcrs/powerai/blob/main/LICENSE" target="_blank" class="footer-col-link" data-i18n="foot_license">Licença</a>
+            <a href="https://github.com/Luizhcrs/powerai/blob/main/LICENSE" target="_blank" class="footer-col-link" data-i18n="foot_license">License</a>
           </div>
         </div>
       </div>
@@ -1180,19 +1180,23 @@
         foot_install: "Instalación",
         foot_features: "Funciones",
         foot_how: "Cómo Funciona",
-        foot_license: "Licencia",      foot_install: "Instalación",
-        foot_features: "Funciones",
-        foot_how: "Cómo Funciona",
+        foot_license: "Licencia",
         confirm_prompt: "¿Ejecutar comando? [Enter/S = Sí | Esc/N = No]",
         confirm_yes: "Sí (Enter)",
         confirm_no: "No (Esc)"
       }
     };
 
-    let currentLang = 'pt';
+    let currentLang = localStorage.getItem('powerai-lang') || 'en';
 
     function setLanguage(lang) {
       currentLang = lang;
+      try {
+        localStorage.setItem('powerai-lang', lang);
+      } catch(e) {}
+
+      document.documentElement.setAttribute('lang', lang === 'pt' ? 'pt-BR' : (lang === 'es' ? 'es-ES' : 'en'));
+
       document.querySelectorAll('.lang-btn').forEach(b => {
         if (b.getAttribute('data-lang') === lang) {
           b.classList.add('active');
@@ -1271,6 +1275,9 @@
           }
         });
       }
+
+      // Initialize language on startup (English default)
+      setLanguage(currentLang);
     })();
 
     function toggleMobileMenu() {
@@ -1319,12 +1326,12 @@
 
       navigator.clipboard.writeText(text).then(() => {
         btn.classList.add('copied');
-        btnText.innerText = translations[currentLang].copied_btn || 'Copiado!';
+        btnText.innerText = translations[currentLang].copied_btn || 'Copied!';
         btnIcon.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>';
         
         setTimeout(() => {
           btn.classList.remove('copied');
-          btnText.innerText = translations[currentLang].copy_btn || 'Copiar';
+          btnText.innerText = translations[currentLang].copy_btn || 'Copy';
           btnIcon.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>';
         }, 2000);
       });
@@ -1332,25 +1339,67 @@
 
     const demoDemos = {
       1: {
-        query: "ai como ver portas de rede abertas",
-        cmd: "lsof -iTCP -sTCP:LISTEN -P",
-        exp: "Lista todos os processos ativos ouvindo em portas TCP no sistema.",
-        requiresConfirm: true,
-        output: "[Executando] lsof -iTCP -sTCP:LISTEN -P\n\nCOMMAND   PID   USER      FD   TYPE             DEVICE NODE NAME\nnode    49202   dev       23u  IPv4 0x7c94b291   0t0  TCP *:3000 (LISTEN)\nollama  11434   dev       12u  IPv6 0x8a92f012   0t0  TCP *:11434 (LISTEN)\npostgres  5432  postgres   4u  IPv4 0x12a884c1   0t0  TCP *:5432 (LISTEN)"
+        en: {
+          query: "ai how to list all open listening ports",
+          cmd: "lsof -iTCP -sTCP:LISTEN -P",
+          exp: "Lists all active processes listening on TCP ports on the system.",
+          output: "[Executing] lsof -iTCP -sTCP:LISTEN -P\n\nCOMMAND   PID   USER      FD   TYPE             DEVICE NODE NAME\nnode    49202   dev       23u  IPv4 0x7c94b291   0t0  TCP *:3000 (LISTEN)\nollama  11434   dev       12u  IPv6 0x8a92f012   0t0  TCP *:11434 (LISTEN)\npostgres  5432  postgres   4u  IPv4 0x12a884c1   0t0  TCP *:5432 (LISTEN)"
+        },
+        pt: {
+          query: "ai como ver portas de rede abertas",
+          cmd: "lsof -iTCP -sTCP:LISTEN -P",
+          exp: "Lista todos os processos ativos ouvindo em portas TCP no sistema.",
+          output: "[Executando] lsof -iTCP -sTCP:LISTEN -P\n\nCOMMAND   PID   USER      FD   TYPE             DEVICE NODE NAME\nnode    49202   dev       23u  IPv4 0x7c94b291   0t0  TCP *:3000 (LISTEN)\nollama  11434   dev       12u  IPv6 0x8a92f012   0t0  TCP *:11434 (LISTEN)\npostgres  5432  postgres   4u  IPv4 0x12a884c1   0t0  TCP *:5432 (LISTEN)"
+        },
+        es: {
+          query: "ai cómo ver puertos de red abiertos",
+          cmd: "lsof -iTCP -sTCP:LISTEN -P",
+          exp: "Lista todos los procesos activos escuchando en puertos TCP en el sistema.",
+          output: "[Ejecutando] lsof -iTCP -sTCP:LISTEN -P\n\nCOMMAND   PID   USER      FD   TYPE             DEVICE NODE NAME\nnode    49202   dev       23u  IPv4 0x7c94b291   0t0  TCP *:3000 (LISTEN)\nollama  11434   dev       12u  IPv6 0x8a92f012   0t0  TCP *:11434 (LISTEN)\npostgres  5432  postgres   4u  IPv4 0x12a884c1   0t0  TCP *:5432 (LISTEN)"
+        },
+        requiresConfirm: true
       },
       2: {
-        query: "ai qual meu ip local na saída acima?",
-        cmd: "✦ 192.168.1.100 (na interface en0 / eth0)",
-        exp: "Dado extraído diretamente do buffer de memória da sessão anterior.",
-        requiresConfirm: false,
-        output: ""
+        en: {
+          query: "ai what is my local ip in output above?",
+          cmd: "✦ 192.168.1.100 (on interface en0 / eth0)",
+          exp: "Extracted directly from previous session memory buffer.",
+          output: ""
+        },
+        pt: {
+          query: "ai qual meu ip local na saída acima?",
+          cmd: "✦ 192.168.1.100 (na interface en0 / eth0)",
+          exp: "Dado extraído diretamente do buffer de memória da sessão anterior.",
+          output: ""
+        },
+        es: {
+          query: "ai ¿cuál es mi ip local en la salida anterior?",
+          cmd: "✦ 192.168.1.100 (en la interfaz en0 / eth0)",
+          exp: "Dato extraído directamente de la memoria de sesión previa.",
+          output: ""
+        },
+        requiresConfirm: false
       },
       3: {
-        query: "dockr ps",
-        cmd: "docker ps",
-        exp: "Correção automática de comando interceptada pelo hook nativo do shell.",
-        requiresConfirm: true,
-        output: "[Executando] docker ps\n\nCONTAINER ID   IMAGE          COMMAND                  CREATED         STATUS         PORTS                    NAMES\n7c1f8a920b12   postgres:16    \"docker-entrypoint.s…\"   2 hours ago     Up 2 hours     0.0.0.0:5432->5432/tcp   local-db\n9b4a1122cc81   redis:alpine   \"docker-entrypoint.s…\"   5 hours ago     Up 5 hours     0.0.0.0:6379->6379/tcp   cache"
+        en: {
+          query: "dockr ps",
+          cmd: "docker ps",
+          exp: "Command typo automatically intercepted by native shell hook.",
+          output: "[Executing] docker ps\n\nCONTAINER ID   IMAGE          COMMAND                  CREATED         STATUS         PORTS                    NAMES\n7c1f8a920b12   postgres:16    \"docker-entrypoint.s…\"   2 hours ago     Up 2 hours     0.0.0.0:5432->5432/tcp   local-db\n9b4a1122cc81   redis:alpine   \"docker-entrypoint.s…\"   5 hours ago     Up 5 hours     0.0.0.0:6379->6379/tcp   cache"
+        },
+        pt: {
+          query: "dockr ps",
+          cmd: "docker ps",
+          exp: "Correção automática de comando interceptada pelo hook nativo do shell.",
+          output: "[Executando] docker ps\n\nCONTAINER ID   IMAGE          COMMAND                  CREATED         STATUS         PORTS                    NAMES\n7c1f8a920b12   postgres:16    \"docker-entrypoint.s…\"   2 hours ago     Up 2 hours     0.0.0.0:5432->5432/tcp   local-db\n9b4a1122cc81   redis:alpine   \"docker-entrypoint.s…\"   5 hours ago     Up 5 hours     0.0.0.0:6379->6379/tcp   cache"
+        },
+        es: {
+          query: "dockr ps",
+          cmd: "docker ps",
+          exp: "Corrección automática de comando interceptada por el hook nativo.",
+          output: "[Ejecutando] docker ps\n\nCONTAINER ID   IMAGE          COMMAND                  CREATED         STATUS         PORTS                    NAMES\n7c1f8a920b12   postgres:16    \"docker-entrypoint.s…\"   2 hours ago     Up 2 hours     0.0.0.0:5432->5432/tcp   local-db\n9b4a1122cc81   redis:alpine   \"docker-entrypoint.s…\"   5 hours ago     Up 5 hours     0.0.0.0:6379->6379/tcp   cache"
+        },
+        requiresConfirm: true
       }
     };
 
@@ -1365,7 +1414,15 @@
       const activeChip = document.getElementById(`chip-${id}`);
       if (activeChip) activeChip.classList.add('active-chip');
 
-      const demo = demoDemos[id];
+      const rawDemo = demoDemos[id];
+      const langData = rawDemo[currentLang] || rawDemo['en'] || rawDemo['pt'];
+      const demo = {
+        query: langData.query,
+        cmd: langData.cmd,
+        exp: langData.exp,
+        output: langData.output,
+        requiresConfirm: rawDemo.requiresConfirm
+      };
       activeDemoData = demo;
 
       const qElem = document.getElementById('demoUserQuery');
