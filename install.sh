@@ -193,13 +193,62 @@ _spin_step() {
     printf "\r\033[2K  \033[1;37m✓\033[0m  \033[38;5;250m%s\033[0m\n" "$msg"
 }
 
-# --- HEADER / BANNER ---
-clear 2>/dev/null || true
-echo ""
-echo -e "  \033[1;37m✦  P O W E R A I\033[0m"
-echo -e "     \033[38;5;244mCamada Cognitiva & Copiloto para Terminal\033[0m"
-echo -e "     \033[38;5;238m─────────────────────────────────────────────────────────────\033[0m"
-echo ""
+_animate_intro() {
+    clear 2>/dev/null || true
+    echo ""
+    
+    local text="✦  P O W E R A I"
+    local len=${#text}
+    local grays=(236 238 240 243 246 250 255 250 246 243 240 238 236)
+    local n_grays=${#grays[@]}
+
+    tput civis 2>/dev/null || printf "\033[?25l"
+
+    # 1. Shimmer on title
+    for step in {0..14}; do
+        printf "\r  "
+        for ((i=0; i<len; i++)); do
+            local char="${text:$i:1}"
+            local g_idx=$(( (i + step) % n_grays ))
+            printf "\033[38;5;%dm%s\033[0m" "${grays[$g_idx]}" "$char"
+        done
+        printf "\033[K"
+        sleep 0.025
+    done
+
+    # Print final crisp title
+    printf "\r  \033[1;37m%s\033[0m\n" "$text"
+    printf "     \033[38;5;244mCamada Cognitiva & Copiloto para Terminal\033[0m\n"
+
+    # 2. Sweeping light beam on divider line
+    local width=58
+    for pos in $(seq 0 3 $width); do
+        printf "\r     "
+        for ((i=0; i<width; i++)); do
+            local dist=$(( i - pos ))
+            [ $dist -lt 0 ] && dist=$(( -dist ))
+            if [ $dist -eq 0 ]; then
+                printf "\033[1;37m━\033[0m"
+            elif [ $dist -eq 1 ]; then
+                printf "\033[38;5;252m─\033[0m"
+            elif [ $dist -eq 2 ]; then
+                printf "\033[38;5;246m─\033[0m"
+            elif [ $dist -eq 3 ]; then
+                printf "\033[38;5;241m─\033[0m"
+            else
+                printf "\033[38;5;236m─\033[0m"
+            fi
+        done
+        sleep 0.015
+    done
+    
+    # Settle divider line into subtle dark gray
+    printf "\r     \033[38;5;238m──────────────────────────────────────────────────────────\033[0m\n\n"
+    tput cnorm 2>/dev/null || printf "\033[?25h"
+}
+
+# --- RENDER INTRO ---
+_animate_intro
 
 # Quick mode check
 QUICK_MODE=false
