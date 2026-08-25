@@ -8,5 +8,5 @@ if (Test-Path $localScript) {
     & $localScript
 } else {
     Write-Host "Baixando script de desinstalacao do PowerAI..." -ForegroundColor Yellow
-    irm "https://raw.githubusercontent.com/Luizhcrs/nuno/main/uninstall.ps1" | iex
+    irm "https://raw.githubusercontent.com/Luizhcrs/powerai/main/uninstall.ps1" | iex
 }

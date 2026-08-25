@@ -1,5 +1,5 @@
 # uninstall.ps1 - Desinstalador Universal do PowerAI para Windows (PS e CMD)
-# Uso: irm https://raw.githubusercontent.com/Luizhcrs/nuno/main/uninstall.ps1 | iex
+# Uso: irm https://raw.githubusercontent.com/Luizhcrs/powerai/main/uninstall.ps1 | iex
 
 $ErrorActionPreference = 'SilentlyContinue'
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8

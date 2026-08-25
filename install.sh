@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # install.sh - Modern, Multilingual & Self-Healing Installer for PowerAI
-# Usage: curl -fsSL https://raw.githubusercontent.com/Luizhcrs/nuno/main/install.sh | bash
+# Usage: curl -fsSL https://raw.githubusercontent.com/Luizhcrs/powerai/main/install.sh | bash
 #        or ./install.sh [--quick] [--lang=pt|en|es]
 
 set -e
@@ -686,19 +686,19 @@ _spin_step "Criando diretório $INSTALL_DIR..." "mkdir -p '$INSTALL_DIR'"
 if [ -f "$(dirname "$0")/powerai.sh" ]; then
     _spin_step "Instalando script principal (powerai.sh)..." "cp '$(dirname "$0")/powerai.sh' '$INSTALL_DIR/powerai.sh'"
 else
-    _spin_step "Baixando script principal (powerai.sh)..." "curl -fsSL 'https://raw.githubusercontent.com/Luizhcrs/nuno/main/powerai.sh' -o '$INSTALL_DIR/powerai.sh'"
+    _spin_step "Baixando script principal (powerai.sh)..." "curl -fsSL 'https://raw.githubusercontent.com/Luizhcrs/powerai/main/powerai.sh' -o '$INSTALL_DIR/powerai.sh'"
 fi
 
 if [ -f "$(dirname "$0")/uninstall.sh" ]; then
     _spin_step "Instalando desinstalador (uninstall.sh)..." "cp '$(dirname "$0")/uninstall.sh' '$INSTALL_DIR/uninstall.sh'"
 else
-    _spin_step "Baixando desinstalador (uninstall.sh)..." "curl -fsSL 'https://raw.githubusercontent.com/Luizhcrs/nuno/main/uninstall.sh' -o '$INSTALL_DIR/uninstall.sh'"
+    _spin_step "Baixando desinstalador (uninstall.sh)..." "curl -fsSL 'https://raw.githubusercontent.com/Luizhcrs/powerai/main/uninstall.sh' -o '$INSTALL_DIR/uninstall.sh'"
 fi
 
 if [ -f "$(dirname "$0")/parse_response.py" ]; then
     _spin_step "Instalando extrator de respostas (parse_response.py)..." "cp '$(dirname "$0")/parse_response.py' '$INSTALL_DIR/parse_response.py'"
 else
-    _spin_step "Baixando extrator de respostas (parse_response.py)..." "curl -fsSL 'https://raw.githubusercontent.com/Luizhcrs/nuno/main/parse_response.py' -o '$INSTALL_DIR/parse_response.py'"
+    _spin_step "Baixando extrator de respostas (parse_response.py)..." "curl -fsSL 'https://raw.githubusercontent.com/Luizhcrs/powerai/main/parse_response.py' -o '$INSTALL_DIR/parse_response.py'"
 fi
 
 chmod +x "$INSTALL_DIR/powerai.sh" "$INSTALL_DIR/uninstall.sh" "$INSTALL_DIR/parse_response.py" 2>/dev/null || true

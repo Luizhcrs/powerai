@@ -113,7 +113,7 @@ function Uninstall-PowerAI {
         if (Test-Path $uninstallerPath) {
             & $uninstallerPath
         } else {
-            irm "https://raw.githubusercontent.com/Luizhcrs/nuno/main/uninstall.ps1" | iex
+            irm "https://raw.githubusercontent.com/Luizhcrs/powerai/main/uninstall.ps1" | iex
         }
     }
 }

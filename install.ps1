@@ -1,5 +1,5 @@
 # install.ps1 - Universal Modern & Interactive Installer for PowerAI (Windows)
-# Usage: irm https://raw.githubusercontent.com/Luizhcrs/nuno/main/install.ps1 | iex
+# Usage: irm https://raw.githubusercontent.com/Luizhcrs/powerai/main/install.ps1 | iex
 
 param(
     [switch]$Quick,
@@ -21,7 +21,7 @@ Write-Host ""
 $powerAiDir = Join-Path $env:USERPROFILE ".powerai"
 $binDir = Join-Path $powerAiDir "bin"
 $moduleDir = Join-Path $env:USERPROFILE "Documents\WindowsPowerShell\Modules\PowerAI"
-$repoZipUrl = "https://github.com/Luizhcrs/nuno/archive/refs/heads/main.zip"
+$repoZipUrl = "https://github.com/Luizhcrs/powerai/archive/refs/heads/main.zip"
 $tempZip = Join-Path $env:TEMP "powerai_install.zip"
 $tempExtract = Join-Path $env:TEMP "powerai_extract"
 

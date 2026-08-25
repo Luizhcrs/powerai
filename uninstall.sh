@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # uninstall.sh - Desinstalador do PowerAI para Linux e macOS (Bash & Zsh)
-# Uso: curl -fsSL https://raw.githubusercontent.com/Luizhcrs/nuno/main/uninstall.sh | bash
+# Uso: curl -fsSL https://raw.githubusercontent.com/Luizhcrs/powerai/main/uninstall.sh | bash
 
 set -e
 

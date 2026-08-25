@@ -1,12 +1,12 @@
 <div align="center">
 
-<a href="https://luizhcrs.github.io/nuno">
+<a href="https://luizhcrs.github.io/powerai">
   <img src="assets/banner.svg" alt="PowerAI Banner" width="100%">
 </a>
 
 <br/><br/>
 
-[Landing Page & Web Simulator](https://luizhcrs.github.io/nuno) • [Quick Install](#quick-install) • [Commands](#commands) • [How It Works](#how-it-works) • [License](#license)
+[Landing Page & Web Simulator](https://luizhcrs.github.io/powerai) • [Quick Install](#quick-install) • [Commands](#commands) • [How It Works](#how-it-works) • [License](#license)
 
 ---
 
@@ -16,12 +16,12 @@
 
 ### macOS & Linux (Bash / Zsh)
 ```bash
-curl -fsSL https://raw.githubusercontent.com/Luizhcrs/nuno/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/Luizhcrs/powerai/main/install.sh | bash
 ```
 
 ### Windows (PowerShell 5.1 / 7+)
 ```powershell
-irm https://raw.githubusercontent.com/Luizhcrs/nuno/main/install.ps1 | iex
+irm https://raw.githubusercontent.com/Luizhcrs/powerai/main/install.ps1 | iex
 ```
 
 The installer is self-healing: missing dependencies (`curl`, `python3`, `jq`) and the recommended local Ollama model (`qwen2.5-coder:1.5b`) are configured automatically.
@@ -126,4 +126,4 @@ PowerAI is distributed under the **PolyForm Noncommercial License 1.0.0**.
 - **Prohibited**: Commercial use, paid distribution, SaaS re-hosting, or monetization without prior written license from the copyright holder.
 
 **Author**: Luiz Henrique ([@Luizhcrs](https://github.com/Luizhcrs))  
-**Repository**: [github.com/Luizhcrs/nuno](https://github.com/Luizhcrs/nuno)
+**Repository**: [github.com/Luizhcrs/powerai](https://github.com/Luizhcrs/powerai)

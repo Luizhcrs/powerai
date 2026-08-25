@@ -533,7 +533,7 @@ _powerai_ai_entry() {
             if [ -f "$POWERAI_CONFIG_DIR/uninstall.sh" ]; then
                 bash "$POWERAI_CONFIG_DIR/uninstall.sh"
             else
-                curl -fsSL "https://raw.githubusercontent.com/Luizhcrs/nuno/main/uninstall.sh" | bash
+                curl -fsSL "https://raw.githubusercontent.com/Luizhcrs/powerai/main/uninstall.sh" | bash
             fi
         else
             echo "Uninstallation canceled."
