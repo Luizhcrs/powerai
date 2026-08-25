@@ -689,9 +689,9 @@
       <!-- Right: Utility Controls (Language, Theme, GitHub) -->
       <div class="nav-right">
         <div class="lang-switcher">
-          <button class="lang-btn active" onclick="setLanguage('pt')">PT</button>
-          <button class="lang-btn" onclick="setLanguage('en')">EN</button>
-          <button class="lang-btn" onclick="setLanguage('es')">ES</button>
+          <button class="lang-btn active" data-lang="pt" onclick="setLanguage('pt')">PT</button>
+          <button class="lang-btn" data-lang="en" onclick="setLanguage('en')">EN</button>
+          <button class="lang-btn" data-lang="es" onclick="setLanguage('es')">ES</button>
         </div>
 
         <button class="theme-toggle-btn" id="themeToggleBtn" onclick="toggleTheme()" aria-label="Toggle theme">
@@ -729,8 +729,8 @@
       <!-- Install Box -->
       <div class="install-box" id="install">
         <div class="install-tabs">
-          <button class="install-tab active" onclick="switchInstallTab('mac')">macOS / Linux</button>
-          <button class="install-tab" onclick="switchInstallTab('win')">Windows</button>
+          <button class="install-tab active" data-os="mac" onclick="switchInstallTab('mac')">macOS / Linux</button>
+          <button class="install-tab" data-os="win" onclick="switchInstallTab('win')">Windows</button>
         </div>
         <div class="install-cmd" id="installCmdText">
           curl -fsSL https://raw.githubusercontent.com/Luizhcrs/nuno/main/install.sh | bash
@@ -953,8 +953,13 @@
 
     function setLanguage(lang) {
       currentLang = lang;
-      document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
-      event.target.classList.add('active');
+      document.querySelectorAll('.lang-btn').forEach(b => {
+        if (b.getAttribute('data-lang') === lang) {
+          b.classList.add('active');
+        } else {
+          b.classList.remove('active');
+        }
+      });
 
       document.querySelectorAll('[data-i18n]').forEach(el => {
         const key = el.getAttribute('data-i18n');
@@ -964,14 +969,14 @@
       });
 
       const confirmPrompt = document.getElementById('demoConfirmPrompt');
-      if (confirmPrompt) {
+      if (confirmPrompt && translations[lang] && translations[lang].confirm_prompt) {
         confirmPrompt.innerText = translations[lang].confirm_prompt;
       }
     }
 
     function toggleTheme() {
       const html = document.documentElement;
-      const current = html.getAttribute('data-theme');
+      const current = html.getAttribute('data-theme') || 'dark';
       const next = current === 'dark' ? 'light' : 'dark';
       html.setAttribute('data-theme', next);
       localStorage.setItem('powerai-theme', next);
@@ -980,10 +985,11 @@
 
     function updateThemeIcon(theme) {
       const icon = document.getElementById('themeIcon');
+      if (!icon) return;
       if (theme === 'light') {
         icon.innerHTML = '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>';
       } else {
-        icon.innerHTML = '<circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+        icon.innerHTML = '<circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>';
       }
     }
 
@@ -999,8 +1005,13 @@
     })();
 
     function switchInstallTab(os) {
-      document.querySelectorAll('.install-tab').forEach(t => t.classList.remove('active'));
-      event.target.classList.add('active');
+      document.querySelectorAll('.install-tab').forEach(t => {
+        if (t.getAttribute('data-os') === os) {
+          t.classList.add('active');
+        } else {
+          t.classList.remove('active');
+        }
+      });
       const cmdText = document.getElementById('installCmdText');
       if (os === 'win') {
         cmdText.innerText = 'irm https://raw.githubusercontent.com/Luizhcrs/nuno/main/install.ps1 | iex';
