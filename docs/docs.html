@@ -1,0 +1,1080 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>PowerAI Documentation — Architecture, CLI Reference & Setup</title>
+  <meta name="description" content="Official documentation for PowerAI. Setup guides, Ollama models, CLI commands reference, environment variables, and zero-telemetry architecture.">
+  <meta name="theme-color" content="#070709">
+
+  <!-- Open Graph & Social Sharing -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="PowerAI Documentation — Architecture, CLI Reference & Setup">
+  <meta property="og:description" content="Official documentation for PowerAI. Setup guides, Ollama models, CLI commands reference, environment variables, and zero-telemetry architecture.">
+  <meta property="og:url" content="https://luizhcrs.github.io/powerai/docs.html">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="PowerAI Documentation">
+  <meta name="twitter:description" content="Comprehensive guides, CLI reference, and architecture details for PowerAI.">
+
+  <!-- Isometric Faceted Cube Favicon -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32' fill='none'%3E%3Cpath d='M16 2L29 9.5V22.5L16 30L3 22.5V9.5L16 2Z' stroke='%23ffffff' stroke-width='2' stroke-linejoin='round'/%3E%3Cpath d='M16 2V16M16 16L29 22.5M16 16L3 22.5' stroke='%23ffffff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3Ccircle cx='16' cy='16' r='3' fill='%23ffffff'/%3E%3C/svg%3E">
+
+  <!-- Zero-Flash Theme Boot -->
+  <script>
+    (function() {
+      try {
+        var userChoice = localStorage.getItem('powerai-theme-user-choice');
+        var saved = localStorage.getItem('powerai-theme');
+        if (userChoice && saved) {
+          document.documentElement.setAttribute('data-theme', saved);
+        } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) {
+          document.documentElement.setAttribute('data-theme', 'light');
+        } else {
+          document.documentElement.setAttribute('data-theme', 'dark');
+        }
+      } catch(e) {}
+    })();
+  </script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500;600&family=Geist:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <style>
+    :root {
+      --bg: #070709;
+      --card-bg: #0d0d11;
+      --card-border: #18181f;
+      --card-hover-border: #2c2c36;
+      --text-main: #f4f4f5;
+      --text-muted: #8e8e96;
+      --text-subtle: #52525c;
+      --accent: #ffffff;
+      --code-bg: rgba(255, 255, 255, 0.04);
+      --nav-bg: rgba(7, 7, 9, 0.85);
+      --sidebar-bg: #09090d;
+      --font-sans: 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      --font-mono: 'Geist Mono', 'SF Mono', Consolas, Monaco, monospace;
+      --border-subtle: rgba(255, 255, 255, 0.08);
+      --highlight: rgba(255, 255, 255, 0.06);
+    }
+
+    [data-theme="light"] {
+      --bg: #f7f7fa;
+      --card-bg: #ffffff;
+      --card-border: #e6e6eb;
+      --card-hover-border: #cfcfd8;
+      --text-main: #09090b;
+      --text-muted: #52525b;
+      --text-subtle: #71717a;
+      --accent: #09090b;
+      --code-bg: rgba(0, 0, 0, 0.04);
+      --nav-bg: rgba(247, 247, 250, 0.9);
+      --sidebar-bg: #f0f0f4;
+      --border-subtle: #e2e2e8;
+      --highlight: rgba(0, 0, 0, 0.05);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      background-color: var(--bg);
+      color: var(--text-main);
+      font-family: var(--font-sans);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Top Navigation */
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      background-color: var(--nav-bg);
+      border-bottom: 1px solid var(--border-subtle);
+      height: 60px;
+    }
+
+    .nav-container {
+      max-width: 1440px;
+      margin: 0 auto;
+      height: 100%;
+      padding: 0 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .nav-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: var(--text-main);
+      font-weight: 700;
+      font-size: 1.05rem;
+      letter-spacing: -0.02em;
+    }
+
+    .brand-cube { width: 22px; height: 22px; }
+
+    .nav-badge {
+      font-size: 0.72rem;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 4px;
+      background: var(--code-bg);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-muted);
+      margin-left: 4px;
+    }
+
+    .nav-center {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+    }
+
+    .nav-link {
+      font-size: 0.88rem;
+      font-weight: 500;
+      color: var(--text-muted);
+      text-decoration: none;
+      transition: color 0.15s;
+    }
+    .nav-link:hover, .nav-link.active {
+      color: var(--text-main);
+    }
+
+    .nav-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .lang-switcher {
+      display: flex;
+      background: var(--card-bg);
+      border: 1px solid var(--border-subtle);
+      border-radius: 6px;
+      padding: 2px;
+    }
+
+    .lang-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-size: 0.72rem;
+      font-weight: 600;
+      padding: 4px 8px;
+      cursor: pointer;
+      border-radius: 4px;
+    }
+    .lang-btn.active {
+      background: var(--code-bg);
+      color: var(--text-main);
+    }
+
+    .theme-btn, .github-link {
+      background: var(--card-bg);
+      border: 1px solid var(--border-subtle);
+      border-radius: 6px;
+      padding: 6px 10px;
+      color: var(--text-main);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.8rem;
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    /* Docs Layout */
+    .docs-layout {
+      max-width: 1440px;
+      width: 100%;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 260px 1fr 220px;
+      min-height: calc(100vh - 60px);
+    }
+
+    /* Sidebar Left */
+    .sidebar-left {
+      position: sticky;
+      top: 60px;
+      height: calc(100vh - 60px);
+      overflow-y: auto;
+      padding: 24px 16px 40px 24px;
+      border-right: 1px solid var(--border-subtle);
+      font-size: 0.88rem;
+    }
+
+    .sidebar-search {
+      margin-bottom: 20px;
+      position: relative;
+    }
+    .sidebar-search input {
+      width: 100%;
+      background: var(--card-bg);
+      border: 1px solid var(--border-subtle);
+      border-radius: 6px;
+      padding: 8px 12px 8px 30px;
+      color: var(--text-main);
+      font-size: 0.82rem;
+      font-family: inherit;
+      outline: none;
+    }
+    .sidebar-search input:focus {
+      border-color: var(--text-subtle);
+    }
+    .sidebar-search svg {
+      position: absolute;
+      left: 10px;
+      top: 9px;
+      color: var(--text-muted);
+    }
+
+    .sidebar-group {
+      margin-bottom: 24px;
+    }
+    .sidebar-heading {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-subtle);
+      margin-bottom: 8px;
+      padding-left: 8px;
+    }
+    .sidebar-links {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .sidebar-link {
+      display: block;
+      padding: 6px 10px;
+      color: var(--text-muted);
+      text-decoration: none;
+      border-radius: 6px;
+      font-size: 0.84rem;
+      font-weight: 500;
+      transition: all 0.15s;
+    }
+    .sidebar-link:hover {
+      color: var(--text-main);
+      background: var(--highlight);
+    }
+    .sidebar-link.active {
+      color: var(--text-main);
+      background: var(--code-bg);
+      font-weight: 600;
+      border-left: 2px solid var(--accent);
+      border-radius: 0 6px 6px 0;
+    }
+
+    /* Main Content Area */
+    .docs-content {
+      padding: 40px 56px 80px 56px;
+      max-width: 860px;
+      min-width: 0;
+    }
+
+    .doc-header {
+      margin-bottom: 36px;
+      padding-bottom: 24px;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+    .doc-breadcrumb {
+      font-size: 0.8rem;
+      color: var(--text-subtle);
+      margin-bottom: 8px;
+      font-weight: 500;
+    }
+    .doc-title {
+      font-size: 2.4rem;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      margin-bottom: 10px;
+    }
+    .doc-lead {
+      font-size: 1.1rem;
+      color: var(--text-muted);
+      font-weight: 400;
+      line-height: 1.5;
+    }
+
+    .doc-section {
+      margin-bottom: 48px;
+      scroll-margin-top: 80px;
+    }
+    .doc-h2 {
+      font-size: 1.55rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .doc-h3 {
+      font-size: 1.2rem;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      margin: 24px 0 12px 0;
+    }
+    .doc-p {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      margin-bottom: 16px;
+      line-height: 1.65;
+    }
+
+    /* Code Blocks */
+    .code-block {
+      background: var(--card-bg);
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      margin: 16px 0 24px 0;
+      overflow: hidden;
+    }
+    .code-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 14px;
+      background: var(--code-bg);
+      border-bottom: 1px solid var(--border-subtle);
+      font-size: 0.75rem;
+      font-family: var(--font-mono);
+      color: var(--text-subtle);
+      font-weight: 500;
+    }
+    .copy-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.72rem;
+      font-family: inherit;
+    }
+    .copy-btn:hover { color: var(--text-main); }
+    .code-content {
+      padding: 14px 18px;
+      font-family: var(--font-mono);
+      font-size: 0.86rem;
+      line-height: 1.6;
+      overflow-x: auto;
+      color: var(--text-main);
+      white-space: pre;
+    }
+
+    /* Callout */
+    .callout {
+      border-left: 3px solid var(--accent);
+      background: var(--code-bg);
+      padding: 14px 18px;
+      border-radius: 0 8px 8px 0;
+      margin: 20px 0;
+      font-size: 0.9rem;
+    }
+    .callout-title {
+      font-weight: 600;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .callout p { color: var(--text-muted); font-size: 0.88rem; }
+
+    /* Tables */
+    .doc-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 20px 0;
+      font-size: 0.88rem;
+    }
+    .doc-table th {
+      text-align: left;
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--border-subtle);
+      color: var(--text-subtle);
+      font-weight: 600;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .doc-table td {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--border-subtle);
+      color: var(--text-muted);
+    }
+    .doc-table code {
+      font-family: var(--font-mono);
+      font-size: 0.82rem;
+      background: var(--code-bg);
+      padding: 2px 6px;
+      border-radius: 4px;
+      color: var(--text-main);
+    }
+
+    /* Right TOC */
+    .sidebar-right {
+      position: sticky;
+      top: 60px;
+      height: calc(100vh - 60px);
+      overflow-y: auto;
+      padding: 40px 24px 40px 0;
+      font-size: 0.82rem;
+    }
+    .toc-title {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-subtle);
+      margin-bottom: 12px;
+    }
+    .toc-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .toc-link {
+      color: var(--text-muted);
+      text-decoration: none;
+      transition: color 0.15s;
+    }
+    .toc-link:hover { color: var(--text-main); }
+
+    @media (max-width: 1080px) {
+      .sidebar-right { display: none; }
+      .docs-layout { grid-template-columns: 240px 1fr; }
+    }
+    @media (max-width: 768px) {
+      .docs-layout { grid-template-columns: 1fr; }
+      .sidebar-left { display: none; }
+      .docs-content { padding: 24px 20px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header Navigation -->
+  <header>
+    <div class="nav-container">
+      <a href="index.html" class="nav-left">
+        <svg class="brand-cube" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M16 2L29 9.5V22.5L16 30L3 22.5V9.5L16 2Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+          <path d="M16 2V16M16 16L29 22.5M16 16L3 22.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="16" cy="16" r="3" fill="currentColor"/>
+        </svg>
+        <span>PowerAI</span>
+        <span class="nav-badge">Docs</span>
+      </a>
+
+      <nav class="nav-center">
+        <a href="index.html" class="nav-link" data-i18n="nav_home">Home</a>
+        <a href="index.html#demo" class="nav-link" data-i18n="nav_demo">Simulator</a>
+        <a href="docs.html" class="nav-link active" data-i18n="nav_docs">Docs</a>
+      </nav>
+
+      <div class="nav-right">
+        <div class="lang-switcher">
+          <button class="lang-btn" data-lang="pt" onclick="setDocLanguage('pt')">PT</button>
+          <button class="lang-btn active" data-lang="en" onclick="setDocLanguage('en')">EN</button>
+          <button class="lang-btn" data-lang="es" onclick="setDocLanguage('es')">ES</button>
+        </div>
+
+        <button class="theme-btn" id="themeToggleBtn" onclick="toggleDocTheme()" aria-label="Toggle theme">
+          <svg id="themeIcon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="5"></circle>
+            <line x1="12" y1="1" x2="12" y2="3"></line>
+            <line x1="12" y1="21" x2="12" y2="23"></line>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+            <line x1="1" y1="12" x2="3" y2="12"></line>
+            <line x1="21" y1="12" x2="23" y2="12"></line>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+          </svg>
+        </button>
+
+        <a href="https://github.com/Luizhcrs/powerai" target="_blank" class="github-link">
+          <svg height="14" width="14" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path></svg>
+          <span>GitHub</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Docs Grid Layout -->
+  <div class="docs-layout">
+    
+    <!-- Left Navigation Sidebar -->
+    <aside class="sidebar-left">
+      <div class="sidebar-search">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+        <input type="text" id="docSearchInput" placeholder="Filter documentation..." onkeyup="filterDocs()">
+      </div>
+
+      <div class="sidebar-group">
+        <div class="sidebar-heading" data-i18n="grp_quickstart">Getting Started</div>
+        <ul class="sidebar-links">
+          <li><a href="#quickstart" class="sidebar-link active" data-i18n="link_intro">Introduction</a></li>
+          <li><a href="#installation" class="sidebar-link" data-i18n="link_install">Installation</a></li>
+          <li><a href="#prerequisites" class="sidebar-link" data-i18n="link_prereq">Ollama Setup</a></li>
+        </ul>
+      </div>
+
+      <div class="sidebar-group">
+        <div class="sidebar-heading" data-i18n="grp_concepts">Core Concepts</div>
+        <ul class="sidebar-links">
+          <li><a href="#natural-language" class="sidebar-link" data-i18n="link_nl">Natural Language</a></li>
+          <li><a href="#output-memory" class="sidebar-link" data-i18n="link_mem">Output Memory Buffer</a></li>
+          <li><a href="#typo-healing" class="sidebar-link" data-i18n="link_typo">Typo Auto-Healing</a></li>
+        </ul>
+      </div>
+
+      <div class="sidebar-group">
+        <div class="sidebar-heading" data-i18n="grp_cli">CLI Reference</div>
+        <ul class="sidebar-links">
+          <li><a href="#cli-commands" class="sidebar-link" data-i18n="link_cmds">Commands</a></li>
+          <li><a href="#configuration" class="sidebar-link" data-i18n="link_config">Environment Variables</a></li>
+        </ul>
+      </div>
+
+      <div class="sidebar-group">
+        <div class="sidebar-heading" data-i18n="grp_arch">Architecture</div>
+        <ul class="sidebar-links">
+          <li><a href="#zero-python" class="sidebar-link" data-i18n="link_arch_native">Native Zero-Python</a></li>
+          <li><a href="#troubleshooting" class="sidebar-link" data-i18n="link_faq">Troubleshooting & FAQ</a></li>
+        </ul>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="docs-content">
+      
+      <div class="doc-header">
+        <div class="doc-breadcrumb">Docs / Getting Started</div>
+        <h1 class="doc-title" data-i18n="doc_main_title">PowerAI Documentation</h1>
+        <p class="doc-lead" data-i18n="doc_main_lead">
+          PowerAI is an invisible, local-first cognitive AI harness designed for modern terminals (macOS, Linux, and Windows).
+        </p>
+      </div>
+
+      <!-- Quickstart Section -->
+      <section id="quickstart" class="doc-section">
+        <h2 class="doc-h2" data-i18n="sec_quickstart_title">Introduction</h2>
+        <p class="doc-p" data-i18n="sec_quickstart_p1">
+          PowerAI transforms your standard terminal into an intelligent assistant without sending any keystrokes or environment data over the internet. Running on top of Ollama, it translates natural language requests into exact executable CLI commands, understands output buffers, and auto-corrects command typos on the fly.
+        </p>
+
+        <div class="callout">
+          <div class="callout-title">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+            <span data-i18n="callout_priv_title">100% Local Execution</span>
+          </div>
+          <p data-i18n="callout_priv_p">
+            All inferences occur locally on your machine via Ollama with Metal GPU (macOS) or CUDA acceleration (Linux/Windows). Zero telemetry is collected.
+          </p>
+        </div>
+      </section>
+
+      <!-- Installation Section -->
+      <section id="installation" class="doc-section">
+        <h2 class="doc-h2" data-i18n="sec_install_title">Installation</h2>
+        <p class="doc-p" data-i18n="sec_install_p">
+          Install PowerAI in one step using the official automated installer for your platform:
+        </p>
+
+        <h3 class="doc-h3">macOS & Linux (Zsh / Bash)</h3>
+        <div class="code-block">
+          <div class="code-header">
+            <span>Terminal</span>
+            <button class="copy-btn" onclick="copyCode(this, 'curl -fsSL https://raw.githubusercontent.com/Luizhcrs/powerai/main/install.sh | bash')">Copy</button>
+          </div>
+          <div class="code-content">curl -fsSL https://raw.githubusercontent.com/Luizhcrs/powerai/main/install.sh | bash</div>
+        </div>
+
+        <h3 class="doc-h3">Windows (PowerShell 5.1 / 7+)</h3>
+        <div class="code-block">
+          <div class="code-header">
+            <span>PowerShell</span>
+            <button class="copy-btn" onclick="copyCode(this, 'irm https://raw.githubusercontent.com/Luizhcrs/powerai/main/install.ps1 | iex')">Copy</button>
+          </div>
+          <div class="code-content">irm https://raw.githubusercontent.com/Luizhcrs/powerai/main/install.ps1 | iex</div>
+        </div>
+      </section>
+
+      <!-- Prerequisites -->
+      <section id="prerequisites" class="doc-section">
+        <h2 class="doc-h2" data-i18n="sec_prereq_title">Ollama Setup & Models</h2>
+        <p class="doc-p" data-i18n="sec_prereq_p">
+          PowerAI connects to Ollama running locally on port <code>11434</code>. If you haven't installed Ollama yet, download it from <a href="https://ollama.com" target="_blank" style="color:var(--text-main);">ollama.com</a>.
+        </p>
+        <p class="doc-p" data-i18n="sec_prereq_models_label">Recommended lightweight local models:</p>
+
+        <div class="code-block">
+          <div class="code-header">
+            <span>Terminal</span>
+            <button class="copy-btn" onclick="copyCode(this, 'ollama run llama3.2')">Copy</button>
+          </div>
+          <div class="code-content" id="codePrereq"># Default lightweight model (2.0 GB)
+ollama run llama3.2
+
+# Highly recommended for advanced code/CLI reasoning (4.7 GB)
+ollama run qwen2.5-coder:7b
+
+# DeepSeek Reasoning model
+ollama run deepseek-r1:8b</div>
+        </div>
+      </section>
+
+      <!-- Core Concepts -->
+      <section id="natural-language" class="doc-section">
+        <h2 class="doc-h2" data-i18n="sec_nl_title">Natural Language Queries</h2>
+        <p class="doc-p" data-i18n="sec_nl_p">
+          Prefix your request with <code>ai</code> followed by your query in natural language:
+        </p>
+        <div class="code-block">
+          <div class="code-header">
+            <span>Terminal</span>
+            <button class="copy-btn" onclick="copyCode(this, document.getElementById('codeNl').innerText)">Copy</button>
+          </div>
+          <div class="code-content" id="codeNl">$ ai show open tcp listening ports
+✦ lsof -iTCP -sTCP:LISTEN -P
+↳ Lists all active processes listening for TCP connections on the system.
+
+Execute command? [Enter/Y = Yes | Esc/N = No]:</div>
+        </div>
+      </section>
+
+      <!-- Output Memory -->
+      <section id="output-memory" class="doc-section">
+        <h2 class="doc-h2" data-i18n="sec_mem_title">Output Memory Buffer</h2>
+        <p class="doc-p" data-i18n="sec_mem_p">
+          PowerAI captures the last terminal output lines automatically into a rolling session buffer. You can query printed data without copying or pasting:
+        </p>
+        <div class="code-block">
+          <div class="code-header">
+            <span>Terminal</span>
+            <button class="copy-btn" onclick="copyCode(this, document.getElementById('codeMem').innerText)">Copy</button>
+          </div>
+          <div class="code-content" id="codeMem">$ ai what is the IP address in the previous output?
+✦ 192.168.1.100 (interface en0)
+↳ Extracted directly from the previous session output memory buffer.</div>
+        </div>
+      </section>
+
+      <!-- Typo Auto-Healing -->
+      <section id="typo-healing" class="doc-section">
+        <h2 class="doc-h2" data-i18n="sec_typo_title">Typo Auto-Healing Hook</h2>
+        <p class="doc-p" data-i18n="sec_typo_p">
+          When you mistype a command (e.g. <code>mrdir</code> or <code>dockr ps</code>), the native shell error handler intercepts the command and generates the corrected syntax with explanation.
+        </p>
+        <div class="code-block">
+          <div class="code-header">
+            <span>Terminal</span>
+            <button class="copy-btn" onclick="copyCode(this, document.getElementById('codeTypo').innerText)">Copy</button>
+          </div>
+          <div class="code-content" id="codeTypo">$ mrdir new_module
+✦ mkdir new_module
+↳ Command 'mrdir' not found. Native hook intercepted and suggested correction.
+
+Execute command? [Enter/Y = Yes | Esc/N = No]:</div>
+        </div>
+      </section>
+
+      <!-- CLI Reference -->
+      <section id="cli-commands" class="doc-section">
+        <h2 class="doc-h2" data-i18n="sec_cli_title">CLI Reference</h2>
+        <table class="doc-table">
+          <thead>
+            <tr>
+              <th data-i18n="th_cmd">Command</th>
+              <th data-i18n="th_desc">Description</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>ai "&lt;query&gt;"</code></td>
+              <td data-i18n="tb_ai_desc">Translates natural language to native shell commands.</td>
+            </tr>
+            <tr>
+              <td><code>ai version</code> / <code>ai -v</code></td>
+              <td data-i18n="tb_ver_desc">Displays installed version and checks GitHub for releases.</td>
+            </tr>
+            <tr>
+              <td><code>ai update</code> / <code>ai upgrade</code></td>
+              <td data-i18n="tb_upd_desc">Downloads, verifies, and installs the latest version instantly.</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <!-- Environment Variables -->
+      <section id="configuration" class="doc-section">
+        <h2 class="doc-h2" data-i18n="sec_env_title">Environment Variables</h2>
+        <table class="doc-table">
+          <thead>
+            <tr>
+              <th data-i18n="th_var">Variable</th>
+              <th data-i18n="th_def">Default</th>
+              <th data-i18n="th_desc">Description</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>POWERAI_MODEL</code></td>
+              <td><code>llama3.2</code></td>
+              <td data-i18n="tb_env_model">Ollama model to use for local inferences.</td>
+            </tr>
+            <tr>
+              <td><code>POWERAI_HOST</code></td>
+              <td><code>http://127.0.0.1:11434</code></td>
+              <td data-i18n="tb_env_host">Ollama local or remote API endpoint.</td>
+            </tr>
+            <tr>
+              <td><code>POWERAI_MAX_TOKENS</code></td>
+              <td><code>150</code></td>
+              <td data-i18n="tb_env_tokens">Maximum tokens allocated per response.</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <!-- Architecture -->
+      <section id="zero-python" class="doc-section">
+        <h2 class="doc-h2" data-i18n="sec_arch_title">Zero-Python Native Architecture</h2>
+        <p class="doc-p" data-i18n="sec_arch_p">
+          Unlike traditional AI CLI wrappers that require a heavy Python interpreter runtime, PowerAI uses a 100% native architecture:
+        </p>
+        <ul style="color:var(--text-muted); margin-left: 20px; font-size: 0.95rem; margin-bottom: 20px; line-height: 1.8;">
+          <li data-i18n="arch_unix"><strong>Unix (macOS / Linux)</strong>: C-compiled <code>jq</code> with POSIX shell regex fallback. Latency &lt; 2ms.</li>
+          <li data-i18n="arch_win"><strong>Windows</strong>: Native .NET / C# in PowerShell module without external runtime dependencies.</li>
+        </ul>
+      </section>
+
+      <!-- Troubleshooting -->
+      <section id="troubleshooting" class="doc-section">
+        <h2 class="doc-h2" data-i18n="sec_faq_title">Troubleshooting & FAQ</h2>
+        <h3 class="doc-h3" data-i18n="faq_conn_title">Error: Connection refused (11434)</h3>
+        <p class="doc-p" data-i18n="faq_conn_desc">
+          Ensure Ollama is running in the background. Start it by opening the Ollama application or running <code>ollama serve</code> in a separate terminal.
+        </p>
+        <h3 class="doc-h3" data-i18n="faq_uninst_title">How to uninstall PowerAI?</h3>
+        <div class="code-block">
+          <div class="code-header">
+            <span>Terminal</span>
+            <button class="copy-btn" onclick="copyCode(this, '# macOS / Linux\nrm -rf ~/.powerai && sed -i \'\' \'/powerai/d\' ~/.zshrc ~/.bashrc\n\n# Windows (PowerShell)\nRemove-Item -Recurse -Force \"$HOME\\.powerai\"')">Copy</button>
+          </div>
+          <div class="code-content"># macOS / Linux
+rm -rf ~/.powerai && sed -i '' '/powerai/d' ~/.zshrc ~/.bashrc
+
+# Windows (PowerShell)
+Remove-Item -Recurse -Force "$HOME\.powerai"</div>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- Right On-Page Table of Contents -->
+    <aside class="sidebar-right">
+      <div class="toc-title" data-i18n="toc_title">On This Page</div>
+      <ul class="toc-list">
+        <li><a href="#quickstart" class="toc-link" data-i18n="link_intro">Introduction</a></li>
+        <li><a href="#installation" class="toc-link" data-i18n="link_install">Installation</a></li>
+        <li><a href="#prerequisites" class="toc-link" data-i18n="link_prereq">Ollama Setup</a></li>
+        <li><a href="#natural-language" class="toc-link" data-i18n="link_nl">Natural Language</a></li>
+        <li><a href="#output-memory" class="toc-link" data-i18n="link_mem">Output Memory</a></li>
+        <li><a href="#typo-healing" class="toc-link" data-i18n="link_typo">Typo Healing</a></li>
+        <li><a href="#cli-commands" class="toc-link" data-i18n="link_cmds">CLI Reference</a></li>
+        <li><a href="#configuration" class="toc-link" data-i18n="link_config">Configuration</a></li>
+        <li><a href="#zero-python" class="toc-link" data-i18n="link_arch_native">Architecture</a></li>
+        <li><a href="#troubleshooting" class="toc-link" data-i18n="link_faq">Troubleshooting</a></li>
+      </ul>
+    </aside>
+
+  </div>
+
+  <script>
+    const docTranslations = {
+      en: {
+        nav_home: "Home",
+        nav_demo: "Simulator",
+        nav_docs: "Docs",
+        grp_quickstart: "Getting Started",
+        link_intro: "Introduction",
+        link_install: "Installation",
+        link_prereq: "Ollama Setup",
+        grp_concepts: "Core Concepts",
+        link_nl: "Natural Language",
+        link_mem: "Output Memory Buffer",
+        link_typo: "Typo Auto-Healing",
+        grp_cli: "CLI Reference",
+        link_cmds: "Commands",
+        link_config: "Environment Variables",
+        grp_arch: "Architecture",
+        link_arch_native: "Native Zero-Python",
+        link_faq: "Troubleshooting & FAQ",
+        doc_main_title: "PowerAI Documentation",
+        doc_main_lead: "PowerAI is an invisible, local-first cognitive AI harness designed for modern terminals (macOS, Linux, and Windows).",
+        sec_quickstart_title: "Introduction",
+        sec_quickstart_p1: "PowerAI transforms your standard terminal into an intelligent assistant without sending any keystrokes or environment data over the internet. Running on top of Ollama, it translates natural language requests into exact executable CLI commands, understands output buffers, and auto-corrects command typos on the fly.",
+        callout_priv_title: "100% Local Execution",
+        callout_priv_p: "All inferences occur locally on your machine via Ollama with Metal GPU (macOS) or CUDA acceleration (Linux/Windows). Zero telemetry is collected.",
+        sec_install_title: "Installation",
+        sec_install_p: "Install PowerAI in one step using the official automated installer for your platform:",
+        sec_prereq_title: "Ollama Setup & Models",
+        sec_prereq_p: "PowerAI connects to Ollama running locally on port 11434. If you haven't installed Ollama yet, download it from ollama.com.",
+        sec_prereq_models_label: "Recommended lightweight local models:",
+        sec_nl_title: "Natural Language Queries",
+        sec_nl_p: "Prefix your request with ai followed by your query in natural language:",
+        sec_mem_title: "Output Memory Buffer",
+        sec_mem_p: "PowerAI captures the last terminal output lines automatically into a rolling session buffer. You can query printed data without copying or pasting:",
+        sec_typo_title: "Typo Auto-Healing Hook",
+        sec_typo_p: "When you mistype a command (e.g. mrdir or dockr ps), the native shell error handler intercepts the command and generates the corrected syntax with explanation.",
+        sec_cli_title: "CLI Reference",
+        th_cmd: "Command",
+        th_desc: "Description",
+        tb_ai_desc: "Translates natural language to native shell commands.",
+        tb_ver_desc: "Displays installed version and checks GitHub for releases.",
+        tb_upd_desc: "Downloads, verifies, and installs the latest version instantly.",
+        sec_env_title: "Environment Variables",
+        th_var: "Variable",
+        th_def: "Default",
+        tb_env_model: "Ollama model to use for local inferences.",
+        tb_env_host: "Ollama local or remote API endpoint.",
+        tb_env_tokens: "Maximum tokens allocated per response.",
+        sec_arch_title: "Zero-Python Native Architecture",
+        sec_arch_p: "Unlike traditional AI CLI wrappers that require a heavy Python interpreter runtime, PowerAI uses a 100% native architecture:",
+        arch_unix: "<strong>Unix (macOS / Linux)</strong>: C-compiled <code>jq</code> with POSIX shell regex fallback. Latency &lt; 2ms.",
+        arch_win: "<strong>Windows</strong>: Native .NET / C# in PowerShell module without external runtime dependencies.",
+        sec_faq_title: "Troubleshooting & FAQ",
+        faq_conn_title: "Error: Connection refused (11434)",
+        faq_conn_desc: "Ensure Ollama is running in the background. Start it by opening the Ollama application or running ollama serve in a separate terminal.",
+        faq_uninst_title: "How to uninstall PowerAI?",
+        toc_title: "On This Page",
+        code_nl: "$ ai show open tcp listening ports\n✦ lsof -iTCP -sTCP:LISTEN -P\n↳ Lists all active processes listening for TCP connections on the system.\n\nExecute command? [Enter/Y = Yes | Esc/N = No]:",
+        code_mem: "$ ai what is the IP address in the previous output?\n✦ 192.168.1.100 (interface en0)\n↳ Extracted directly from the previous session output memory buffer.",
+        code_typo: "$ mrdir new_module\n✦ mkdir new_module\n↳ Command 'mrdir' not found. Native hook intercepted and suggested correction.\n\nExecute command? [Enter/Y = Yes | Esc/N = No]:"
+      },
+      pt: {
+        nav_home: "Início",
+        nav_demo: "Simulador",
+        nav_docs: "Documentação",
+        grp_quickstart: "Início Rápido",
+        link_intro: "Introdução",
+        link_install: "Instalação",
+        link_prereq: "Configuração do Ollama",
+        grp_concepts: "Conceitos Principais",
+        link_nl: "Linguagem Natural",
+        link_mem: "Memória de Saída",
+        link_typo: "Auto-Cura de Typos",
+        grp_cli: "Referência da CLI",
+        link_cmds: "Comandos",
+        link_config: "Variáveis de Ambiente",
+        grp_arch: "Arquitetura",
+        link_arch_native: "Harness Nativo",
+        link_faq: "Solução de Problemas",
+        doc_main_title: "Documentação do PowerAI",
+        doc_main_lead: "O PowerAI é uma camada cognitiva invisível para terminais modernos (macOS, Linux e Windows) 100% local e privada.",
+        sec_quickstart_title: "Introdução",
+        sec_quickstart_p1: "O PowerAI transforma seu terminal padrão em um copiloto inteligente sem enviar nenhum dado para a internet. Rodando sobre o Ollama, ele traduz linguagem natural em comandos nativos, lê buffers de saída e auto-corrige comandos digitados com erro.",
+        callout_priv_title: "Execução 100% Local",
+        callout_priv_p: "Todas as inferências ocorrem na sua própria máquina via Ollama com aceleração de GPU. Nenhuma telemetria é coletada.",
+        sec_install_title: "Instalação",
+        sec_install_p: "Instale o PowerAI em 1 passo usando o instalador oficial do seu sistema operacional:",
+        sec_prereq_title: "Configuração do Ollama & Modelos",
+        sec_prereq_p: "O PowerAI se conecta ao Ollama rodando localmente na porta 11434. Se ainda não tiver o Ollama, baixe em ollama.com.",
+        sec_prereq_models_label: "Modelos locais recomendados:",
+        sec_nl_title: "Consultas em Linguagem Natural",
+        sec_nl_p: "Basta digitar ai seguido da sua pergunta em linguagem natural:",
+        sec_mem_title: "Memória de Saída",
+        sec_mem_p: "O PowerAI captura as últimas linhas de saída do terminal em um buffer contínuo. Você pode perguntar sobre dados na tela sem copiar e colar:",
+        sec_typo_title: "Auto-Correção de Typos",
+        sec_typo_p: "Ao errar a digitação de um comando (ex: mrdir ou dockr ps), o hook nativo do shell intercepta o erro e gera a sintaxe correta.",
+        sec_cli_title: "Referência da CLI",
+        th_cmd: "Comando",
+        th_desc: "Descrição",
+        tb_ai_desc: "Traduz linguagem natural para comandos nativos do terminal.",
+        tb_ver_desc: "Exibe a versão instalada e checa por novas versões no GitHub.",
+        tb_upd_desc: "Baixa, verifica integridade e atualiza a CLI na hora.",
+        sec_env_title: "Variáveis de Ambiente",
+        th_var: "Variável",
+        th_def: "Padrão",
+        tb_env_model: "Modelo do Ollama a ser usado nas inferências locais.",
+        tb_env_host: "Endpoint da API do Ollama (local ou remoto).",
+        tb_env_tokens: "Limite máximo de tokens por resposta.",
+        sec_arch_title: "Arquitetura Nativa (Zero Python)",
+        sec_arch_p: "Diferente de wrappers pesados em Python, o PowerAI usa uma arquitetura 100% nativa:",
+        arch_unix: "<strong>Unix (macOS / Linux)</strong>: <code>jq</code> compilado em C com fallback regex em shell POSIX. Latência &lt; 2ms.",
+        arch_win: "<strong>Windows</strong>: .NET / C# nativo em módulo PowerShell sem runtime externo.",
+        sec_faq_title: "Solução de Problemas & FAQ",
+        faq_conn_title: "Erro: Conexão recusada (11434)",
+        faq_conn_desc: "Certifique-se de que o Ollama está rodando. Abra o app do Ollama ou rode ollama serve em outro terminal.",
+        faq_uninst_title: "Como desinstalar o PowerAI?",
+        toc_title: "Nesta Página",
+        code_nl: "$ ai como listar portas tcp em escuta\n✦ lsof -iTCP -sTCP:LISTEN -P\n↳ Lista todos os processos ativos ouvindo conexões TCP no sistema.\n\nExecutar comando? [Enter/S = Sim | Esc/N = Não]:",
+        code_mem: "$ ai qual é o IP na saída do comando acima?\n✦ 192.168.1.100 (interface en0)\n↳ Extraído diretamente do buffer de memória da sessão anterior.",
+        code_typo: "$ mrdir novo_modulo\n✦ mkdir novo_modulo\n↳ Comando 'mrdir' não encontrado. Hook nativo interceptou e sugeriu a correção.\n\nExecutar comando? [Enter/S = Sim | Esc/N = Não]:"
+      },
+      es: {
+        nav_home: "Inicio",
+        nav_demo: "Simulador",
+        nav_docs: "Documentación",
+        grp_quickstart: "Inicio Rápido",
+        link_intro: "Introducción",
+        link_install: "Instalación",
+        link_prereq: "Configuración de Ollama",
+        grp_concepts: "Conceptos Clave",
+        link_nl: "Lenguaje Natural",
+        link_mem: "Memoria de Salida",
+        link_typo: "Auto-Corrección de Errores",
+        grp_cli: "Referencia CLI",
+        link_cmds: "Comandos",
+        link_config: "Variables de Entorno",
+        grp_arch: "Arquitectura",
+        link_arch_native: "Harness Nativo",
+        link_faq: "Solución de Problemas",
+        doc_main_title: "Documentación de PowerAI",
+        doc_main_lead: "PowerAI es una capa cognitiva invisible para terminales modernos (macOS, Linux y Windows) 100% local y privada.",
+        sec_quickstart_title: "Introducción",
+        sec_quickstart_p1: "PowerAI transforma tu terminal en un copiloto inteligente sin enviar datos a internet. Ejecutado sobre Ollama, traduce solicitudes a comandos nativos y corrige errores de escritura.",
+        callout_priv_title: "Ejecución 100% Local",
+        callout_priv_p: "Todas las inferencias ocurren localmente en tu máquina vía Ollama con aceleración GPU. Cero telemetría.",
+        sec_install_title: "Instalación",
+        sec_install_p: "Instala PowerAI en un paso usando el instalador oficial:",
+        sec_prereq_title: "Configuración de Ollama y Modelos",
+        sec_prereq_p: "PowerAI se conecta a Ollama localmente en el puerto 11434. Descárgalo desde ollama.com.",
+        sec_prereq_models_label: "Modelos locales recomendados:",
+        sec_nl_title: "Consultas en Lenguaje Natural",
+        sec_nl_p: "Usa el prefijo ai seguido de tu pregunta:",
+        sec_mem_title: "Memoria de Salida",
+        sec_mem_p: "PowerAI captura automáticamente las últimas líneas impresas en el terminal para que puedas preguntar sin copiar ni pegar:",
+        sec_typo_title: "Auto-Corrección de Errores",
+        sec_typo_p: "Al escribir mal un comando, el hook nativo intercepta el error y sugiere la sintaxis correcta.",
+        sec_cli_title: "Referencia CLI",
+        th_cmd: "Comando",
+        th_desc: "Descripción",
+        tb_ai_desc: "Traduce lenguaje natural a comandos nativos del terminal.",
+        tb_ver_desc: "Muestra la versión instalada y busca nuevas versiones en GitHub.",
+        tb_upd_desc: "Descarga, verifica y actualiza la CLI al instante.",
+        sec_env_title: "Variables de Entorno",
+        th_var: "Variable",
+        th_def: "Predeterminado",
+        tb_env_model: "Modelo de Ollama para inferencias locales.",
+        tb_env_host: "Endpoint de API de Ollama (local o remoto).",
+        tb_env_tokens: "Máximo de tokens por respuesta.",
+        sec_arch_title: "Arquitectura Nativa",
+        sec_arch_p: "A diferencia de wrappers tradicionales en Python, PowerAI utiliza una arquitectura 100% nativa:",
+        arch_unix: "<strong>Unix (macOS / Linux)</strong>: <code>jq</code> compilado en C con fallback regex en shell POSIX. Latencia &lt; 2ms.",
+        arch_win: "<strong>Windows</strong>: .NET / C# nativo en módulo PowerShell sin dependencias externas.",
+        sec_faq_title: "Solución de Problemas",
+        faq_conn_title: "Error: Conexión rechazada (11434)",
+        faq_conn_desc: "Asegúrate de que Ollama esté ejecutándose. Inicia Ollama o corre ollama serve en otra terminal.",
+        faq_uninst_title: "¿Cómo desinstalar PowerAI?",
+        toc_title: "En Esta Página",
+        code_nl: "$ ai como listar puertos tcp en escucha\n✦ lsof -iTCP -sTCP:LISTEN -P\n↳ Lista todos los procesos activos escuchando conexiones TCP en el sistema.\n\n¿Ejecutar comando? [Enter/S = Sí | Esc/N = No]:",
+        code_mem: "$ ai ¿cuál es la IP en la salida del comando anterior?\n✦ 192.168.1.100 (interfaz en0)\n↳ Extraído directamente del búfer de memoria de la sesión anterior.",
+        code_typo: "$ mrdir nuevo_modulo\n✦ mkdir nuevo_modulo\n↳ Comando 'mrdir' no encontrado. El hook nativo interceptó y sugirió la corrección.\n\n¿Ejecutar comando? [Enter/S = Sí | Esc/N = No]:"
+      }
+    };
+
+    let currentDocLang = localStorage.getItem('powerai-lang') || 'en';
+
+    function setDocLanguage(lang) {
+      currentDocLang = lang;
+      try {
+        localStorage.setItem('powerai-lang', lang);
+      } catch(e) {}
+
+      document.documentElement.setAttribute('lang', lang === 'pt' ? 'pt-BR' : (lang === 'es' ? 'es-ES' : 'en'));
+
+      document.querySelectorAll('.lang-btn').forEach(b => {
+        if (b.getAttribute('data-lang') === lang) {
+          b.classList.add('active');
+        } else {
+          b.classList.remove('active');
+        }
+      });
+
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (docTranslations[lang] && docTranslations[lang][key]) {
+          if (key === 'arch_unix' || key === 'arch_win') {
+            el.innerHTML = docTranslations[lang][key];
+          } else {
+            el.innerText = docTranslations[lang][key];
+          }
+        }
+      });
+
+      // Update dynamic code blocks
+      const t = docTranslations[lang] || docTranslations['en'];
+      if (document.getElementById('codeNl')) document.getElementById('codeNl').innerText = t.code_nl;
+      if (document.getElementById('codeMem')) document.getElementById('codeMem').innerText = t.code_mem;
+      if (document.getElementById('codeTypo')) document.getElementById('codeTypo').innerText = t.code_typo;
+    }
+
+    function toggleDocTheme() {
+      const html = document.documentElement;
+      const current = html.getAttribute('data-theme') || 'dark';
+      const next = current === 'dark' ? 'light' : 'dark';
+      html.setAttribute('data-theme', next);
+      localStorage.setItem('powerai-theme', next);
+      localStorage.setItem('powerai-theme-user-choice', 'true');
+      updateDocThemeIcon(next);
+    }
+
+    function updateDocThemeIcon(theme) {
+      const icon = document.getElementById('themeIcon');
+      if (!icon) return;
+      if (theme === 'light') {
+        icon.innerHTML = '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>';
+      } else {
+        icon.innerHTML = '<circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>';
+      }
+    }
+
+    function copyCode(btn, text) {
+      navigator.clipboard.writeText(text).then(() => {
+        const orig = btn.innerText;
+        btn.innerText = 'Copied!';
+        setTimeout(() => btn.innerText = orig, 2000);
+      });
+    }
+
+    function filterDocs() {
+      const q = document.getElementById('docSearchInput').value.toLowerCase();
+      document.querySelectorAll('.sidebar-links li').forEach(li => {
+        const text = li.innerText.toLowerCase();
+        li.style.display = text.includes(q) ? 'block' : 'none';
+      });
+    }
+
+    (function init() {
+      setDocLanguage(currentDocLang);
+      const savedTheme = localStorage.getItem('powerai-theme') || 'dark';
+      updateDocThemeIcon(savedTheme);
+    })();
+  </script>
+</body>
+</html>
