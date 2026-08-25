@@ -27,7 +27,8 @@ _read_line() {
 
 _select_menu() {
     local out_var="$1"
-    shift
+    local step_title="$2"
+    shift 2
     local options=("$@")
     local count=${#options[@]}
     local selected=0
@@ -61,6 +62,9 @@ _select_menu() {
         fi
         tput cnorm 2>/dev/null || printf "\033[?25h"
     }
+
+    # Print step title header
+    printf "  \033[38;5;248m%s\033[0m \033[38;5;240m(Navegue com ↑/↓ e Enter)\033[0m\n" "$step_title"
 
     while true; do
         # Render options
@@ -151,6 +155,14 @@ _select_menu() {
     done
 
     _cleanup_menu
+
+    # Dynamic in-place collapse: clear the menu options and replace with single completed line
+    printf "\033[%dA\033[J" "$((count + 1))"
+    local raw_chosen="${options[$selected]}"
+    # Extract clean display name (strip leading number prefix)
+    local clean_name=$(echo "$raw_chosen" | sed -E 's/^[0-9]+\)[[:space:]]*//' | sed -E 's/[[:space:]]*·.*//')
+    printf "  \033[1;37m✓\033[0m  \033[38;5;250m%-28s\033[0m \033[1;37m%s\033[0m\n" "$step_title" "$clean_name"
+
     eval "$out_var=$selected"
 }
 
@@ -196,8 +208,7 @@ if [ "$1" = "--quick" ] || [ "$1" = "-y" ] || [ "$1" = "--yes" ]; then
 fi
 
 # Step 1: Detect Dependencies
-echo -e "  \033[38;5;248m1. Verificando ambiente e dependências:\033[0m"
-_spin_step "Verificando ferramentas do sistema (curl, python3, jq)..." "sleep 0.4"
+_spin_step "1. Ambiente & Dependências:  curl, python3, jq detectados" "sleep 0.3"
 
 OLLAMA_INSTALLED=false
 if command -v ollama >/dev/null 2>&1; then
@@ -217,10 +228,6 @@ CHOSEN_CLOUD_MODEL="gpt-4o-mini"
 CHOSEN_AUTO_SUGGEST=true
 
 if [ "$QUICK_MODE" = false ]; then
-    echo ""
-    echo -e "  \033[38;5;248m2. Selecione o Provedor de IA Principal:\033[0m \033[38;5;240m(Navegue com ↑/↓ e Enter)\033[0m"
-    echo ""
-
     menu_providers=(
         "1) Ollama Local     · Recomendado: ultrarrápido, offline, <1s"
         "2) API Local        · OMLX, LM Studio, vLLM em :5151 / :8000"
@@ -229,22 +236,19 @@ if [ "$QUICK_MODE" = false ]; then
     )
 
     CHOSEN_PROV_IDX=0
-    _select_menu CHOSEN_PROV_IDX "${menu_providers[@]}"
+    _select_menu CHOSEN_PROV_IDX "2. Provedor de IA:" "${menu_providers[@]}"
 
     case "$CHOSEN_PROV_IDX" in
         1)
             CHOSEN_MODE="Local"
             CHOSEN_LOCAL_TYPE="OpenAICompatible"
-            echo ""
-            echo -e "  \033[38;5;248m3. Selecione o Modelo da API Local:\033[0m \033[38;5;240m(Navegue com ↑/↓ e Enter)\033[0m"
-            echo ""
             menu_local_models=(
                 "1) qwen2.5-coder:1.5b                       · Mais leve (<1s)"
                 "2) mlx-community--Qwen2.5-7B-Instruct-4bit  · Alta capacidade"
                 "3) Personalizado                            · Digitar manualmente"
             )
             CHOSEN_LM_IDX=0
-            _select_menu CHOSEN_LM_IDX "${menu_local_models[@]}"
+            _select_menu CHOSEN_LM_IDX "3. Modelo da API Local:" "${menu_local_models[@]}"
             case "$CHOSEN_LM_IDX" in
                 0) CHOSEN_LOCAL_MODEL="qwen2.5-coder:1.5b" ;;
                 1) CHOSEN_LOCAL_MODEL="mlx-community--Qwen2.5-7B-Instruct-4bit" ;;
@@ -255,9 +259,6 @@ if [ "$QUICK_MODE" = false ]; then
             ;;
         2)
             CHOSEN_MODE="Cloud"
-            echo ""
-            echo -e "  \033[38;5;248m3. Selecione o Modelo de Nuvem:\033[0m \033[38;5;240m(Navegue com ↑/↓ e Enter)\033[0m"
-            echo ""
             menu_cloud_models=(
                 "1) gpt-4o-mini               · Recomendado (Rápido e econômico)"
                 "2) gpt-4o                    · Modelo completo de alta inteligência"
@@ -265,7 +266,7 @@ if [ "$QUICK_MODE" = false ]; then
                 "4) Personalizado             · Digitar outro nome de modelo"
             )
             CHOSEN_CM_IDX=0
-            _select_menu CHOSEN_CM_IDX "${menu_cloud_models[@]}"
+            _select_menu CHOSEN_CM_IDX "3. Modelo de Nuvem:" "${menu_cloud_models[@]}"
             case "$CHOSEN_CM_IDX" in
                 0) CHOSEN_CLOUD_MODEL="gpt-4o-mini" ;;
                 1) CHOSEN_CLOUD_MODEL="gpt-4o" ;;
@@ -281,9 +282,6 @@ if [ "$QUICK_MODE" = false ]; then
         *)
             CHOSEN_MODE="Auto"
             CHOSEN_LOCAL_TYPE="Ollama"
-            echo ""
-            echo -e "  \033[38;5;248m3. Selecione o Modelo do Ollama:\033[0m \033[38;5;240m(Navegue com ↑/↓ e Enter)\033[0m"
-            echo ""
             menu_ollama_models=(
                 "1) qwen2.5-coder:1.5b  · Recomendado (Ultraleve, <1s, Apple Metal GPU)"
                 "2) qwen2.5-coder:7b    · Mais inteligente (Requer ~5GB de RAM)"
@@ -291,7 +289,7 @@ if [ "$QUICK_MODE" = false ]; then
                 "4) Personalizado       · Digitar outro nome de modelo"
             )
             CHOSEN_OM_IDX=0
-            _select_menu CHOSEN_OM_IDX "${menu_ollama_models[@]}"
+            _select_menu CHOSEN_OM_IDX "3. Modelo Ollama:" "${menu_ollama_models[@]}"
             case "$CHOSEN_OM_IDX" in
                 0) CHOSEN_LOCAL_MODEL="qwen2.5-coder:1.5b" ;;
                 1) CHOSEN_LOCAL_MODEL="qwen2.5-coder:7b" ;;
@@ -302,15 +300,12 @@ if [ "$QUICK_MODE" = false ]; then
             # Offer model download if Ollama is available
             if [ "$OLLAMA_INSTALLED" = true ]; then
                 if ! ollama list 2>/dev/null | grep -q "$CHOSEN_LOCAL_MODEL"; then
-                    echo ""
-                    echo -e "  \033[38;5;248mBaixar '$CHOSEN_LOCAL_MODEL' agora com ollama pull?\033[0m"
-                    echo ""
                     menu_dl=(
-                        "1) Sim, baixar agora automaticamente"
+                        "1) Sim, baixar agora via ollama pull"
                         "2) Não, vou baixar manualmente mais tarde"
                     )
                     CHOSEN_DL_IDX=0
-                    _select_menu CHOSEN_DL_IDX "${menu_dl[@]}"
+                    _select_menu CHOSEN_DL_IDX "Baixar modelo agora?" "${menu_dl[@]}"
                     if [ "$CHOSEN_DL_IDX" -eq 0 ]; then
                         echo ""
                         echo -e "     \033[38;5;244mBaixando modelo no Ollama (aguarde alguns instantes)...\033[0m"
@@ -321,15 +316,12 @@ if [ "$QUICK_MODE" = false ]; then
             ;;
     esac
 
-    echo ""
-    echo -e "  \033[38;5;248m4. Recursos do Terminal:\033[0m \033[38;5;240m(Navegue com ↑/↓ e Enter)\033[0m"
-    echo ""
     menu_features=(
-        "1) Ativar sugestões e correções automáticas em erros (Padrão)"
+        "1) Sugestões e correções automáticas em erros ativadas (Padrão)"
         "2) Apenas responder a consultas manuais ('ai' ou '?')"
     )
     CHOSEN_FT_IDX=0
-    _select_menu CHOSEN_FT_IDX "${menu_features[@]}"
+    _select_menu CHOSEN_FT_IDX "4. Recursos de Terminal:" "${menu_features[@]}"
     if [ "$CHOSEN_FT_IDX" -eq 1 ]; then
         CHOSEN_AUTO_SUGGEST=false
     fi
