@@ -433,7 +433,7 @@ Responda APENAS com um objeto JSON válido:
         return 1
     fi
 
-    # Extract JSON fields using parse_response.py if available, or fallback
+    # Extract JSON fields: Tier 1: Python3 | Tier 2: Native JQ | Tier 3: Regex
     local cmd=""
     local exp=""
 
@@ -445,6 +445,21 @@ Responda APENAS com um objeto JSON válido:
         local parsed=$(python3 "$(dirname "$0")/parse_response.py" <<< "$response" 2>/dev/null)
         cmd=$(echo "$parsed" | cut -f1)
         exp=$(echo "$parsed" | cut -f2)
+    elif command -v jq >/dev/null 2>&1; then
+        # Native JQ Parser (Zero-Python requirement)
+        local content=$(echo "$response" | jq -r '.message.content // .choices[0].message.content // empty' 2>/dev/null)
+        [ -z "$content" ] && content="$response"
+        
+        cmd=$(echo "$content" | jq -r '.suggested_command // empty' 2>/dev/null)
+        exp=$(echo "$content" | jq -r '.explanation // empty' 2>/dev/null)
+
+        if [ -z "$cmd" ] && [ -z "$exp" ]; then
+            local clean_json=$(echo "$content" | sed -n '/```json/,/```/p' | sed '/```/d')
+            if [ -n "$clean_json" ]; then
+                cmd=$(echo "$clean_json" | jq -r '.suggested_command // empty' 2>/dev/null)
+                exp=$(echo "$clean_json" | jq -r '.explanation // empty' 2>/dev/null)
+            fi
+        fi
     else
         cmd=$(echo "$response" | grep -o '"suggested_command"[^,}]*' | head -n 1 | sed -E 's/.*:[[:space:]]*"?([^",}]+)"?.*/\1/')
         exp=$(echo "$response" | grep -o '"explanation"[^,}]*' | head -n 1 | sed -E 's/.*:[[:space:]]*"?([^",}]+)"?.*/\1/')
