@@ -296,6 +296,43 @@ _animate_intro() {
     tput cnorm 2>/dev/null || printf "\033[?25h"
 }
 
+_uninstall_powerai() {
+    local lang="$1"
+    local install_dir="$HOME/.powerai"
+
+    _clean_rc() {
+        local f="$1"
+        if [ -f "$f" ] && grep -q "powerai" "$f" 2>/dev/null; then
+            grep -v "powerai" "$f" > "${f}.powerai_tmp" 2>/dev/null && mv "${f}.powerai_tmp" "$f"
+        fi
+    }
+
+    _spin_step "Limpando perfis de terminal (.zshrc, .bashrc)..." "_clean_rc '$HOME/.bashrc'; _clean_rc '$HOME/.zshrc'; _clean_rc '$HOME/.bash_profile'; _clean_rc '$HOME/.profile'"
+    _spin_step "Removendo pasta $install_dir..." "rm -rf '$install_dir'"
+
+    echo ""
+    echo -e "  \033[38;5;238m─────────────────────────────────────────────────────────────\033[0m"
+    if [ "$lang" = "en-US" ]; then
+        echo -e "  \033[1;37m✦  PowerAI was successfully uninstalled!\033[0m"
+        echo ""
+        echo -e "    \033[38;5;244mTo refresh your terminal immediately, run:\033[0m"
+        echo -e "      \033[1;37msource ~/.zshrc\033[0m \033[38;5;240m(or source ~/.bashrc)\033[0m"
+    elif [ "$lang" = "es-ES" ]; then
+        echo -e "  \033[1;37m✦  ¡PowerAI fue desinstalado con éxito!\033[0m"
+        echo ""
+        echo -e "    \033[38;5;244mPara aplicar los cambios en la terminal actual, ejecuta:\033[0m"
+        echo -e "      \033[1;37msource ~/.zshrc\033[0m \033[38;5;240m(o source ~/.bashrc)\033[0m"
+    else
+        echo -e "  \033[1;37m✦  PowerAI foi desinstalado com sucesso!\033[0m"
+        echo ""
+        echo -e "    \033[38;5;244mPara aplicar as alterações no terminal atual, execute:\033[0m"
+        echo -e "      \033[1;37msource ~/.zshrc\033[0m \033[38;5;240m(ou source ~/.bashrc)\033[0m"
+    fi
+    echo -e "  \033[38;5;238m─────────────────────────────────────────────────────────────\033[0m"
+    echo ""
+    exit 0
+}
+
 # --- RENDER INTRO ---
 _animate_intro
 
@@ -317,21 +354,120 @@ for arg in "$@"; do
     esac
 done
 
-lang_label="Português (Brasil)"
-[ "$CHOSEN_LANG" = "en-US" ] && lang_label="English (US)"
-[ "$CHOSEN_LANG" = "es-ES" ] && lang_label="Español"
+INSTALL_DIR="$HOME/.powerai"
+ALREADY_INSTALLED=false
+if [ -f "$INSTALL_DIR/powerai.sh" ] || [ -f "$INSTALL_DIR/config.json" ]; then
+    ALREADY_INSTALLED=true
+fi
 
-step1_text="1. Idioma do Sistema:       $lang_label (Auto-detectado)"
-[ "$CHOSEN_LANG" = "en-US" ] && step1_text="1. System Language:         $lang_label (Auto-detected)"
-[ "$CHOSEN_LANG" = "es-ES" ] && step1_text="1. Idioma del Sistema:      $lang_label (Auto-detectado)"
+# Direct CLI action flags
+for arg in "$@"; do
+    case "$arg" in
+        --uninstall|--remove)
+            _uninstall_powerai "$CHOSEN_LANG"
+            ;;
+        --fresh|--force)
+            ALREADY_INSTALLED=false
+            ;;
+    esac
+done
 
-_spin_step "$step1_text" "sleep 0.2"
+RECONFIGURE_ONLY=false
 
-# Step 2: Detect and auto-resolve dependencies
-msg_dep="2. Ambiente & Dependências:  curl, python3, jq prontos"
-[ "$CHOSEN_LANG" = "en-US" ] && msg_dep="2. Environment & Tools:      curl, python3, jq ready"
-[ "$CHOSEN_LANG" = "es-ES" ] && msg_dep="2. Entorno y Herramientas:   curl, python3, jq listos"
-_spin_step "$msg_dep" "_ensure_dependencies"
+# Existing Installation Detection & Interactive Management
+if [ "$ALREADY_INSTALLED" = true ] && [ "$QUICK_MODE" = false ]; then
+    CURRENT_VERSION="v1.2.0"
+    CURRENT_MODE="Auto"
+    CURRENT_MODEL="qwen2.5-coder:1.5b"
+    if [ -f "$INSTALL_DIR/config.json" ]; then
+        CURRENT_MODE=$(grep -o '"Mode": *"[^"]*"' "$INSTALL_DIR/config.json" 2>/dev/null | cut -d'"' -f4 || echo "Auto")
+        CURRENT_MODEL=$(grep -o '"LocalModel": *"[^"]*"' "$INSTALL_DIR/config.json" 2>/dev/null | cut -d'"' -f4 || echo "qwen2.5-coder:1.5b")
+    fi
+
+    if [ "$CHOSEN_LANG" = "en-US" ]; then
+        echo -e "  \033[1;32m●\033[0m  \033[1;37mPowerAI is already installed on your system.\033[0m"
+        echo -e "     \033[38;5;244mVersion:\033[0m       \033[38;5;252m$CURRENT_VERSION\033[0m"
+        echo -e "     \033[38;5;244mPath:\033[0m          \033[38;5;252m$INSTALL_DIR\033[0m"
+        echo -e "     \033[38;5;244mProvider:\033[0m      \033[38;5;252m$CURRENT_MODE ($CURRENT_MODEL)\033[0m"
+        echo ""
+        title_action="What would you like to do?"
+        action_options=(
+            "1) Update / Reinstall   · Pull latest version and refresh dependencies"
+            "2) Reconfigure Provider · Change AI model, provider, or API keys"
+            "3) Uninstall            · Remove PowerAI and clean terminal profiles"
+            "4) Cancel / Exit        · Keep current version without changes"
+        )
+    elif [ "$CHOSEN_LANG" = "es-ES" ]; then
+        echo -e "  \033[1;32m●\033[0m  \033[1;37mPowerAI ya está instalado en tu sistema.\033[0m"
+        echo -e "     \033[38;5;244mVersión:\033[0m       \033[38;5;252m$CURRENT_VERSION\033[0m"
+        echo -e "     \033[38;5;244mUbicación:\033[0m     \033[38;5;252m$INSTALL_DIR\033[0m"
+        echo -e "     \033[38;5;244mProveedor:\033[0m     \033[38;5;252m$CURRENT_MODE ($CURRENT_MODEL)\033[0m"
+        echo ""
+        title_action="¿Qué deseas hacer?"
+        action_options=(
+            "1) Actualizar / Reinstalar · Descarga la última versión y actualiza dependencias"
+            "2) Reconfigurar Proveedor · Cambia modelo o claves de IA"
+            "3) Desinstalar            · Elimina PowerAI y limpia perfiles de shell"
+            "4) Cancelar / Salir       · Mantener versión actual sin cambios"
+        )
+    else
+        echo -e "  \033[1;32m●\033[0m  \033[1;37mPowerAI já está instalado no seu sistema.\033[0m"
+        echo -e "     \033[38;5;244mVersão:\033[0m        \033[38;5;252m$CURRENT_VERSION\033[0m"
+        echo -e "     \033[38;5;244mLocalização:\033[0m   \033[38;5;252m$INSTALL_DIR\033[0m"
+        echo -e "     \033[38;5;244mProvedor:\033[0m      \033[38;5;252m$CURRENT_MODE ($CURRENT_MODEL)\033[0m"
+        echo ""
+        title_action="O que deseja fazer?"
+        action_options=(
+            "1) Atualizar / Reinstalar   · Baixa a versão mais recente e atualiza dependências"
+            "2) Reconfigurar Provedor    · Alterar modelo/chave de IA (Ollama, OpenAI, Groq)"
+            "3) Desinstalar              · Remove o PowerAI e limpa os hooks do shell"
+            "4) Cancelar / Sair          · Manter a versão atual sem alterações"
+        )
+    fi
+
+    CHOSEN_ACTION_IDX=0
+    _select_menu CHOSEN_ACTION_IDX "$title_action" "${action_options[@]}"
+
+    case "$CHOSEN_ACTION_IDX" in
+        0) # Reinstall / Update
+            ;;
+        1) # Reconfigure Provider
+            RECONFIGURE_ONLY=true
+            ;;
+        2) # Uninstall
+            _uninstall_powerai "$CHOSEN_LANG"
+            ;;
+        3|*) # Cancel
+            echo ""
+            if [ "$CHOSEN_LANG" = "en-US" ]; then
+                echo -e "  \033[38;5;244mOperation canceled. PowerAI was not modified.\033[0m\n"
+            elif [ "$CHOSEN_LANG" = "es-ES" ]; then
+                echo -e "  \033[38;5;244mOperación cancelada. PowerAI no fue modificado.\033[0m\n"
+            else
+                echo -e "  \033[38;5;244mOperação cancelada. O PowerAI foi mantido sem alterações.\033[0m\n"
+            fi
+            exit 0
+            ;;
+    esac
+fi
+
+if [ "$RECONFIGURE_ONLY" = false ]; then
+    lang_label="Português (Brasil)"
+    [ "$CHOSEN_LANG" = "en-US" ] && lang_label="English (US)"
+    [ "$CHOSEN_LANG" = "es-ES" ] && lang_label="Español"
+
+    step1_text="1. Idioma do Sistema:       $lang_label (Auto-detectado)"
+    [ "$CHOSEN_LANG" = "en-US" ] && step1_text="1. System Language:         $lang_label (Auto-detected)"
+    [ "$CHOSEN_LANG" = "es-ES" ] && step1_text="1. Idioma del Sistema:      $lang_label (Auto-detectado)"
+
+    _spin_step "$step1_text" "sleep 0.2"
+
+    # Step 2: Detect and auto-resolve dependencies
+    msg_dep="2. Ambiente & Dependências:  curl, python3, jq prontos"
+    [ "$CHOSEN_LANG" = "en-US" ] && msg_dep="2. Environment & Tools:      curl, python3, jq ready"
+    [ "$CHOSEN_LANG" = "es-ES" ] && msg_dep="2. Entorno y Herramientas:   curl, python3, jq listos"
+    _spin_step "$msg_dep" "_ensure_dependencies"
+fi
 
 OLLAMA_INSTALLED=false
 if command -v ollama >/dev/null 2>&1; then
@@ -604,7 +740,11 @@ _spin_step "Integrando hooks nativos ao ~/.zshrc e ~/.bashrc..." "sleep 0.2"
 echo ""
 echo -e "  \033[38;5;238m─────────────────────────────────────────────────────────────\033[0m"
 if [ "$CHOSEN_LANG" = "en-US" ]; then
-    echo -e "  \033[1;37m✦  PowerAI successfully installed!\033[0m"
+    if [ "$RECONFIGURE_ONLY" = true ]; then
+        echo -e "  \033[1;37m✦  PowerAI configuration updated successfully!\033[0m"
+    else
+        echo -e "  \033[1;37m✦  PowerAI successfully installed!\033[0m"
+    fi
     echo ""
     echo -e "    \033[38;5;244m• Provider:\033[0m  \033[1;37m$CHOSEN_MODE ($CHOSEN_LOCAL_MODEL)\033[0m"
     echo -e "    \033[38;5;244m• Language:\033[0m  \033[1;37m$CHOSEN_LANG\033[0m"
@@ -621,7 +761,11 @@ if [ "$CHOSEN_LANG" = "en-US" ]; then
     echo -e "      \033[38;5;250mai config\033[0m          · View active configuration"
     echo -e "      \033[38;5;250mai uninstall\033[0m       · Complete uninstallation"
 elif [ "$CHOSEN_LANG" = "es-ES" ]; then
-    echo -e "  \033[1;37m✦  ¡PowerAI instalado con éxito!\033[0m"
+    if [ "$RECONFIGURE_ONLY" = true ]; then
+        echo -e "  \033[1;37m✦  ¡Configuración de PowerAI actualizada con éxito!\033[0m"
+    else
+        echo -e "  \033[1;37m✦  ¡PowerAI instalado con éxito!\033[0m"
+    fi
     echo ""
     echo -e "    \033[38;5;244m• Proveedor:\033[0m \033[1;37m$CHOSEN_MODE ($CHOSEN_LOCAL_MODEL)\033[0m"
     echo -e "    \033[38;5;244m• Idioma:\033[0m    \033[1;37m$CHOSEN_LANG\033[0m"
@@ -638,7 +782,11 @@ elif [ "$CHOSEN_LANG" = "es-ES" ]; then
     echo -e "      \033[38;5;250mai config\033[0m          · Ver configuración activa"
     echo -e "      \033[38;5;250mai uninstall\033[0m       · Desinstalación completa"
 else
-    echo -e "  \033[1;37m✦  PowerAI instalado com sucesso!\033[0m"
+    if [ "$RECONFIGURE_ONLY" = true ]; then
+        echo -e "  \033[1;37m✦  Configurações do PowerAI atualizadas com sucesso!\033[0m"
+    else
+        echo -e "  \033[1;37m✦  PowerAI instalado com sucesso!\033[0m"
+    fi
     echo ""
     echo -e "    \033[38;5;244m• Provedor:\033[0m  \033[1;37m$CHOSEN_MODE ($CHOSEN_LOCAL_MODEL)\033[0m"
     echo -e "    \033[38;5;244m• Idioma:\033[0m    \033[1;37m$CHOSEN_LANG\033[0m"
