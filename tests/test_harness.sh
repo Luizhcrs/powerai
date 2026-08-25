@@ -29,12 +29,14 @@ echo " [PowerAI] Executando Bateria de Testes Automatizados"
 echo "=========================================================="
 echo ""
 
-# 1. Testes de Extração Multi-Formato do parse_response.py
-echo "1. Testando parse_response.py (Extrator Inteligente):"
+# 1. Testes de Extração Multi-Formato do Parser Nativo (Zero Python)
+echo "1. Testando _powerai_parse_response (Parser Nativo JQ/Shell):"
+
+source ./powerai.sh
 
 # Caso 1: JSON Puro
 raw1='{"choices":[{"message":{"content":"{\"suggested_command\": \"ls -la\", \"explanation\": \"Lista detalhada\"}"}}]}'
-res1=$(python3 parse_response.py <<< "$raw1")
+res1=$(_powerai_parse_response "$raw1")
 cmd1=$(echo "$res1" | cut -f1)
 exp1=$(echo "$res1" | cut -f2)
 assert_equal "JSON Puro - Comando" "ls -la" "$cmd1"
@@ -42,7 +44,7 @@ assert_equal "JSON Puro - Explicacao" "Lista detalhada" "$exp1"
 
 # Caso 2: Markdown com bloco JSON embutido
 raw2='{"choices":[{"message":{"content":"```json\n{\n  \"suggested_command\": \"df -h\",\n  \"explanation\": \"Espaco livre em disco\"\n}\n```"}}]}'
-res2=$(python3 parse_response.py <<< "$raw2")
+res2=$(_powerai_parse_response "$raw2")
 cmd2=$(echo "$res2" | cut -f1)
 exp2=$(echo "$res2" | cut -f2)
 assert_equal "Markdown JSON - Comando" "df -h" "$cmd2"
@@ -50,13 +52,13 @@ assert_equal "Markdown JSON - Explicacao" "Espaco livre em disco" "$exp2"
 
 # Caso 3: Bloco de código Bash simples
 raw3='{"choices":[{"message":{"content":"```bash\nifconfig en0\n```"}}]}'
-res3=$(python3 parse_response.py <<< "$raw3")
+res3=$(_powerai_parse_response "$raw3")
 cmd3=$(echo "$res3" | cut -f1)
 assert_equal "Markdown Bash Puro - Comando" "ifconfig en0" "$cmd3"
 
 # Caso 4: Resposta Puramente Informativa (Sem comando a executar)
 raw4='{"message":{"content":"{\"suggested_command\": \"\", \"explanation\": \"Seu IP local DHCP é 192.168.0.102.\"}"}}'
-res4=$(python3 parse_response.py <<< "$raw4")
+res4=$(_powerai_parse_response "$raw4")
 cmd4=$(echo "$res4" | cut -f1)
 exp4=$(echo "$res4" | cut -f2)
 assert_equal "Resposta Informativa - Comando Vazio" "" "$cmd4"

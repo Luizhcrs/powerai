@@ -234,6 +234,53 @@ ${session_history:-No prior commands in this session.}
 EOF
 }
 
+_powerai_parse_response() {
+    local raw="$1"
+    local content=""
+
+    # 1. Unpack outer API message content (Ollama / OpenAI)
+    if command -v jq >/dev/null 2>&1; then
+        content=$(echo "$raw" | jq -r '.message.content // .choices[0].message.content // empty' 2>/dev/null)
+    fi
+    [ -z "$content" ] && content="$raw"
+
+    local cmd=""
+    local exp=""
+
+    # 2. Parse direct JSON or inside markdown codeblock via jq
+    if command -v jq >/dev/null 2>&1; then
+        if echo "$content" | jq -e 'type == "object" and (.suggested_command != null or .explanation != null)' >/dev/null 2>&1; then
+            cmd=$(echo "$content" | jq -r '.suggested_command // empty' 2>/dev/null)
+            exp=$(echo "$content" | jq -r '.explanation // empty' 2>/dev/null)
+        fi
+
+        if [ -z "$cmd" ] && [ -z "$exp" ]; then
+            local clean_json=$(echo "$content" | sed -n '/```/,/```/p' | sed '/```/d')
+            if [ -n "$clean_json" ] && echo "$clean_json" | jq -e 'type == "object"' >/dev/null 2>&1; then
+                cmd=$(echo "$clean_json" | jq -r '.suggested_command // empty' 2>/dev/null)
+                exp=$(echo "$clean_json" | jq -r '.explanation // empty' 2>/dev/null)
+            fi
+        fi
+    fi
+
+    # 3. Native Regex Fallback
+    if [ -z "$cmd" ] && [ -z "$exp" ]; then
+        cmd=$(echo "$content" | grep -o '"suggested_command"[^,}]*' | head -n 1 | sed -E 's/.*:[[:space:]]*"?([^",}]+)"?.*/\1/')
+        exp=$(echo "$content" | grep -o '"explanation"[^,}]*' | head -n 1 | sed -E 's/.*:[[:space:]]*"?([^",}]+)"?.*/\1/')
+    fi
+
+    # 4. Raw Codeblock fallback
+    if [ -z "$cmd" ]; then
+        local raw_cmd=$(echo "$content" | sed -n '/```/,/```/p' | sed '/```/d' | grep -v '^[[:space:]]*#' | grep -v '^[[:space:]]*{' | head -n 1)
+        [ -n "$raw_cmd" ] && cmd="$raw_cmd"
+    fi
+
+    [ "$cmd" = "null" ] || [ "$cmd" = "None" ] || [ "$cmd" = "undefined" ] && cmd=""
+    [ "$exp" = "null" ] || [ "$exp" = "None" ] || [ "$exp" = "undefined" ] && exp=""
+
+    echo -e "${cmd}\t${exp}"
+}
+
 _powerai_query() {
     local user_prompt="$1"
     local is_error="$2"
@@ -433,37 +480,10 @@ Responda APENAS com um objeto JSON válido:
         return 1
     fi
 
-    # Extract JSON fields: Tier 1: Python3 | Tier 2: Native JQ | Tier 3: Regex
-    local cmd=""
-    local exp=""
-
-    if [ -f "$POWERAI_CONFIG_DIR/parse_response.py" ] && command -v python3 >/dev/null 2>&1; then
-        local parsed=$(python3 "$POWERAI_CONFIG_DIR/parse_response.py" <<< "$response" 2>/dev/null)
-        cmd=$(echo "$parsed" | cut -f1)
-        exp=$(echo "$parsed" | cut -f2)
-    elif [ -f "$(dirname "$0")/parse_response.py" ] && command -v python3 >/dev/null 2>&1; then
-        local parsed=$(python3 "$(dirname "$0")/parse_response.py" <<< "$response" 2>/dev/null)
-        cmd=$(echo "$parsed" | cut -f1)
-        exp=$(echo "$parsed" | cut -f2)
-    elif command -v jq >/dev/null 2>&1; then
-        # Native JQ Parser (Zero-Python requirement)
-        local content=$(echo "$response" | jq -r '.message.content // .choices[0].message.content // empty' 2>/dev/null)
-        [ -z "$content" ] && content="$response"
-        
-        cmd=$(echo "$content" | jq -r '.suggested_command // empty' 2>/dev/null)
-        exp=$(echo "$content" | jq -r '.explanation // empty' 2>/dev/null)
-
-        if [ -z "$cmd" ] && [ -z "$exp" ]; then
-            local clean_json=$(echo "$content" | sed -n '/```json/,/```/p' | sed '/```/d')
-            if [ -n "$clean_json" ]; then
-                cmd=$(echo "$clean_json" | jq -r '.suggested_command // empty' 2>/dev/null)
-                exp=$(echo "$clean_json" | jq -r '.explanation // empty' 2>/dev/null)
-            fi
-        fi
-    else
-        cmd=$(echo "$response" | grep -o '"suggested_command"[^,}]*' | head -n 1 | sed -E 's/.*:[[:space:]]*"?([^",}]+)"?.*/\1/')
-        exp=$(echo "$response" | grep -o '"explanation"[^,}]*' | head -n 1 | sed -E 's/.*:[[:space:]]*"?([^",}]+)"?.*/\1/')
-    fi
+    # Extract JSON fields via native JQ/POSIX parser (Zero Python)
+    local parsed=$(_powerai_parse_response "$response")
+    local cmd=$(echo "$parsed" | cut -f1)
+    local exp=$(echo "$parsed" | cut -f2)
 
     if [ -z "$cmd" ] && [ -z "$exp" ]; then
         echo "$response"

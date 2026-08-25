@@ -24,7 +24,7 @@ curl -fsSL https://raw.githubusercontent.com/Luizhcrs/powerai/main/install.sh | 
 irm https://raw.githubusercontent.com/Luizhcrs/powerai/main/install.ps1 | iex
 ```
 
-The installer is self-healing: missing dependencies (`curl`, `python3`, `jq`) and the recommended local Ollama model (`qwen2.5-coder:1.5b`) are configured automatically.
+The installer is self-healing: missing dependencies (`curl`, `jq` — Zero Python required) and the recommended local Ollama model (`qwen2.5-coder:1.5b`) are configured automatically.
 
 ---
 

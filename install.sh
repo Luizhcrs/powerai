@@ -70,12 +70,9 @@ _auto_install_pkg() {
 }
 
 _ensure_dependencies() {
-    # Check and auto-install curl, python3, jq
+    # Check and auto-install curl, jq (Zero Python required)
     if ! command -v curl >/dev/null 2>&1; then
         _auto_install_pkg curl
-    fi
-    if ! command -v python3 >/dev/null 2>&1; then
-        _auto_install_pkg python3
     fi
     if ! command -v jq >/dev/null 2>&1; then
         _auto_install_pkg jq
@@ -463,9 +460,9 @@ if [ "$RECONFIGURE_ONLY" = false ]; then
     _spin_step "$step1_text" "sleep 0.2"
 
     # Step 2: Detect and auto-resolve dependencies
-    msg_dep="2. Ambiente & Dependências:  curl, python3, jq prontos"
-    [ "$CHOSEN_LANG" = "en-US" ] && msg_dep="2. Environment & Tools:      curl, python3, jq ready"
-    [ "$CHOSEN_LANG" = "es-ES" ] && msg_dep="2. Entorno y Herramientas:   curl, python3, jq listos"
+    msg_dep="2. Ambiente & Dependências:  curl, jq prontos (Zero Python)"
+    [ "$CHOSEN_LANG" = "en-US" ] && msg_dep="2. Environment & Tools:      curl, jq ready (Zero Python)"
+    [ "$CHOSEN_LANG" = "es-ES" ] && msg_dep="2. Entorno y Herramientas:   curl, jq listos (Zero Python)"
     _spin_step "$msg_dep" "_ensure_dependencies"
 fi
 
@@ -695,13 +692,7 @@ else
     _spin_step "Baixando desinstalador (uninstall.sh)..." "curl -fsSL 'https://raw.githubusercontent.com/Luizhcrs/powerai/main/uninstall.sh' -o '$INSTALL_DIR/uninstall.sh'"
 fi
 
-if [ -f "$(dirname "$0")/parse_response.py" ]; then
-    _spin_step "Instalando extrator de respostas (parse_response.py)..." "cp '$(dirname "$0")/parse_response.py' '$INSTALL_DIR/parse_response.py'"
-else
-    _spin_step "Baixando extrator de respostas (parse_response.py)..." "curl -fsSL 'https://raw.githubusercontent.com/Luizhcrs/powerai/main/parse_response.py' -o '$INSTALL_DIR/parse_response.py'"
-fi
-
-chmod +x "$INSTALL_DIR/powerai.sh" "$INSTALL_DIR/uninstall.sh" "$INSTALL_DIR/parse_response.py" 2>/dev/null || true
+chmod +x "$INSTALL_DIR/powerai.sh" "$INSTALL_DIR/uninstall.sh" 2>/dev/null || true
 
 # Write config.json
 CONFIG_FILE="$INSTALL_DIR/config.json"
