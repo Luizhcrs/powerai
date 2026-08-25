@@ -12,21 +12,6 @@
 
 </div>
 
-```text
-$ ai como ver portas escutando conexoes
-
-  ✦ lsof -iTCP -sTCP:LISTEN -P
-  ↳ Lista todos os processos ativos ouvindo em portas TCP no sistema.
-
-Executar comando? [Enter = Sim | Esc = Não]
-
-[Executando] lsof -iTCP -sTCP:LISTEN -P
-COMMAND     PID      USER    FD   TYPE   DEVICE  NODE  NAME
-node        49202    dev     23u  IPv4   0x7c94  0t0   TCP *:3000 (LISTEN)
-ollama      11434    dev     12u  IPv6   0x8a92  0t0   TCP *:11434 (LISTEN)
-postgres    5432     dev     4u   IPv4   0x12a8  0t0   TCP *:5432 (LISTEN)
-```
-
 ## Quick Install
 
 ### macOS & Linux (Bash / Zsh)
