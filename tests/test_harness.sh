@@ -95,6 +95,33 @@ else
     FAILED=$((FAILED + 1))
 fi
 
+# 3. Testes de Funções Git e Explain (v1.1.0)
+echo ""
+echo "3. Testando Módulos Especializados (ai commit, ai explain, Fish):"
+if type _powerai_git_commit >/dev/null 2>&1; then
+    echo "  [PASS] Módulo Git Commit carregado"
+    PASSED=$((PASSED + 1))
+else
+    echo "  [FAIL] Módulo Git Commit ausente"
+    FAILED=$((FAILED + 1))
+fi
+
+if type _powerai_explain_command >/dev/null 2>&1; then
+    echo "  [PASS] Módulo Explain Command carregado"
+    PASSED=$((PASSED + 1))
+else
+    echo "  [FAIL] Módulo Explain Command ausente"
+    FAILED=$((FAILED + 1))
+fi
+
+if [ -f "./powerai.fish" ]; then
+    echo "  [PASS] Módulo Fish Shell presente"
+    PASSED=$((PASSED + 1))
+else
+    echo "  [FAIL] Módulo Fish Shell ausente"
+    FAILED=$((FAILED + 1))
+fi
+
 echo ""
 echo "=========================================================="
 echo " Resumo dos Testes:"

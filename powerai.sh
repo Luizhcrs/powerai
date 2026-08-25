@@ -2,7 +2,7 @@
 # powerai.sh - Native Linux & macOS Terminal AI Harness (Bash & Zsh)
 # Usage: source ~/.powerai/powerai.sh or ai <query>
 
-POWERAI_VERSION="v1.0.2"
+POWERAI_VERSION="v1.1.0"
 POWERAI_CONFIG_DIR="$HOME/.powerai"
 POWERAI_CONFIG_FILE="$POWERAI_CONFIG_DIR/config.json"
 POWERAI_SPINNER_PID=""
@@ -646,7 +646,197 @@ Responda APENAS com um objeto JSON válido:
     fi
 }
 
+_powerai_git_commit() {
+    _powerai_load_config
+    if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+        echo -e "  \033[1;31m[Erro]\033[0m Você não está dentro de um repositório Git."
+        return 1
+    fi
+
+    local diff_cached=$(git diff --cached 2>/dev/null)
+    local diff_unstaged=$(git diff 2>/dev/null)
+    local status_short=$(git status --short 2>/dev/null)
+
+    if [ -z "$diff_cached" ] && [ -z "$diff_unstaged" ] && [ -z "$status_short" ]; then
+        echo ""
+        echo -e "  \033[1;33m✦ Nenhuma alteração detectada no Git.\033[0m"
+        echo -e "    O diretório de trabalho está limpo (working tree clean)."
+        echo ""
+        return 0
+    fi
+
+    local target_diff=""
+    local needs_add=false
+    if [ -n "$diff_cached" ]; then
+        target_diff="$diff_cached"
+    else
+        target_diff="$diff_unstaged"
+        needs_add=true
+    fi
+
+    local diff_sample=$(echo "$target_diff" | head -n 120)
+    [ -z "$diff_sample" ] && diff_sample="$status_short"
+
+    local branch_name=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "main")
+
+    _powerai_start_spinner false
+
+    local commit_prompt="Você é um especialista em Git e Conventional Commits.
+Analise as alterações do git diff abaixo e gere uma mensagem de commit clara, precisa e concisa no padrão Conventional Commits (ex: feat(escopo): ..., fix(escopo): ..., refactor(escopo): ..., chore: ..., docs: ...).
+
+REGRAS:
+1. O comando sugerido deve ser: git commit -m \"<tipo>(<escopo opcional>): <mensagem descritiva curta>\" (ou 'git add -A && git commit -m \"...\"' se houver arquivos não adicionados ao stage).
+2. Responda APENAS com JSON: {\"suggested_command\": \"...\", \"explanation\": \"breve explicação do commit\"}
+
+Branch atual: $branch_name
+Arquivos alterados:
+$status_short
+
+Diff resumido:
+$diff_sample"
+
+    if [[ "$POWERAI_LANGUAGE" =~ ^en ]]; then
+        commit_prompt="You are an expert in Git and Conventional Commits.
+Analyze the git diff and changed files below and generate a precise Conventional Commit message (e.g. feat(scope): ..., fix(scope): ..., refactor(scope): ..., chore: ..., docs: ...).
+
+RULES:
+1. Suggested command must be: git commit -m \"<type>(<scope>): <short descriptive message>\" (or include 'git add -A && ...' if unstaged files exist).
+2. Respond ONLY with JSON: {\"suggested_command\": \"...\", \"explanation\": \"short explanation of changes\"}
+
+Current branch: $branch_name
+Changed files:
+$status_short
+
+Diff sample:
+$diff_sample"
+    fi
+
+    local json_payload=$(jq -n \
+        --arg model "$POWERAI_LOCAL_MODEL" \
+        --arg sys "$commit_prompt" \
+        --arg user "Gere o comando de commit ideal para essas alterações." \
+        '{
+            model: $model,
+            format: "json",
+            stream: false,
+            options: { temperature: 0.1 },
+            messages: [
+                { role: "system", content: $sys },
+                { role: "user", content: $user }
+            ]
+        }')
+
+    local response=$(curl -s -X POST "$POWERAI_OLLAMA_ENDPOINT/api/chat" \
+        -H "Content-Type: application/json" \
+        -d "$json_payload" \
+        --max-time "$POWERAI_TIMEOUT")
+
+    _powerai_stop_spinner
+
+    local parsed=$(_powerai_parse_response "$response")
+    local cmd=$(echo "$parsed" | cut -f1)
+    local exp=$(echo "$parsed" | cut -f2)
+
+    if [ -z "$cmd" ] || [ "$cmd" = "null" ]; then
+        if [ "$needs_add" = true ]; then
+            cmd="git add -A && git commit -m \"chore: update project changes\""
+        else
+            cmd="git commit -m \"chore: update project changes\""
+        fi
+    fi
+
+    local lbl_confirm="  \033[38;5;242mExecutar commit? \033[38;5;248m[Enter/S = Sim | Esc/N = Não]:\033[0m "
+    [ "$POWERAI_LANGUAGE" = "en-US" ] && lbl_confirm="  \033[38;5;242mExecute commit? \033[38;5;248m[Enter/Y = Yes | Esc/N = No]:\033[0m "
+
+    echo ""
+    echo -e "  \033[1;32m✦ $cmd\033[0m"
+    if [ -n "$exp" ]; then
+        echo -e "    \033[38;5;244m↳ $exp\033[0m"
+    fi
+    echo ""
+
+    if _powerai_confirm "$lbl_confirm"; then
+        echo -e "  \033[38;5;250m[Executando] $cmd\033[0m"
+        echo ""
+        eval "$cmd"
+    else
+        echo -e "  \033[38;5;240mCancelado.\033[0m"
+    fi
+}
+
+_powerai_explain_command() {
+    local target_cmd="$*"
+    _powerai_load_config
+    if [ -z "$target_cmd" ]; then
+        echo "Uso: ai explain <comando para analisar>"
+        return 0
+    fi
+
+    _powerai_start_spinner false
+
+    local explain_prompt="Você é um especialista em terminal Unix (macOS e Linux) e PowerShell.
+Explique em detalhes, em português brasileiro de forma didática e visual em tópicos, o que o comando faz e o que cada flag/parâmetro significa.
+
+Comando a analisar: $target_cmd
+
+Responda APENAS com JSON:
+{\"suggested_command\": \"\", \"explanation\": \"Explicação detalhada em tópicos organizados.\"}"
+
+    if [[ "$POWERAI_LANGUAGE" =~ ^en ]]; then
+        explain_prompt="You are an expert in Unix (macOS/Linux) terminal and CLI internals.
+Explain in detail, in a clear bulleted format, what this command does and what each flag/argument means.
+
+Command to analyze: $target_cmd
+
+Respond ONLY with JSON:
+{\"suggested_command\": \"\", \"explanation\": \"Detailed bullet-point breakdown of the command.\"}"
+    fi
+
+    local json_payload=$(jq -n \
+        --arg model "$POWERAI_LOCAL_MODEL" \
+        --arg sys "$explain_prompt" \
+        --arg user "Explique o comando: $target_cmd" \
+        '{
+            model: $model,
+            format: "json",
+            stream: false,
+            options: { temperature: 0.1 },
+            messages: [
+                { role: "system", content: $sys },
+                { role: "user", content: $user }
+            ]
+        }')
+
+    local response=$(curl -s -X POST "$POWERAI_OLLAMA_ENDPOINT/api/chat" \
+        -H "Content-Type: application/json" \
+        -d "$json_payload" \
+        --max-time "$POWERAI_TIMEOUT")
+
+    _powerai_stop_spinner
+
+    local parsed=$(_powerai_parse_response "$response")
+    local exp=$(echo "$parsed" | cut -f2)
+
+    [ -z "$exp" ] && exp="Análise não disponível para este comando."
+
+    echo ""
+    echo -e "  \033[1;36m✦ Explicação do Comando:\033[0m \033[1m$target_cmd\033[0m"
+    echo ""
+    echo -e "    \033[38;5;252m$exp\033[0m"
+    echo ""
+}
+
 _powerai_ai_entry() {
+    if [ "$1" = "commit" ] || [ "$1" = "cm" ] || ([ "$1" = "git" ] && [ "$2" = "commit" ]); then
+        _powerai_git_commit
+        return $?
+    fi
+
+    if [ "$1" = "explain" ] || [ "$1" = "explica" ] || [ "$1" = "explicar" ] || [ "$1" = "--explain" ]; then
+        shift
+        _powerai_explain_command "$@"
+        return $?
+    fi
     if [ "$1" = "uninstall" ] || [ "$1" = "--uninstall" ] || [ "$1" = "desinstalar" ]; then
         echo "=========================================================="
         echo " [PowerAI] Uninstall Confirmation"
@@ -718,6 +908,8 @@ _powerai_ai_entry() {
         echo "  [PowerAI] Invisible Cognitive Terminal Layer ($POWERAI_VERSION)"
         echo "  Usage: ai <query or natural language request>"
         echo "         ? <query>"
+        echo "         ai commit (smart Conventional Commit from git diff)"
+        echo "         ai explain <command> (explain flags & syntax of any command)"
         echo "         ai update (update to latest release)"
         echo "         ai version (check current & remote version)"
         echo "         ai language <pt|en|es> (change language)"

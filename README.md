@@ -44,6 +44,8 @@ The installer is self-healing: missing dependencies (`curl`, `jq` — Zero Pytho
 | :--- | :--- |
 | `ai <query>` | Natural language terminal query |
 | `? <query>` | Fast shorthand alias |
+| `ai commit` | Generate Conventional Commit from git diff with confirmation |
+| `ai explain <cmd>` | Break down and explain flags of any CLI command |
 | `ai update` | Self-update to latest release from GitHub |
 | `ai version` | Check installed and remote version |
 | `ai language <pt\|en\|es>` | Change assistant language |

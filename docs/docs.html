@@ -621,6 +621,15 @@
           </div>
           <div class="code-content">irm https://raw.githubusercontent.com/Luizhcrs/powerai/main/install.ps1 | iex</div>
         </div>
+
+        <h3 class="doc-h3">Homebrew (macOS & Linux)</h3>
+        <div class="code-block">
+          <div class="code-header">
+            <span>Terminal</span>
+            <button class="copy-btn" onclick="copyCode(this, 'brew install Luizhcrs/powerai/powerai')">Copy</button>
+          </div>
+          <div class="code-content">brew install Luizhcrs/powerai/powerai</div>
+        </div>
       </section>
 
       <!-- Prerequisites -->
@@ -720,6 +729,18 @@ Execute command? [Enter/Y = Yes | Esc/N = No]:</div>
             <tr>
               <td><code>ai version</code> / <code>ai -v</code></td>
               <td data-i18n="tb_ver_desc">Displays installed version and checks GitHub for releases.</td>
+            </tr>
+            <tr>
+              <td><code>ai commit</code> / <code>ai cm</code></td>
+              <td data-i18n="tb_cm_desc">Inspects git diff and generates Conventional Commit message with interactive confirmation.</td>
+            </tr>
+            <tr>
+              <td><code>ai explain "&lt;command&gt;"</code></td>
+              <td data-i18n="tb_exp_desc">Breaks down any CLI command flag-by-flag with an educational explanation.</td>
+            </tr>
+            <tr>
+              <td><code>ai config</code></td>
+              <td data-i18n="tb_cfg_desc">Displays active configuration, language, provider, and model details.</td>
             </tr>
             <tr>
               <td><code>ai update</code> / <code>ai upgrade</code></td>
@@ -856,6 +877,9 @@ Remove-Item -Recurse -Force "$HOME\.powerai"</div>
         th_desc: "Description",
         tb_ai_desc: "Translates natural language to native shell commands.",
         tb_ver_desc: "Displays installed version and checks GitHub for releases.",
+        tb_cm_desc: "Inspects git diff and generates Conventional Commit messages with interactive confirmation.",
+        tb_exp_desc: "Breaks down any CLI command flag-by-flag with an educational explanation.",
+        tb_cfg_desc: "Displays active configuration, language, provider, and model details.",
         tb_upd_desc: "Downloads, verifies, and installs the latest version instantly.",
         sec_env_title: "Environment Variables",
         th_var: "Variable",
@@ -916,6 +940,9 @@ Remove-Item -Recurse -Force "$HOME\.powerai"</div>
         th_desc: "Descrição",
         tb_ai_desc: "Traduz linguagem natural para comandos nativos do terminal.",
         tb_ver_desc: "Exibe a versão instalada e checa por novas versões no GitHub.",
+        tb_cm_desc: "Lê o git diff e gera commits padronizados (Conventional Commits) com confirmação interativa.",
+        tb_exp_desc: "Explica a sintaxe e o significado de cada flag de qualquer comando de terminal.",
+        tb_cfg_desc: "Exibe a configuração ativa, idioma, modelo e endpoints configurados.",
         tb_upd_desc: "Baixa, verifica integridade e atualiza a CLI na hora.",
         sec_env_title: "Variáveis de Ambiente",
         th_var: "Variável",

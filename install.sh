@@ -686,13 +686,19 @@ else
     _spin_step "Baixando script principal (powerai.sh)..." "curl -fsSL 'https://raw.githubusercontent.com/Luizhcrs/powerai/main/powerai.sh' -o '$INSTALL_DIR/powerai.sh'"
 fi
 
+if [ -f "$(dirname "$0")/powerai.fish" ]; then
+    _spin_step "Instalando módulo Fish Shell (powerai.fish)..." "cp '$(dirname "$0")/powerai.fish' '$INSTALL_DIR/powerai.fish'"
+else
+    _spin_step "Baixando módulo Fish Shell (powerai.fish)..." "curl -fsSL 'https://raw.githubusercontent.com/Luizhcrs/powerai/main/powerai.fish' -o '$INSTALL_DIR/powerai.fish' 2>/dev/null || true"
+fi
+
 if [ -f "$(dirname "$0")/uninstall.sh" ]; then
     _spin_step "Instalando desinstalador (uninstall.sh)..." "cp '$(dirname "$0")/uninstall.sh' '$INSTALL_DIR/uninstall.sh'"
 else
     _spin_step "Baixando desinstalador (uninstall.sh)..." "curl -fsSL 'https://raw.githubusercontent.com/Luizhcrs/powerai/main/uninstall.sh' -o '$INSTALL_DIR/uninstall.sh'"
 fi
 
-chmod +x "$INSTALL_DIR/powerai.sh" "$INSTALL_DIR/uninstall.sh" 2>/dev/null || true
+chmod +x "$INSTALL_DIR/powerai.sh" "$INSTALL_DIR/powerai.fish" "$INSTALL_DIR/uninstall.sh" 2>/dev/null || true
 
 # Write config.json
 CONFIG_FILE="$INSTALL_DIR/config.json"
@@ -725,7 +731,12 @@ fi
 if [ -f "$HOME/.zshrc" ] && ! grep -q "powerai.sh" "$HOME/.zshrc"; then
     echo "$SOURCE_LINE" >> "$HOME/.zshrc"
 fi
-_spin_step "Integrando hooks nativos ao ~/.zshrc e ~/.bashrc..." "sleep 0.2"
+
+if command -v fish >/dev/null 2>&1 || [ -d "$HOME/.config/fish" ]; then
+    mkdir -p "$HOME/.config/fish/conf.d"
+    echo "test -f '$INSTALL_DIR/powerai.fish'; and source '$INSTALL_DIR/powerai.fish'" > "$HOME/.config/fish/conf.d/powerai.fish"
+fi
+_spin_step "Integrando hooks nativos ao ~/.zshrc, ~/.bashrc e Fish..." "sleep 0.2"
 
 # Success Card
 echo ""

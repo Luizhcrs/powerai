@@ -1,7 +1,7 @@
 # Module manifest for PowerAI
 @{
     RootModule = 'PowerAI.psm1'
-    ModuleVersion = '1.0.2'
+    ModuleVersion = '1.1.0'
     GUID = 'a84f3e58-69cb-4c54-8c81-bb0364f89d3a'
     Author = 'PowerAI'
     CompanyName = 'Community'

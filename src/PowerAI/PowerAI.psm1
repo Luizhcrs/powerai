@@ -438,15 +438,56 @@ function ai {
     }
 
     if ($question.Trim() -in @("version", "-v", "--version", "versao")) {
-        Write-Host "PowerAI v1.0.2 (Windows PowerShell & CMD)" -ForegroundColor Green
+        Write-Host "PowerAI v1.1.0 (Windows PowerShell & CMD)" -ForegroundColor Green
         try {
             $latest = (Invoke-RestMethod -Uri "https://api.github.com/repos/Luizhcrs/powerai/releases/latest" -TimeoutSec 3 -ErrorAction SilentlyContinue).tag_name
-            if ($latest -and $latest -ne "v1.0.2") {
+            if ($latest -and $latest -ne "v1.1.0") {
                 Write-Host "Nova versao disponivel: $latest. Digite 'ai update' para atualizar." -ForegroundColor Yellow
             } else {
                 Write-Host "Voce esta na versao mais recente." -ForegroundColor DarkGray
             }
         } catch {}
+        return
+    }
+
+    if ($question.Trim() -in @("commit", "cm", "git commit")) {
+        $status = git status --short 2>$null
+        if (-not $status) {
+            Write-Host "Nenhuma alteracao detectada no Git (working tree clean)." -ForegroundColor Yellow
+            return
+        }
+        $diffSample = (git diff 2>$null | Select-Object -First 100) -join "`n"
+        $commitPrompt = "Voce e um especialista em Git e Conventional Commits. Analise o diff e gere um commit padronizado: git commit -m '<tipo>: <mensagem>'. Responda em JSON: {`"suggested_command`": `"git commit -m '...'`", `"explanation`": `"motivo`"}"
+        $resp = Invoke-AIRouterRequest -SystemPrompt $commitPrompt -UserPrompt "Arquivos: $status`nDiff: $diffSample"
+        if ($resp.Success) {
+            $parsed = Parse-AIJsonResult -RawText $resp.RawResponse
+            if ($parsed.suggested_command) {
+                Write-Host ""
+                Write-Host "✦ $($parsed.suggested_command)" -ForegroundColor Green
+                if ($parsed.explanation) { Write-Host "  ↳ $($parsed.explanation)" -ForegroundColor DarkGray }
+                Write-Host ""
+                if (Prompt-UserConfirmation -PromptText "Executar commit? [Enter/S = Sim | Esc/N = Nao]: ") {
+                    Invoke-Expression $parsed.suggested_command
+                } else {
+                    Write-Host "Cancelado." -ForegroundColor DarkGray
+                }
+            }
+        }
+        return
+    }
+
+    if ($Query[0] -in @("explain", "explica", "explicar", "--explain") -and $Query.Length -gt 1) {
+        $cmdToExplain = ($Query[1..($Query.Length - 1)]) -join " "
+        $explainPrompt = "Explique em detalhes o que este comando PowerShell/CLI faz e o que cada parametro significa: $cmdToExplain. Responda em JSON: {`"suggested_command`": `"`", `"explanation`": `"explicacao detalhada`"}"
+        $resp = Invoke-AIRouterRequest -SystemPrompt $explainPrompt -UserPrompt "Explique: $cmdToExplain"
+        if ($resp.Success) {
+            $parsed = Parse-AIJsonResult -RawText $resp.RawResponse
+            Write-Host ""
+            Write-Host "✦ Explicacao do Comando: $cmdToExplain" -ForegroundColor Cyan
+            Write-Host ""
+            Write-Host $parsed.explanation -ForegroundColor Gray
+            Write-Host ""
+        }
         return
     }
 
