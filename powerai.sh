@@ -583,8 +583,16 @@ Responda APENAS com um objeto JSON válido:
     # Verificar se o comando sugerido apenas repete o comando anterior
     local is_repeat=false
     if [ ${#POWERAI_SESSION_MEMORY[@]} -gt 0 ]; then
-        local last_turn="${POWERAI_SESSION_MEMORY[-1]}"
-        [ -z "$last_turn" ] && last_turn="${POWERAI_SESSION_MEMORY[${#POWERAI_SESSION_MEMORY[@]}]}"
+        # Portable way to grab the last element: negative indices
+        # (${arr[-1]}) aren't supported by macOS's default /bin/bash 3.2,
+        # and computed 0-based indices don't line up with zsh's 1-based
+        # arrays. Iterating leaves last_turn holding the final element
+        # under both shells.
+        local last_turn=""
+        local _powerai_turn=""
+        for _powerai_turn in "${POWERAI_SESSION_MEMORY[@]}"; do
+            last_turn="$_powerai_turn"
+        done
         if [[ "$last_turn" == *"Command: $cmd"* ]]; then
             is_repeat=true
         fi
