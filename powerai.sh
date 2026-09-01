@@ -248,14 +248,94 @@ _powerai_confirm() {
         read -r reply 2>/dev/null || reply="n"
     elif [ -n "$ZSH_VERSION" ]; then
         printf "%b" "$prompt_msg"
-        read -k 1 reply
+        read -k 1 -s reply
         echo ""
     else
         printf "%b" "$prompt_msg"
-        read -n 1 -r reply
+        read -n 1 -s -r reply
         echo ""
     fi
-    if [[ "$reply" =~ ^[SsYy]$ ]] || [ -z "$reply" ]; then
+    if [ "$reply" = $'\e' ] || [ "$reply" = $'\x03' ] || [ "$reply" = $'\x1b' ]; then
+        return 1
+    fi
+    if [[ "$reply" =~ ^[SsYy]$ ]] || [ -z "$reply" ] || [ "$reply" = $'\n' ] || [ "$reply" = $'\r' ]; then
+        return 0
+    else
+        return 1
+    fi
+}
+
+_powerai_is_destructive_command() {
+    local cmd="$1"
+    local lower_cmd="$(echo "$cmd" | tr '[:upper:]' '[:lower:]')"
+
+    # Match high-risk destructive patterns
+    local pattern='(^|[ ;&|])(rm[[:space:]]+-[a-z]*r|rm[[:space:]]+-[a-z]*f[[:space:]]+/|rmdir[[:space:]]+-[a-z]*p|dd[[:space:]]+if=|mkfs|fdisk|parted|chmod[[:space:]]+-[a-z]*r[[:space:]]+777|chmod[[:space:]]+777|chown[[:space:]]+-[a-z]*r|git[[:space:]]+reset[[:space:]]+--hard|git[[:space:]]+push[[:space:]]+.*--force|git[[:space:]]+push[[:space:]]+.*-f|git[[:space:]]+clean[[:space:]]+-[a-z]*f|git[[:space:]]+branch[[:space:]]+-d|drop[[:space:]]+database|drop[[:space:]]+table|truncate[[:space:]]+table|:[[:space:]]*\(\)[[:space:]]*\{)'
+
+    if [[ "$lower_cmd" =~ $pattern ]]; then
+        return 0
+    fi
+    return 1
+}
+
+_powerai_confirm_destructive() {
+    local cmd="$1"
+    local warning_tag="! [Atenção: Ação Destrutiva]"
+    local warning_desc="Exclui arquivos ou altera estado de forma irreversível."
+    local prompt_msg="  \033[38;5;242mConfirmar execução? Digite \033[1;37m'sim'\033[0m \033[38;5;242mpara prosseguir (Esc/Enter cancela):\033[0m "
+
+    if [[ "$POWERAI_LANGUAGE" =~ ^en ]]; then
+        warning_tag="! [Caution: Destructive Action]"
+        warning_desc="Permanently deletes files or alters system state."
+        prompt_msg="  \033[38;5;242mConfirm execution? Type \033[1;37m'yes'\033[0m \033[38;5;242mto proceed (Esc/Enter cancels):\033[0m "
+    elif [[ "$POWERAI_LANGUAGE" =~ ^es ]]; then
+        warning_tag="! [Atención: Acción Destructiva]"
+        warning_desc="Elimina archivos o altera el estado de forma irreversible."
+        prompt_msg="  \033[38;5;242m¿Confirmar ejecución? Escribe \033[1;37m'si'\033[0m \033[38;5;242mpara proceder (Esc/Enter cancela):\033[0m "
+    fi
+
+    echo -e "  \033[38;5;215m${warning_tag}\033[0m \033[38;5;244m${warning_desc}\033[0m"
+    echo ""
+
+    local reply=""
+    if [ ! -t 0 ]; then
+        read -r reply 2>/dev/null || reply="nao"
+    else
+        printf "%b" "$prompt_msg"
+        local char=""
+        while true; do
+            if [ -n "$ZSH_VERSION" ]; then
+                read -k 1 -s char 2>/dev/null || char=""
+            else
+                read -n 1 -s -r char 2>/dev/null || char=""
+            fi
+
+            # If ESC or Ctrl+C pressed -> IMMEDIATELY abort without echoing anything
+            if [ "$char" = $'\e' ] || [ "$char" = $'\x03' ] || [ "$char" = $'\x1b' ]; then
+                echo ""
+                return 1
+            fi
+
+            # If Enter pressed -> break loop
+            if [ "$char" = $'\n' ] || [ "$char" = $'\r' ] || [ -z "$char" ]; then
+                echo ""
+                break
+            fi
+
+            # If Backspace pressed -> erase character visually
+            if [ "$char" = $'\x7f' ] || [ "$char" = $'\x08' ]; then
+                if [ ${#reply} -gt 0 ]; then
+                    reply="${reply%?}"
+                    printf "\b \b"
+                fi
+            else
+                reply="${reply}${char}"
+                printf "%s" "$char"
+            fi
+        done
+    fi
+
+    if [[ "$reply" =~ ^(sim|SIM|yes|YES|si|SI)$ ]]; then
         return 0
     else
         return 1
@@ -264,7 +344,54 @@ _powerai_confirm() {
 
 _powerai_get_context() {
     local cwd="$PWD"
-    local os_name="$(uname -s) $(uname -r)"
+    local kernel="$(uname -s 2>/dev/null)"
+    local os_detail=""
+    local active_shell="bash"
+    local pkg_mgr="Standard POSIX CLI"
+
+    # 1. Detect Active Shell
+    if [ -n "$ZSH_VERSION" ]; then
+        active_shell="zsh $ZSH_VERSION"
+    elif [ -n "$BASH_VERSION" ]; then
+        active_shell="bash $BASH_VERSION"
+    elif [ -n "$FISH_VERSION" ]; then
+        active_shell="fish $FISH_VERSION"
+    else
+        active_shell="${SHELL##*/}"
+    fi
+
+    # 2. Detect OS, Distro & Package Manager
+    if [ "$kernel" = "Darwin" ]; then
+        local mac_ver="$(sw_vers -productVersion 2>/dev/null)"
+        os_detail="macOS $mac_ver (Darwin $(uname -m 2>/dev/null))"
+        if command -v brew >/dev/null 2>&1; then
+            pkg_mgr="Homebrew (brew)"
+        fi
+    elif [ "$kernel" = "Linux" ]; then
+        if [ -f /etc/os-release ]; then
+            local distro_name="$(grep -E '^PRETTY_NAME=' /etc/os-release 2>/dev/null | cut -d= -f2 | tr -d '\"')"
+            os_detail="Linux (${distro_name:-Generic Linux}, $(uname -m 2>/dev/null))"
+        else
+            os_detail="Linux ($(uname -r 2>/dev/null), $(uname -m 2>/dev/null))"
+        fi
+
+        if command -v apt-get >/dev/null 2>&1; then
+            pkg_mgr="APT (apt-get / apt)"
+        elif command -v pacman >/dev/null 2>&1; then
+            pkg_mgr="Pacman (pacman)"
+        elif command -v dnf >/dev/null 2>&1; then
+            pkg_mgr="DNF (dnf)"
+        elif command -v zypper >/dev/null 2>&1; then
+            pkg_mgr="Zypper (zypper)"
+        elif command -v apk >/dev/null 2>&1; then
+            pkg_mgr="APK (apk)"
+        elif command -v brew >/dev/null 2>&1; then
+            pkg_mgr="Homebrew (brew)"
+        fi
+    else
+        os_detail="$(uname -s 2>/dev/null) $(uname -r 2>/dev/null)"
+    fi
+
     local top_files="$(ls -1p "$cwd" 2>/dev/null | grep -v '/$' | head -n 15 | tr '\n' ',' | sed 's/,$//')"
     local top_dirs="$(ls -1d */ 2>/dev/null | head -n 10 | tr '\n' ',' | sed 's/,$//')"
     local git_branch=""
@@ -282,11 +409,17 @@ _powerai_get_context() {
     cat <<EOF
 === SYSTEM & ENVIRONMENT CONTEXT ===
 - Current Working Directory (CWD): $cwd
-- Operating System: $os_name
+- Operating System: $os_detail
+- Active Shell: $active_shell
+- Preferred Package Manager: $pkg_mgr
 - User: $USER (Home: $HOME)
 - Active Git Branch: ${git_branch:-N/A}
 - Subdirectories: $top_dirs
 - Key Files: $top_files
+
+CRITICAL ENVIRONMENT RULES:
+1. Always generate commands strictly compatible with '$active_shell' on '$os_detail'.
+2. Package Management: Use '$pkg_mgr' when user asks to install or update packages. NEVER suggest 'apt' on macOS (use 'brew'). NEVER suggest 'brew' on Linux unless installed.
 
 === RECENT SESSION HISTORY (COMMANDS, QUERIES & TERMINAL OUTPUT) ===
 ${session_history:-No prior commands in this session.}
@@ -401,24 +534,28 @@ _powerai_query() {
         sys_prompt="You are PowerAI, an expert terminal AI copilot for macOS (Darwin) and Linux (Bash/Zsh).
 $harness_ctx
 
-=== OPERATING SYSTEM RULES ===
-- If on macOS (Darwin):
-  * For local IP address: use 'ipconfig getifaddr en0' (or 'ipconfig getifaddr en1'). NEVER combine ifconfig with getifaddr!
-  * For open listening TCP ports: use 'lsof -iTCP -sTCP:LISTEN -P'
-  * For memory: use 'vm_stat' or 'top -l 1 | head -n 10'
-  * For killing processes: use 'kill -9 <PID>' or 'pkill <name>'
+=== NETWORK & OS RULES ===
+- To see all network interfaces and all IP addresses: use 'ifconfig' (or 'ifconfig | grep \"inet \"').
+- To see ONLY the specific local IP for Wi-Fi (en0) on macOS: use 'ipconfig getifaddr en0'.
+- NEVER combine the two into 'ifconfig getifaddr' (ifconfig does not accept getifaddr).
+- Typos of ifconfig (e.g. 'ifconfi', 'ifcon', 'ifc') must be corrected to 'ifconfig'.
+- For open listening TCP ports: use 'lsof -iTCP -sTCP:LISTEN -P'
+- For killing processes: use 'kill -9 <PID>' or 'pkill <name>'
+- For clearing terminal: use 'clear'
 
 === RECOGNITION & RESPONSE RULES ===
-1. NATURAL LANGUAGE QUESTIONS & ACTIONS (e.g. 'how to see my local ip', 'list tcp ports', 'find large files'):
-   - Translate the user intent into the exact, functional OS-specific CLI command in 'suggested_command'.
-   - Return a clear, concise English explanation in 'explanation'.
+1. NATURAL LANGUAGE QUESTIONS & ACTIONS:
+   - 'show all ips' or 'network interfaces' -> 'ifconfig'
+   - 'show my local ip' -> 'ipconfig getifaddr en0' (on macOS)
+   - 'list tcp ports' -> 'lsof -iTCP -sTCP:LISTEN -P'
+   - Translate user intent to exact OS command in 'suggested_command' and clear explanation in 'explanation'.
 
 2. ERROR DIAGNOSIS & RECOVERY (e.g. 'it failed', 'error occurred', 'fix command'):
    - Inspect the previous failed command and error in RECENT SESSION HISTORY.
    - Provide the corrected, working command in 'suggested_command'.
    - Explain why it failed and how this fixes it in 'explanation'.
 
-3. COMMAND TYPOS & MISTAKES (e.g. 'clar' -> 'clear', 'lear' -> 'clear', 'mrdir' -> 'mkdir', 'dockr' -> 'docker', 'gti' -> 'git'):
+3. COMMAND TYPOS & MISTAKES (e.g. 'ifconfi' -> 'ifconfig', 'clar' -> 'clear', 'lear' -> 'clear', 'mrdir' -> 'mkdir', 'dockr' -> 'docker', 'gti' -> 'git'):
    - Return the corrected command in 'suggested_command'.
    - Return a concise English explanation in 'explanation'.
 
@@ -432,22 +569,25 @@ Respond ONLY with a valid JSON object:
         sys_prompt="Eres PowerAI, un copiloto experto en terminal para macOS (Darwin) y Linux (Bash/Zsh).
 $harness_ctx
 
-=== REGLAS DEL SISTEMA OPERATIVO ===
-- Si estás en macOS (Darwin):
-  * Para ver la IP local: usa 'ipconfig getifaddr en0' (¡NUNCA mezcles ifconfig con getifaddr!).
-  * Para puertos TCP abiertos: usa 'lsof -iTCP -sTCP:LISTEN -P'
-  * Para matar procesos: usa 'kill -9 <PID>'
+=== REGLAS DE RED Y SISTEMA OPERATIVO ===
+- Para ver todas las interfaces de red y todas las IPs: usa 'ifconfig' (o 'ifconfig | grep \"inet \"').
+- Para ver la IP local específica de Wi-Fi (en0) en macOS: usa 'ipconfig getifaddr en0'.
+- NUNCA mezcles ambos creando 'ifconfig getifaddr'. El comando es 'ifconfig' o 'ipconfig getifaddr en0'.
+- Errores de tipeo de ifconfig (ej: 'ifconfi', 'ifcon') deben corregirse a 'ifconfig'.
+- Para puertos TCP abiertos: usa 'lsof -iTCP -sTCP:LISTEN -P'
+- Para matar procesos: usa 'kill -9 <PID>'
+- Para limpiar pantalla: usa 'clear'
 
 === REGLAS DE RESPUESTA ===
-1. PREGUNTAS Y ACCIONES EN LENGUAJE NATURAL (ej: 'como ver mi ip local', 'listar puertos', 'buscar archivos grandes'):
-   - Traduce la intención al comando funcional exacto para el sistema operativo en 'suggested_command'.
-   - Escribe una explicación concisa en español en 'explanation'.
+1. PREGUNTAS Y ACCIONES EN LENGUAJE NATURAL:
+   - 'como ver todas las ips' o 'interfaces de red' -> 'ifconfig'
+   - 'como ver mi ip local' -> 'ipconfig getifaddr en0'
+   - Traduce la intención al comando funcional exacto en 'suggested_command'.
 
 2. DIAGNÓSTICO Y CORRECCIÓN DE ERRORES (ej: 'dio error', 'falló', 'no funcionó'):
-   - Analiza el error anterior en el historial de sesión (RECENT SESSION HISTORY) y entrega el comando corregido en 'suggested_command'.
-   - Explica el motivo en 'explanation'.
+   - Analiza el error anterior en RECENT SESSION HISTORY y entrega el comando corregido.
 
-3. ERRORES DE DIGITACIÓN DE COMANDOS (ej: 'clar' -> 'clear', 'lear' -> 'clear', 'mrdir' -> 'mkdir', 'dockr' -> 'docker', 'gti' -> 'git'):
+3. ERRORES DE DIGITACIÓN DE COMANDOS (ej: 'ifconfi' -> 'ifconfig', 'clar' -> 'clear', 'lear' -> 'clear', 'mrdir' -> 'mkdir', 'dockr' -> 'docker', 'gti' -> 'git'):
    - Coloca el comando corregido en 'suggested_command'.
    - Escribe una breve explicación en 'explanation'.
 
@@ -462,32 +602,51 @@ Responde ÚNICAMENTE con un objeto JSON válido:
         sys_prompt="Você é o PowerAI, um copiloto especialista em terminal para macOS (Darwin) e Linux (Bash/Zsh).
 $harness_ctx
 
-=== REGRAS DE SISTEMA OPERACIONAL ===
-- Se estiver no macOS (Darwin):
-  * Para ver IP local: use 'ipconfig getifaddr en0' (ou 'ipconfig getifaddr en1'). NUNCA use ifconfig com getifaddr!
-  * Para ver portas TCP abertas: use 'lsof -iTCP -sTCP:LISTEN -P'
-  * Para matar processos: use 'kill -9 <PID>' ou 'killall <nome>'
-  * Para limpar o terminal: use 'clear'
+=== REGRAS DE REDE E SISTEMA OPERACIONAL ===
+- Para listar TODAS as interfaces de rede e todos os IPs da máquina: use 'ifconfig' (ou 'ifconfig | grep \"inet \"').
+- Para ver o IP específico da interface Wi-Fi (en0) no macOS: use 'ipconfig getifaddr en0'.
+- ATENÇÃO: NUNCA misture os dois criando 'ifconfig getifaddr'. O utilitário ifconfig não aceita getifaddr!
+- Erros de digitação de ifconfig (ex: 'ifconfi', 'ifcon', 'ifc') devem SEMPRE ser corrigidos para 'ifconfig'.
+- Para ver portas TCP abertas: use 'lsof -iTCP -sTCP:LISTEN -P'
+- Para matar processos: use 'kill -9 <PID>' ou 'killall <nome>'
+- Para limpar o terminal: use 'clear'
+
+=== REGRAS DE DIGITAÇÃO E CORREÇÃO DE COMANDOS ===
+- NUNCA crie flags inválidas (ex: NUNCA junte um hífen solto com o nome de arquivo, como '-jija' ou '-pasta').
+- 'rmm <alvo>', 'rmm - <alvo>', 'rmm -r <alvo>' -> 'rm -rf <alvo>' (se diretório) ou 'rm <alvo>' (se arquivo)
+- 'mrdir <alvo>', 'mkidr <alvo>' -> 'mkdir <alvo>'
+- 'cdd <alvo>', 'dc <alvo>' -> 'cd <alvo>'
+- 'gti', 'gut', 'gitt' -> 'git'
+- 'dockr', 'dokcer' -> 'docker'
+- 'sl', 'lls', 'lss' -> 'ls'
+- 'clar', 'cler', 'lear' -> 'clear'
 
 === REGRAS DE PROCESSAMENTO ===
-1. PERGUNTAS E PEDIDOS EM LINGUAGEM NATURAL (ex: 'como ver meu ip local', 'ver portas abertas', 'listar arquivos ocultos'):
-   - Traduza a intenção para o comando funcional exato para o sistema operacional em 'suggested_command'.
-   - Escreva uma explicação clara em português em 'explanation'.
+1. PERGUNTAS E PEDIDOS EM LINGUAGEM NATURAL:
+   - 'como ver todos os ips' ou 'ver interfaces de rede' -> 'ifconfig'
+   - 'como ver meu ip local' -> 'ipconfig getifaddr en0'
+   - 'ver portas abertas' -> 'lsof -iTCP -sTCP:LISTEN -P'
+   - Traduza a intenção para o comando funcional exato em 'suggested_command'.
 
 2. DIAGNÓSTICO E CORREÇÃO DE ERROS (ex: 'deu erro', 'falhou', 'não funcionou', 'como corrigir'):
    - Analise o comando e erro anterior no histórico da sessão (RECENT SESSION HISTORY) e forneça o comando corrigido em 'suggested_command'.
    - Explique o motivo do erro e da correção em 'explanation'.
 
-3. ERROS DE DIGITAÇÃO DE COMANDOS (ex: 'clar' -> 'clear', 'lear' -> 'clear', 'mrdir' -> 'mkdir', 'dockr' -> 'docker', 'gti' -> 'git'):
+3. ERROS DE DIGITAÇÃO DE COMANDOS (ex: 'rmm - jija' -> 'rm -rf jija', 'ifconfi' -> 'ifconfig', 'mrdir' -> 'mkdir', 'dockr' -> 'docker', 'gti' -> 'git'):
    - Coloque o comando corrigido em 'suggested_command'.
    - Escreva uma explicação curta em português em 'explanation'.
 
 4. MEMÓRIA DE SAÍDA E DADOS DA TELA:
    - Se o usuário perguntar sobre dados já impressos no histórico, responda diretamente em 'explanation' e deixe 'suggested_command' vazio (\"\").
 
-FORMATO DE SAÍDA:
+FORMATO DE SALIDA:
 Responda APENAS com um objeto JSON válido:
 {\"suggested_command\": \"...\", \"explanation\": \"...\"}"
+    fi
+
+    local query_to_send="$user_prompt"
+    if [ "$is_error" = "true" ]; then
+        query_to_send="O usuário digitou o seguinte comando inválido/inexistente no terminal: '$user_prompt'. Identifique o comando real desejado (ex: rm, mkdir, cd, git, docker) e retorne o comando correto e válido."
     fi
 
     local response=""
@@ -496,7 +655,7 @@ Responda APENAS com um objeto JSON válido:
         local json_payload=$(jq -n \
             --arg model "$POWERAI_LOCAL_MODEL" \
             --arg sys "$sys_prompt" \
-            --arg user "$user_prompt" \
+            --arg user "$query_to_send" \
             '{
                 model: $model,
                 format: "json",
@@ -520,7 +679,7 @@ Responda APENAS com um objeto JSON válido:
         local json_payload=$(jq -n \
             --arg model "$POWERAI_LOCAL_MODEL" \
             --arg sys "$sys_prompt" \
-            --arg user "$user_prompt" \
+            --arg user "$query_to_send" \
             '{
                 model: $model,
                 temperature: 0.0,
@@ -545,7 +704,7 @@ Responda APENAS com um objeto JSON válido:
         local json_payload=$(jq -n \
             --arg model "$POWERAI_CLOUD_MODEL" \
             --arg sys "$sys_prompt" \
-            --arg user "$user_prompt" \
+            --arg user "$query_to_send" \
             '{
                 model: $model,
                 temperature: 0.0,
@@ -629,8 +788,18 @@ Responda APENAS com um objeto JSON válido:
         if [ -n "$exp" ]; then
             echo -e "    \033[38;5;244m↳ $exp\033[0m"
         fi
-        echo ""
-        if _powerai_confirm "$lbl_confirm"; then
+        local should_run=false
+        if _powerai_is_destructive_command "$cmd"; then
+            if _powerai_confirm_destructive "$cmd"; then
+                should_run=true
+            fi
+        else
+            if _powerai_confirm "$lbl_confirm"; then
+                should_run=true
+            fi
+        fi
+
+        if [ "$should_run" = "true" ]; then
             echo -e "  \033[38;5;250m$lbl_exec $cmd\033[0m"
             echo ""
 
@@ -972,3 +1141,351 @@ command_not_found_handler() {
     fi
     return 127
 }
+
+# --- NATIVE INLINE GHOST COMPLETION (ZSH ZLE & BASH READLINE) ---
+
+_powerai_get_inline_completion() {
+    local partial="$1"
+    _powerai_load_config
+
+    local local_entries=$(ls -1p 2>/dev/null | head -n 12 | tr '\n' ', ')
+    local prompt_inline="You are an expert CLI inline completion assistant for macOS and Linux (Zsh/Bash).
+Current Directory: $PWD
+Existing Files & Folders in Current Directory: $local_entries
+
+Your task is to predict and complete the full, ideal shell command given a partial command line.
+If the command involves files/folders (e.g. cd, cat, code, vim), use real local files/folders if appropriate.
+
+Examples:
+- Input: 'lsof -iTCP' -> Output: 'lsof -iTCP -sTCP:LISTEN -P'
+- Input: 'git log' -> Output: 'git log --oneline --graph --decorate'
+- Input: 'find . -name' -> Output: 'find . -name \"*.log\"'
+- Input: 'docker ps' -> Output: 'docker ps -a'
+- Input: 'tar -x' -> Output: 'tar -xzvf archive.tar.gz'
+- Input: 'ipconfig get' -> Output: 'ipconfig getifaddr en0'
+
+Respond with ONLY the completed single-line shell command. No markdown backticks, no explanations, no quotes."
+
+    local json_payload=$(jq -n \
+        --arg model "$POWERAI_LOCAL_MODEL" \
+        --arg sys "$prompt_inline" \
+        --arg user "$partial" \
+        '{
+            model: $model,
+            stream: false,
+            options: { temperature: 0.0, num_predict: 35 },
+            messages: [
+                { role: "system", content: $sys },
+                { role: "user", content: $user }
+            ]
+        }')
+
+    local res=$(curl -s -X POST "$POWERAI_OLLAMA_ENDPOINT/api/chat" \
+        -H "Content-Type: application/json" \
+        -d "$json_payload" \
+        --max-time 3 2>/dev/null)
+
+    local completed=$(echo "$res" | jq -r '.message.content // empty' 2>/dev/null | head -n 1 | sed 's/^[[:space:]]*//;s/[[:space:]]*$//' | sed 's/^`//;s/`$//' | sed 's/^"//;s/"$//')
+
+    if [ -n "$completed" ] && [ "$completed" != "null" ]; then
+        echo "$completed"
+    else
+        echo "$partial"
+    fi
+}
+
+# Zsh ZLE Inline Ghost Engine (Automatic Gray Text & Arrow Acceptance)
+if [ -n "$ZSH_VERSION" ]; then
+    typeset -g _POWERAI_GHOST_SUGGESTION=""
+
+    _powerai_update_ghost() {
+        local current_buf="$BUFFER"
+        if [ -z "$current_buf" ] || [ ${#current_buf} -lt 2 ]; then
+            _POWERAI_GHOST_SUGGESTION=""
+            POSTDISPLAY=""
+            return 0
+        fi
+
+        # Dynamic Folder Suggestion for 'cd'
+        if [[ "$current_buf" =~ ^cd[[:space:]]+(.*)$ ]]; then
+            local prefix="${match[1]}"
+            if [[ "$prefix" == *"/"* ]]; then
+                _POWERAI_GHOST_SUGGESTION=""
+                POSTDISPLAY=""
+                return 0
+            fi
+            local dir_match=""
+            for d in */; do
+                [ ! -d "$d" ] && continue
+                d="${d%/}"
+                if [[ -z "$prefix" ]] || [[ "$d" == "$prefix"* ]]; then
+                    dir_match="$d"
+                    break
+                fi
+            done
+            if [ -n "$dir_match" ]; then
+                _POWERAI_GHOST_SUGGESTION="cd $dir_match"
+                local ghost_suffix="${_POWERAI_GHOST_SUGGESTION#$current_buf}"
+                POSTDISPLAY="$ghost_suffix"
+                region_highlight+=("${#BUFFER} $(( ${#BUFFER} + ${#POSTDISPLAY} )) fg=8")
+                return 0
+            fi
+        fi
+
+        # Dynamic File Suggestion for 'cat', 'code', 'nano', 'vim'
+        if [[ "$current_buf" =~ ^(cat|code|nano|vim)[[:space:]]+(.*)$ ]]; then
+            local cmd_name="${match[1]}"
+            local file_prefix="${match[2]}"
+            local file_match=""
+            for f in *; do
+                [ ! -f "$f" ] && continue
+                if [[ -z "$file_prefix" ]] || [[ "$f" == "$file_prefix"* ]]; then
+                    file_match="$f"
+                    break
+                fi
+            done
+            if [ -n "$file_match" ]; then
+                _POWERAI_GHOST_SUGGESTION="$cmd_name $file_match"
+                local ghost_suffix="${_POWERAI_GHOST_SUGGESTION#$current_buf}"
+                POSTDISPLAY="$ghost_suffix"
+                region_highlight+=("${#BUFFER} $(( ${#BUFFER} + ${#POSTDISPLAY} )) fg=8")
+                return 0
+            fi
+        fi
+
+        # Comprehensive offline CLI dictionary (<0.01ms zero latency, zero LLM needed)
+        case "$current_buf" in
+            # Filesystem & Directories
+            mk|mkd|mkdir) _POWERAI_GHOST_SUGGESTION="mkdir -p " ;;
+            "mkdir "*) _POWERAI_GHOST_SUGGESTION="mkdir -p " ;;
+            tou|touch) _POWERAI_GHOST_SUGGESTION="touch " ;;
+            rm|"rm ") _POWERAI_GHOST_SUGGESTION="rm -rf " ;;
+            cp|"cp ") _POWERAI_GHOST_SUGGESTION="cp -r " ;;
+            mv|"mv ") _POWERAI_GHOST_SUGGESTION="mv " ;;
+            chm|chmod) _POWERAI_GHOST_SUGGESTION="chmod +x " ;;
+            cho|chown) _POWERAI_GHOST_SUGGESTION="chown -R " ;;
+            ln|"ln ") _POWERAI_GHOST_SUGGESTION="ln -s " ;;
+            tre|tree) _POWERAI_GHOST_SUGGESTION="tree -L 2" ;;
+            gre|grep) _POWERAI_GHOST_SUGGESTION="grep -rn \"\" ." ;;
+            tai|tail) _POWERAI_GHOST_SUGGESTION="tail -f " ;;
+            hea|head) _POWERAI_GHOST_SUGGESTION="head -n 20 " ;;
+            les|less) _POWERAI_GHOST_SUGGESTION="less " ;;
+
+            # System & Hardware
+            ls) _POWERAI_GHOST_SUGGESTION="ls -la" ;;
+            cle|clea|clear) _POWERAI_GHOST_SUGGESTION="clear" ;;
+            fin|find|"find .") _POWERAI_GHOST_SUGGESTION="find . -name \"\"" ;;
+            df|"df ") _POWERAI_GHOST_SUGGESTION="df -h" ;;
+            du|"du ") _POWERAI_GHOST_SUGGESTION="du -sh *" ;;
+            top) _POWERAI_GHOST_SUGGESTION="top" ;;
+            hto|htop) _POWERAI_GHOST_SUGGESTION="htop" ;;
+            upt|uptime) _POWERAI_GHOST_SUGGESTION="uptime" ;;
+            who|whoami) _POWERAI_GHOST_SUGGESTION="whoami" ;;
+            una|uname) _POWERAI_GHOST_SUGGESTION="uname -a" ;;
+            whi|which) _POWERAI_GHOST_SUGGESTION="which " ;;
+            his|history) _POWERAI_GHOST_SUGGESTION="history" ;;
+            env) _POWERAI_GHOST_SUGGESTION="env" ;;
+
+            # Processes
+            kil|kill) _POWERAI_GHOST_SUGGESTION="kill -9 " ;;
+            kila|killall) _POWERAI_GHOST_SUGGESTION="killall " ;;
+            pki|pkill) _POWERAI_GHOST_SUGGESTION="pkill -f " ;;
+            ps) _POWERAI_GHOST_SUGGESTION="ps aux" ;;
+            "ps a"|"ps au") _POWERAI_GHOST_SUGGESTION="ps aux | grep " ;;
+
+            # Compression
+            tar|"tar -") _POWERAI_GHOST_SUGGESTION="tar -xzvf " ;;
+            "tar -c"*) _POWERAI_GHOST_SUGGESTION="tar -czvf archive.tar.gz " ;;
+            unz|unzip) _POWERAI_GHOST_SUGGESTION="unzip " ;;
+            zip) _POWERAI_GHOST_SUGGESTION="zip -r archive.zip " ;;
+
+            # Network
+            if|ifc|ifco|ifcon|ifconf|ifconfi) _POWERAI_GHOST_SUGGESTION="ifconfig" ;;
+            "ifconfig") _POWERAI_GHOST_SUGGESTION="" ;;
+            "ifconfig "*) _POWERAI_GHOST_SUGGESTION="ifconfig en0" ;;
+            ip|ipc|ipco|ipcon|ipconf|ipconfig) _POWERAI_GHOST_SUGGESTION="ipconfig getifaddr en0" ;;
+            lso|lsof) _POWERAI_GHOST_SUGGESTION="lsof -iTCP -sTCP:LISTEN -P" ;;
+            net|netstat) _POWERAI_GHOST_SUGGESTION="netstat -tuln" ;;
+            pin|ping) _POWERAI_GHOST_SUGGESTION="ping 8.8.8.8" ;;
+            cur|curl) _POWERAI_GHOST_SUGGESTION="curl -fsSL " ;;
+            wge|wget) _POWERAI_GHOST_SUGGESTION="wget " ;;
+            ssh) _POWERAI_GHOST_SUGGESTION="ssh " ;;
+            "ssh -") _POWERAI_GHOST_SUGGESTION="ssh -i ~/.ssh/id_rsa " ;;
+            scp) _POWERAI_GHOST_SUGGESTION="scp -r " ;;
+            rsy|rsync) _POWERAI_GHOST_SUGGESTION="rsync -avzP " ;;
+
+            # Git
+            gi|git) _POWERAI_GHOST_SUGGESTION="git status" ;;
+            "git s"|"git st"|"git sta") _POWERAI_GHOST_SUGGESTION="git status" ;;
+            "git l"|"git lo"|"git log") _POWERAI_GHOST_SUGGESTION="git log --oneline" ;;
+            "git d"|"git di"|"git dif") _POWERAI_GHOST_SUGGESTION="git diff" ;;
+            "git b"|"git br"|"git bra") _POWERAI_GHOST_SUGGESTION="git branch" ;;
+            "git c"|"git cm"|"git com") _POWERAI_GHOST_SUGGESTION="git commit -m \"\"" ;;
+            "git p"|"git pu"|"git pus") _POWERAI_GHOST_SUGGESTION="git push" ;;
+            "git pl"|"git pul") _POWERAI_GHOST_SUGGESTION="git pull" ;;
+            "git ch"|"git che") _POWERAI_GHOST_SUGGESTION="git checkout " ;;
+            "git a"|"git ad") _POWERAI_GHOST_SUGGESTION="git add -A" ;;
+            "git f"|"git fe") _POWERAI_GHOST_SUGGESTION="git fetch --all" ;;
+            "git m"|"git me") _POWERAI_GHOST_SUGGESTION="git merge " ;;
+            "git sta"|"git stash") _POWERAI_GHOST_SUGGESTION="git stash" ;;
+            "git cl"|"git clo") _POWERAI_GHOST_SUGGESTION="git clone " ;;
+
+            # Docker
+            doc|dock|docke|docker) _POWERAI_GHOST_SUGGESTION="docker ps" ;;
+            "docker p"|"docker ps") _POWERAI_GHOST_SUGGESTION="docker ps -a" ;;
+            "docker c"|"docker comp") _POWERAI_GHOST_SUGGESTION="docker compose up -d" ;;
+            "docker l"|"docker log") _POWERAI_GHOST_SUGGESTION="docker logs -f " ;;
+            "docker b"|"docker bui") _POWERAI_GHOST_SUGGESTION="docker build -t " ;;
+            "docker r"|"docker ru") _POWERAI_GHOST_SUGGESTION="docker run -it --rm " ;;
+            "docker e"|"docker ex") _POWERAI_GHOST_SUGGESTION="docker exec -it " ;;
+
+            # Package Managers & Languages
+            np|npm) _POWERAI_GHOST_SUGGESTION="npm run dev" ;;
+            "npm r"|"npm ru") _POWERAI_GHOST_SUGGESTION="npm run dev" ;;
+            "npm i"|"npm in") _POWERAI_GHOST_SUGGESTION="npm install" ;;
+            "npm t"|"npm te") _POWERAI_GHOST_SUGGESTION="npm test" ;;
+            "npm s"|"npm st") _POWERAI_GHOST_SUGGESTION="npm start" ;;
+            "pnpm d") _POWERAI_GHOST_SUGGESTION="pnpm dev" ;;
+            "pnpm i") _POWERAI_GHOST_SUGGESTION="pnpm install" ;;
+            "pnpm b") _POWERAI_GHOST_SUGGESTION="pnpm build" ;;
+            "yarn d") _POWERAI_GHOST_SUGGESTION="yarn dev" ;;
+            "yarn b") _POWERAI_GHOST_SUGGESTION="yarn build" ;;
+            "cargo b"|"cargo bu") _POWERAI_GHOST_SUGGESTION="cargo build" ;;
+            "cargo t"|"cargo te") _POWERAI_GHOST_SUGGESTION="cargo test" ;;
+            "cargo r"|"cargo ru") _POWERAI_GHOST_SUGGESTION="cargo run" ;;
+            "cargo c"|"cargo ch") _POWERAI_GHOST_SUGGESTION="cargo check" ;;
+            "go r"|"go ru") _POWERAI_GHOST_SUGGESTION="go run main.go" ;;
+            "go t"|"go te") _POWERAI_GHOST_SUGGESTION="go test ./..." ;;
+            "go b"|"go bu") _POWERAI_GHOST_SUGGESTION="go build" ;;
+            py|pyt|python|python3) _POWERAI_GHOST_SUGGESTION="python3 " ;;
+            pyp|pytest) _POWERAI_GHOST_SUGGESTION="pytest" ;;
+            *)
+                # If suggestion still matches what user is typing, keep it
+                if [[ "$_POWERAI_GHOST_SUGGESTION" == "$current_buf"* ]]; then
+                    :
+                else
+                    _POWERAI_GHOST_SUGGESTION=""
+                fi
+                ;;
+        esac
+
+        # Clean previous ghost highlight from array to avoid duplicate rendering
+        region_highlight=("${(@)region_highlight:#*fg=8}")
+
+        if [ -n "$_POWERAI_GHOST_SUGGESTION" ] && [[ "$_POWERAI_GHOST_SUGGESTION" == "$current_buf"* ]] && [ ${#_POWERAI_GHOST_SUGGESTION} -gt ${#current_buf} ] && [ "$CURSOR" -eq "${#BUFFER}" ]; then
+            local ghost_suffix="${_POWERAI_GHOST_SUGGESTION#$current_buf}"
+            POSTDISPLAY="$ghost_suffix"
+            region_highlight+=("${#BUFFER} $(( ${#BUFFER} + ${#POSTDISPLAY} )) fg=8")
+        else
+            POSTDISPLAY=""
+            _POWERAI_GHOST_SUGGESTION=""
+        fi
+    }
+
+    _powerai_self_insert_hook() {
+        zle .self-insert
+        _powerai_update_ghost
+    }
+
+    _powerai_backward_delete_hook() {
+        zle .backward-delete-char
+        _powerai_update_ghost
+    }
+
+    _powerai_reset_ghost_state() {
+        _POWERAI_GHOST_SUGGESTION=""
+        POSTDISPLAY=""
+        region_highlight=("${(@)region_highlight:#*fg=8}")
+    }
+
+    _powerai_accept_ghost() {
+        if [ -n "$_POWERAI_GHOST_SUGGESTION" ] && [[ "$_POWERAI_GHOST_SUGGESTION" == "$BUFFER"* ]]; then
+            BUFFER="$_POWERAI_GHOST_SUGGESTION"
+            CURSOR=${#BUFFER}
+            _POWERAI_GHOST_SUGGESTION=""
+            POSTDISPLAY=""
+            region_highlight=("${(@)region_highlight:#*fg=8}")
+            zle redisplay 2>/dev/null || true
+        else
+            zle .forward-char 2>/dev/null || zle forward-char 2>/dev/null || true
+        fi
+    }
+
+    _powerai_smart_tab() {
+        if [ -n "$_POWERAI_GHOST_SUGGESTION" ] && [[ "$_POWERAI_GHOST_SUGGESTION" == "$BUFFER"* ]] && [ ${#_POWERAI_GHOST_SUGGESTION} -gt ${#BUFFER} ]; then
+            BUFFER="$_POWERAI_GHOST_SUGGESTION"
+            CURSOR=${#BUFFER}
+            _POWERAI_GHOST_SUGGESTION=""
+            POSTDISPLAY=""
+            region_highlight=("${(@)region_highlight:#*fg=8}")
+            zle redisplay 2>/dev/null || true
+        else
+            _POWERAI_GHOST_SUGGESTION=""
+            POSTDISPLAY=""
+            zle expand-or-complete 2>/dev/null || true
+        fi
+    }
+
+    _powerai_force_llm_complete() {
+        local current_buf="$BUFFER"
+        [ -z "$current_buf" ] && return 0
+        local completed=$(_powerai_get_inline_completion "$current_buf")
+        if [ -n "$completed" ] && [ "$completed" != "$current_buf" ]; then
+            BUFFER="$completed"
+            CURSOR=${#BUFFER}
+            _POWERAI_GHOST_SUGGESTION=""
+            POSTDISPLAY=""
+            zle redisplay 2>/dev/null || true
+        fi
+    }
+
+    _powerai_pre_redraw_hook() {
+        region_highlight=("${(@)region_highlight:#*fg=8}")
+        if [ -n "$_POWERAI_GHOST_SUGGESTION" ]; then
+            if [[ "$_POWERAI_GHOST_SUGGESTION" == "$BUFFER"* ]] && [ ${#_POWERAI_GHOST_SUGGESTION} -gt ${#BUFFER} ] && [ "$CURSOR" -eq "${#BUFFER}" ]; then
+                local ghost_suffix="${_POWERAI_GHOST_SUGGESTION#$BUFFER}"
+                POSTDISPLAY="$ghost_suffix"
+                region_highlight+=("${#BUFFER} $(( ${#BUFFER} + ${#POSTDISPLAY} )) fg=8")
+            else
+                _POWERAI_GHOST_SUGGESTION=""
+                POSTDISPLAY=""
+            fi
+        else
+            POSTDISPLAY=""
+        fi
+    }
+
+    zle -N self-insert _powerai_self_insert_hook
+    zle -N backward-delete-char _powerai_backward_delete_hook
+    zle -N zle-line-init _powerai_reset_ghost_state
+    zle -N zle-line-finish _powerai_reset_ghost_state
+    zle -N zle-line-pre-redraw _powerai_pre_redraw_hook
+    zle -N _powerai_accept_ghost
+    zle -N _powerai_smart_tab
+    zle -N _powerai_force_llm_complete
+
+    # Bind Tab (^I), Right Arrow (→), Ctrl+E to accept gray suggestion
+    bindkey '^I' _powerai_smart_tab 2>/dev/null || true
+    bindkey '^[[C' _powerai_accept_ghost 2>/dev/null || true
+    bindkey '^[OC' _powerai_accept_ghost 2>/dev/null || true
+    bindkey '^E' _powerai_accept_ghost 2>/dev/null || true
+    bindkey '^F' _powerai_accept_ghost 2>/dev/null || true
+    bindkey '^G' _powerai_force_llm_complete 2>/dev/null || true
+fi
+
+# Bash Readline: Ctrl + G fallback
+if [ -n "$BASH_VERSION" ]; then
+    _powerai_bash_inline_suggest() {
+        local current_buf="$READLINE_LINE"
+        [ -z "$current_buf" ] && return 0
+
+        local completed=$(_powerai_get_inline_completion "$current_buf")
+        if [ -n "$completed" ] && [ "$completed" != "$current_buf" ]; then
+            READLINE_LINE="$completed"
+            READLINE_POINT=${#READLINE_LINE}
+        fi
+    }
+
+    bind -x '"\C-g": _powerai_bash_inline_suggest' 2>/dev/null || true
+fi
+
