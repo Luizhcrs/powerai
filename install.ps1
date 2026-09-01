@@ -181,6 +181,12 @@ $configObj = [PSCustomObject]@{
 }
 $configObj | ConvertTo-Json -Depth 5 | Set-Content $configPath -Encoding UTF8 -Force
 
+# config.json stores plaintext API keys; strip inherited ACLs and grant
+# access only to the current user, so other local accounts can't read it.
+try {
+    icacls $configPath /inheritance:r /grant:r "${env:USERDOMAIN}\${env:USERNAME}:(R,W)" | Out-Null
+} catch {}
+
 Write-Host ""
 Write-Host "  ─────────────────────────────────────────────────────────────" -ForegroundColor DarkGray
 Write-Host "  ✦  PowerAI instalado com sucesso!" -ForegroundColor White

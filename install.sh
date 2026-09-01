@@ -732,6 +732,9 @@ jq -n \
     AutoHealingRetries: 2,
     TimeoutSeconds: 25
   }' > "$CONFIG_FILE"
+# config.json stores plaintext API keys; restrict it to the owner only so
+# other local users on shared/multi-user systems can't read it.
+chmod 600 "$CONFIG_FILE" 2>/dev/null || true
 _spin_step "Gravando configuração personalizada em config.json..." "sleep 0.2"
 
 # Setup profile hooks
