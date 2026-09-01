@@ -242,7 +242,10 @@ _powerai_confirm() {
     local prompt_msg="$1"
     local reply=""
     if [ ! -t 0 ]; then
-        read -r reply 2>/dev/null || reply="s"
+        # Fail closed: if stdin is not a TTY and reading a reply fails
+        # (e.g. redirected from /dev/null, EOF), treat it as "no" instead
+        # of auto-approving command execution.
+        read -r reply 2>/dev/null || reply="n"
     elif [ -n "$ZSH_VERSION" ]; then
         printf "%b" "$prompt_msg"
         read -k 1 reply
