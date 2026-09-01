@@ -701,24 +701,40 @@ fi
 chmod +x "$INSTALL_DIR/powerai.sh" "$INSTALL_DIR/powerai.fish" "$INSTALL_DIR/uninstall.sh" 2>/dev/null || true
 
 # Write config.json
+# Built with jq --arg (like the rest of the codebase reads it) instead of
+# heredoc string interpolation, so quotes/backslashes in API keys or model
+# names can't produce invalid JSON.
 CONFIG_FILE="$INSTALL_DIR/config.json"
-cat <<EOF > "$CONFIG_FILE"
-{
-  "Mode": "$CHOSEN_MODE",
-  "LocalType": "$CHOSEN_LOCAL_TYPE",
-  "LocalEndpoint": "$CHOSEN_LOCAL_ENDPOINT",
-  "LocalApiKey": "$CHOSEN_LOCAL_API_KEY",
-  "LocalModel": "$CHOSEN_LOCAL_MODEL",
-  "OllamaEndpoint": "$CHOSEN_OLLAMA_ENDPOINT",
-  "CloudEndpoint": "$CHOSEN_CLOUD_ENDPOINT",
-  "CloudApiKey": "$CHOSEN_CLOUD_API_KEY",
-  "CloudModel": "$CHOSEN_CLOUD_MODEL",
-  "Language": "$CHOSEN_LANG",
-  "AutoSuggestOnErrors": $CHOSEN_AUTO_SUGGEST,
-  "AutoHealingRetries": 2,
-  "TimeoutSeconds": 25
-}
-EOF
+jq -n \
+  --arg mode "$CHOSEN_MODE" \
+  --arg localType "$CHOSEN_LOCAL_TYPE" \
+  --arg localEndpoint "$CHOSEN_LOCAL_ENDPOINT" \
+  --arg localApiKey "$CHOSEN_LOCAL_API_KEY" \
+  --arg localModel "$CHOSEN_LOCAL_MODEL" \
+  --arg ollamaEndpoint "$CHOSEN_OLLAMA_ENDPOINT" \
+  --arg cloudEndpoint "$CHOSEN_CLOUD_ENDPOINT" \
+  --arg cloudApiKey "$CHOSEN_CLOUD_API_KEY" \
+  --arg cloudModel "$CHOSEN_CLOUD_MODEL" \
+  --arg language "$CHOSEN_LANG" \
+  --argjson autoSuggest "$CHOSEN_AUTO_SUGGEST" \
+  '{
+    Mode: $mode,
+    LocalType: $localType,
+    LocalEndpoint: $localEndpoint,
+    LocalApiKey: $localApiKey,
+    LocalModel: $localModel,
+    OllamaEndpoint: $ollamaEndpoint,
+    CloudEndpoint: $cloudEndpoint,
+    CloudApiKey: $cloudApiKey,
+    CloudModel: $cloudModel,
+    Language: $language,
+    AutoSuggestOnErrors: $autoSuggest,
+    AutoHealingRetries: 2,
+    TimeoutSeconds: 25
+  }' > "$CONFIG_FILE"
+# config.json stores plaintext API keys; restrict it to the owner only so
+# other local users on shared/multi-user systems can't read it.
+chmod 600 "$CONFIG_FILE" 2>/dev/null || true
 _spin_step "Gravando configuração personalizada em config.json..." "sleep 0.2"
 
 # Setup profile hooks

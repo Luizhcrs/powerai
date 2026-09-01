@@ -16,12 +16,14 @@ namespace PowerAI.Core.Application
     {
         private readonly IConfigRepository _configRepo;
         private readonly HttpClient _httpClient;
+        private readonly bool _configWasInjected;
         private PowerAIConfig _config;
 
         public AIRouter(PowerAIConfig? config = null, IConfigRepository? configRepo = null, HttpClient? httpClient = null)
         {
             _configRepo = configRepo ?? new JsonConfigRepository();
             _httpClient = httpClient ?? new HttpClient();
+            _configWasInjected = config != null;
             _config = config ?? _configRepo.LoadOrCreate();
         }
 
@@ -67,7 +69,13 @@ namespace PowerAI.Core.Application
 
         private async Task<SuggestionResult> ExecuteRoutedPromptAsync(string systemPrompt, string userPrompt, CancellationToken ct)
         {
-            _config = _configRepo.LoadOrCreate();
+            // Only reload from disk when the caller relied on the default
+            // (no config passed to the constructor). An explicitly injected
+            // config must be honored, not silently overwritten.
+            if (!_configWasInjected)
+            {
+                _config = _configRepo.LoadOrCreate();
+            }
 
             var ollamaProvider = new OllamaProvider(_httpClient, _config.OllamaEndpoint, _config.LocalModel, _config.TimeoutSeconds);
             var localOpenAIProvider = new OpenAICompatibleProvider(_httpClient, _config.LocalEndpoint, _config.LocalApiKey, _config.LocalModel, $"Local API ({_config.LocalModel})", _config.TimeoutSeconds);

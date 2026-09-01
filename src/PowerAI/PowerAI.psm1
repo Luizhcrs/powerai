@@ -335,6 +335,11 @@ function Prompt-UserConfirmation {
     try {
         if ([System.Console]::IsInputRedirected) {
             $response = [System.Console]::ReadLine()
+            if ($null -eq $response) {
+                # ReadLine() returns $null on EOF (no real input available).
+                # Fail closed instead of treating it like an Enter keypress.
+                return $false
+            }
             return ($response -match "^(y|s|sim|yes)$" -or [string]::IsNullOrWhiteSpace($response))
         } else {
             $key = [System.Console]::ReadKey($true)
