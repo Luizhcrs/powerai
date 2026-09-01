@@ -11,4 +11,6 @@ if "%~1"=="" (
 set "QUERY=%*"
 
 REM Carrega o modulo PowerAI silenciosamente sem nenhum warning
-powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -Command "[Console]::OutputEncoding = [System.Text.Encoding]::UTF8; Import-Module PowerAI -Force -DisableNameChecking 3>$null; ai '%QUERY%'"
+REM A query passa por variavel de ambiente (nao interpolada na string do -Command)
+REM para nao permitir injecao de comandos PowerShell via aspas simples.
+powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -Command "[Console]::OutputEncoding = [System.Text.Encoding]::UTF8; Import-Module PowerAI -Force -DisableNameChecking 3>$null; ai $env:QUERY"
