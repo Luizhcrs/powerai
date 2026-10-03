@@ -2,7 +2,7 @@
 # powerai.sh - Native Linux & macOS Terminal AI Harness (Bash & Zsh)
 # Usage: source ~/.powerai/powerai.sh or ai <query>
 
-POWERAI_VERSION="v1.2.0"
+POWERAI_VERSION="v1.3.0"
 POWERAI_CONFIG_DIR="$HOME/.powerai"
 POWERAI_CONFIG_FILE="$POWERAI_CONFIG_DIR/config.json"
 POWERAI_SPINNER_PID=""
@@ -141,6 +141,25 @@ _powerai_load_config() {
         local lang=$(jq -r '.Language // empty' "$POWERAI_CONFIG_FILE" 2>/dev/null)
         [ -n "$lang" ] && POWERAI_LANGUAGE="$lang"
     fi
+
+    POWERAI_APPLE_BIN=""
+    if [ "$(uname -s)" = "Darwin" ]; then
+        local script_src="${BASH_SOURCE[0]:-$0}"
+        local this_dir="$(cd "$(dirname "$script_src")" 2>/dev/null && pwd)"
+        if [ -x "$POWERAI_CONFIG_DIR/bin/powerai-apple" ]; then
+            POWERAI_APPLE_BIN="$POWERAI_CONFIG_DIR/bin/powerai-apple"
+        elif [ -n "$this_dir" ] && [ -x "$this_dir/src/PowerAI.Apple/bin/powerai-apple" ]; then
+            POWERAI_APPLE_BIN="$this_dir/src/PowerAI.Apple/bin/powerai-apple"
+        elif [ -n "$this_dir" ] && [ -x "$this_dir/bin/powerai-apple" ]; then
+            POWERAI_APPLE_BIN="$this_dir/bin/powerai-apple"
+        elif command -v powerai-apple >/dev/null 2>&1; then
+            POWERAI_APPLE_BIN="$(command -v powerai-apple)"
+        elif [ -x "/opt/homebrew/bin/powerai-apple" ]; then
+            POWERAI_APPLE_BIN="/opt/homebrew/bin/powerai-apple"
+        elif [ -x "/usr/local/bin/powerai-apple" ]; then
+            POWERAI_APPLE_BIN="/usr/local/bin/powerai-apple"
+        fi
+    fi
 }
 
 _powerai_spinner() {
@@ -236,6 +255,14 @@ _powerai_check_local_openai() {
 _powerai_check_ollama() {
     local endpoint="${POWERAI_OLLAMA_ENDPOINT%/}"
     curl -s --max-time 2 "$endpoint/api/tags" >/dev/null 2>&1
+}
+
+_powerai_check_apple() {
+    [ "$(uname -s)" != "Darwin" ] && return 1
+    [ -z "$POWERAI_APPLE_BIN" ] && _powerai_load_config
+    [ -z "$POWERAI_APPLE_BIN" ] && return 1
+    [ ! -x "$POWERAI_APPLE_BIN" ] && return 1
+    "$POWERAI_APPLE_BIN" check >/dev/null 2>&1
 }
 
 _powerai_confirm() {
@@ -485,17 +512,32 @@ _powerai_query() {
         return 0
     fi
 
+    local use_apple=false
     local use_local_openai=false
     local use_ollama=false
     local use_cloud=false
 
-    if [ "$POWERAI_MODE" = "Local" ]; then
-        if [ "$POWERAI_LOCAL_TYPE" = "OpenAICompatible" ]; then
+    if [ "$POWERAI_MODE" = "AppleIntelligence" ] || [ "$POWERAI_LOCAL_TYPE" = "AppleIntelligence" ]; then
+        if _powerai_check_apple; then
+            use_apple=true
+        else
+            echo ""
+            echo "  [PowerAI] Apple Intelligence não está disponível neste dispositivo."
+            echo "  Certifique-se de estar no macOS (Apple Silicon) com o módulo nativo compilado."
+            echo ""
+            return 1
+        fi
+    elif [ "$POWERAI_MODE" = "Local" ]; then
+        if [ "$POWERAI_LOCAL_TYPE" = "AppleIntelligence" ]; then
+            use_apple=true
+        elif [ "$POWERAI_LOCAL_TYPE" = "OpenAICompatible" ]; then
             use_local_openai=true
         elif [ "$POWERAI_LOCAL_TYPE" = "Ollama" ]; then
             use_ollama=true
         else
-            if _powerai_check_ollama; then
+            if _powerai_check_apple; then
+                use_apple=true
+            elif _powerai_check_ollama; then
                 use_ollama=true
             elif _powerai_check_local_openai; then
                 use_local_openai=true
@@ -506,8 +548,10 @@ _powerai_query() {
     elif [ "$POWERAI_MODE" = "Cloud" ]; then
         use_cloud=true
     else
-        # Auto Mode: check Ollama first, then Local OpenAI, then Cloud
-        if _powerai_check_ollama; then
+        # Auto Mode: check Apple Intelligence first on macOS, then Ollama, then Local OpenAI, then Cloud
+        if _powerai_check_apple; then
+            use_apple=true
+        elif _powerai_check_ollama; then
             use_ollama=true
         elif _powerai_check_local_openai; then
             use_local_openai=true
@@ -516,9 +560,12 @@ _powerai_query() {
         else
             echo ""
             echo "  [PowerAI] No AI provider available:"
-            echo "  1. Local Ollama: Start Ollama at $POWERAI_OLLAMA_ENDPOINT ('ollama run $POWERAI_LOCAL_MODEL')"
-            echo "  2. Local OpenAI-Compatible: Verify server running at $POWERAI_LOCAL_ENDPOINT"
-            echo "  3. Cloud (OpenAI): Set 'CloudApiKey' in ~/.powerai/config.json or export OPENAI_API_KEY='your-key'"
+            if [ "$(uname -s)" = "Darwin" ]; then
+                echo "  1. Apple Intelligence: Compile powerai-apple ('cd src/PowerAI.Apple && ./build.sh')"
+            fi
+            echo "  2. Local Ollama: Start Ollama at $POWERAI_OLLAMA_ENDPOINT ('ollama run $POWERAI_LOCAL_MODEL')"
+            echo "  3. Local OpenAI-Compatible: Verify server running at $POWERAI_LOCAL_ENDPOINT"
+            echo "  4. Cloud (OpenAI): Set 'CloudApiKey' in ~/.powerai/config.json or export OPENAI_API_KEY='your-key'"
             echo ""
             return 1
         fi
@@ -651,7 +698,9 @@ Responda APENAS com um objeto JSON válido:
 
     local response=""
 
-    if [ "$use_ollama" = true ]; then
+    if [ "$use_apple" = true ]; then
+        response=$("$POWERAI_APPLE_BIN" query --prompt "$query_to_send" --context "$harness_ctx" --lang "$POWERAI_LANGUAGE" 2>/dev/null)
+    elif [ "$use_ollama" = true ]; then
         local json_payload=$(jq -n \
             --arg model "$POWERAI_LOCAL_MODEL" \
             --arg sys "$sys_prompt" \
@@ -891,25 +940,32 @@ Diff sample:
 $diff_sample"
     fi
 
-    local json_payload=$(jq -n \
-        --arg model "$POWERAI_LOCAL_MODEL" \
-        --arg sys "$commit_prompt" \
-        --arg user "Gere o comando de commit ideal para essas alterações." \
-        '{
-            model: $model,
-            format: "json",
-            stream: false,
-            options: { temperature: 0.1 },
-            messages: [
-                { role: "system", content: $sys },
-                { role: "user", content: $user }
-            ]
-        }')
+    local response=""
+    if _powerai_check_apple; then
+        local st_arg=()
+        [ -n "$status_short" ] && st_arg=(--status "$status_short")
+        response=$("$POWERAI_APPLE_BIN" commit --diff "$diff_sample" --branch "$branch_name" "${st_arg[@]}" --lang "$POWERAI_LANGUAGE" 2>/dev/null)
+    else
+        local json_payload=$(jq -n \
+            --arg model "$POWERAI_LOCAL_MODEL" \
+            --arg sys "$commit_prompt" \
+            --arg user "Gere o comando de commit ideal para essas alterações." \
+            '{
+                model: $model,
+                format: "json",
+                stream: false,
+                options: { temperature: 0.1 },
+                messages: [
+                    { role: "system", content: $sys },
+                    { role: "user", content: $user }
+                ]
+            }')
 
-    local response=$(curl -s -X POST "$POWERAI_OLLAMA_ENDPOINT/api/chat" \
-        -H "Content-Type: application/json" \
-        -d "$json_payload" \
-        --max-time "$POWERAI_TIMEOUT")
+        response=$(curl -s -X POST "$POWERAI_OLLAMA_ENDPOINT/api/chat" \
+            -H "Content-Type: application/json" \
+            -d "$json_payload" \
+            --max-time "$POWERAI_TIMEOUT")
+    fi
 
     _powerai_stop_spinner
 
@@ -972,25 +1028,30 @@ Respond ONLY with JSON:
 {\"suggested_command\": \"\", \"explanation\": \"Detailed bullet-point breakdown of the command.\"}"
     fi
 
-    local json_payload=$(jq -n \
-        --arg model "$POWERAI_LOCAL_MODEL" \
-        --arg sys "$explain_prompt" \
-        --arg user "Explique o comando: $target_cmd" \
-        '{
-            model: $model,
-            format: "json",
-            stream: false,
-            options: { temperature: 0.1 },
-            messages: [
-                { role: "system", content: $sys },
-                { role: "user", content: $user }
-            ]
-        }')
+    local response=""
+    if _powerai_check_apple; then
+        response=$("$POWERAI_APPLE_BIN" explain --cmd "$target_cmd" --lang "$POWERAI_LANGUAGE" 2>/dev/null)
+    else
+        local json_payload=$(jq -n \
+            --arg model "$POWERAI_LOCAL_MODEL" \
+            --arg sys "$explain_prompt" \
+            --arg user "Explique o comando: $target_cmd" \
+            '{
+                model: $model,
+                format: "json",
+                stream: false,
+                options: { temperature: 0.1 },
+                messages: [
+                    { role: "system", content: $sys },
+                    { role: "user", content: $user }
+                ]
+            }')
 
-    local response=$(curl -s -X POST "$POWERAI_OLLAMA_ENDPOINT/api/chat" \
-        -H "Content-Type: application/json" \
-        -d "$json_payload" \
-        --max-time "$POWERAI_TIMEOUT")
+        response=$(curl -s -X POST "$POWERAI_OLLAMA_ENDPOINT/api/chat" \
+            -H "Content-Type: application/json" \
+            -d "$json_payload" \
+            --max-time "$POWERAI_TIMEOUT")
+    fi
 
     _powerai_stop_spinner
 
@@ -1081,6 +1142,51 @@ _powerai_ai_entry() {
         echo "Cloud Model: $POWERAI_CLOUD_MODEL"
         echo "Cloud API Key: $([ -n "$POWERAI_CLOUD_API_KEY" ] && echo "***configured***" || echo "not configured")"
         echo "Auto-Suggest on Errors: $POWERAI_AUTO_SUGGEST"
+        if [ "$(uname -s)" = "Darwin" ]; then
+            local apple_st="Not available / Not compiled"
+            if _powerai_check_apple; then
+                apple_st="Available & Active (SystemLanguageModel via FoundationModels)"
+            elif [ -n "$POWERAI_APPLE_BIN" ]; then
+                apple_st="Compiled but system model unavailable"
+            fi
+            echo "Apple Intelligence: $apple_st"
+        fi
+        return 0
+    fi
+
+    if [ "$1" = "provider" ] || [ "$1" = "provedor" ]; then
+        local new_prov="$2"
+        if [ "$new_prov" = "apple" ] || [ "$new_prov" = "AppleIntelligence" ]; then
+            if ! _powerai_check_apple; then
+                echo -e "  \033[1;33m[Aviso]\033[0m Apple Intelligence não está disponível ou não foi compilado no seu Mac."
+                echo "  Para compilar: cd src/PowerAI.Apple && ./build.sh"
+            fi
+            if [ -f "$POWERAI_CONFIG_FILE" ]; then
+                local tmp_cfg=$(mktemp)
+                jq '.Mode = "Local" | .LocalType = "AppleIntelligence"' "$POWERAI_CONFIG_FILE" > "$tmp_cfg" && mv "$tmp_cfg" "$POWERAI_CONFIG_FILE"
+                echo "  ✓ Provedor alterado para Apple Intelligence (SystemLanguageModel)."
+            fi
+        elif [ "$new_prov" = "ollama" ]; then
+            if [ -f "$POWERAI_CONFIG_FILE" ]; then
+                local tmp_cfg=$(mktemp)
+                jq '.Mode = "Local" | .LocalType = "Ollama"' "$POWERAI_CONFIG_FILE" > "$tmp_cfg" && mv "$tmp_cfg" "$POWERAI_CONFIG_FILE"
+                echo "  ✓ Provedor alterado para Ollama."
+            fi
+        elif [ "$new_prov" = "auto" ]; then
+            if [ -f "$POWERAI_CONFIG_FILE" ]; then
+                local tmp_cfg=$(mktemp)
+                jq '.Mode = "Auto"' "$POWERAI_CONFIG_FILE" > "$tmp_cfg" && mv "$tmp_cfg" "$POWERAI_CONFIG_FILE"
+                echo "  ✓ Provedor alterado para Auto (Detecção Automática)."
+            fi
+        elif [ "$new_prov" = "cloud" ]; then
+            if [ -f "$POWERAI_CONFIG_FILE" ]; then
+                local tmp_cfg=$(mktemp)
+                jq '.Mode = "Cloud"' "$POWERAI_CONFIG_FILE" > "$tmp_cfg" && mv "$tmp_cfg" "$POWERAI_CONFIG_FILE"
+                echo "  ✓ Provedor alterado para Cloud (OpenAI)."
+            fi
+        else
+            echo "Uso: ai provider <auto | apple | ollama | cloud>"
+        fi
         return 0
     fi
 
@@ -1090,6 +1196,7 @@ _powerai_ai_entry() {
         echo "         ? <query>"
         echo "         ai commit (smart Conventional Commit from git diff)"
         echo "         ai explain <command> (explain flags & syntax of any command)"
+        echo "         ai provider <auto|apple|ollama|cloud> (switch AI provider)"
         echo "         ai update (update to latest release)"
         echo "         ai version (check current & remote version)"
         echo "         ai language <pt|en|es> (change language)"

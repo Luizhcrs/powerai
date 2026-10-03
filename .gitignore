@@ -20,3 +20,15 @@ Thumbs.db
 ehthumbs.db
 Desktop.ini
 $RECYCLE.BIN/
+
+# Local
+.super-memoria-link
+.DS_Store
+*/.DS_Store
+
+# Swift / Apple build outputs
+.build/
+.swiftpm/
+src/PowerAI.Apple/.build/
+src/PowerAI.Apple/bin/
+*.dmg

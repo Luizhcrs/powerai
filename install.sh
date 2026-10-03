@@ -373,7 +373,7 @@ RECONFIGURE_ONLY=false
 
 # Existing Installation Detection & Interactive Management
 if [ "$ALREADY_INSTALLED" = true ] && [ "$QUICK_MODE" = false ]; then
-    CURRENT_VERSION="v1.2.0"
+    CURRENT_VERSION="v1.3.0"
     CURRENT_MODE="Auto"
     CURRENT_MODEL="qwen2.5-coder:1.5b"
     if [ -f "$INSTALL_DIR/config.json" ]; then
@@ -699,6 +699,15 @@ else
 fi
 
 chmod +x "$INSTALL_DIR/powerai.sh" "$INSTALL_DIR/powerai.fish" "$INSTALL_DIR/uninstall.sh" 2>/dev/null || true
+
+if [ "$(uname -s)" = "Darwin" ]; then
+    mkdir -p "$INSTALL_DIR/bin"
+    if [ -f "$(dirname "$0")/src/PowerAI.Apple/bin/powerai-apple" ]; then
+        _spin_step "Instalando módulo Apple Intelligence (powerai-apple)..." "cp '$(dirname "$0")/src/PowerAI.Apple/bin/powerai-apple' '$INSTALL_DIR/bin/powerai-apple' && chmod +x '$INSTALL_DIR/bin/powerai-apple'"
+    elif [ -f "$(dirname "$0")/src/PowerAI.Apple/build.sh" ] && command -v swift >/dev/null 2>&1; then
+        _spin_step "Compilando módulo nativo Apple Intelligence..." "bash '$(dirname "$0")/src/PowerAI.Apple/build.sh' >/dev/null 2>&1 && [ -f '$(dirname "$0")/src/PowerAI.Apple/bin/powerai-apple' ] && cp '$(dirname "$0")/src/PowerAI.Apple/bin/powerai-apple' '$INSTALL_DIR/bin/powerai-apple' && chmod +x '$INSTALL_DIR/bin/powerai-apple' || true"
+    fi
+fi
 
 # Write config.json
 # Built with jq --arg (like the rest of the codebase reads it) instead of

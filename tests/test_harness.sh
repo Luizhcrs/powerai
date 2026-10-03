@@ -122,6 +122,42 @@ else
     FAILED=$((FAILED + 1))
 fi
 
+# 4. Testes do Módulo Apple Intelligence (macOS FoundationModels)
+echo ""
+echo "4. Testando Módulo Apple Intelligence (macOS FoundationModels):"
+if [ "$(uname -s)" = "Darwin" ]; then
+    _powerai_load_config
+    if [ -x "$POWERAI_APPLE_BIN" ]; then
+        echo "  [PASS] Binário powerai-apple localizado e executável"
+        PASSED=$((PASSED + 1))
+
+        check_out=$("$POWERAI_APPLE_BIN" check 2>/dev/null || true)
+        is_avail=$(echo "$check_out" | jq -r '.available // false' 2>/dev/null)
+        if [ "$is_avail" = "true" ]; then
+            echo "  [PASS] Apple Intelligence - SystemLanguageModel disponível"
+            PASSED=$((PASSED + 1))
+        else
+            echo "  [WARN] Apple Intelligence - SystemLanguageModel indisponível neste hardware"
+        fi
+
+        # Teste de query com o binário
+        query_out=$("$POWERAI_APPLE_BIN" query --prompt "como listar arquivos" --lang "pt-BR" 2>/dev/null || true)
+        parsed_apple=$(_powerai_parse_response "$query_out")
+        apple_cmd=$(echo "$parsed_apple" | cut -f1)
+        if [ -n "$apple_cmd" ]; then
+            echo "  [PASS] Apple Intelligence Query - Comando sugerido: '$apple_cmd'"
+            PASSED=$((PASSED + 1))
+        else
+            echo "  [FAIL] Apple Intelligence Query - Falha na extração de comando"
+            FAILED=$((FAILED + 1))
+        fi
+    else
+        echo "  [WARN] Binário powerai-apple não compilado (execute src/PowerAI.Apple/build.sh)"
+    fi
+else
+    echo "  [SKIP] Sistema não é macOS; testes de Apple Intelligence ignorados."
+fi
+
 echo ""
 echo "=========================================================="
 echo " Resumo dos Testes:"
