@@ -30,7 +30,8 @@ The installer is self-healing: missing dependencies (`curl`, `jq` — Zero Pytho
 
 ## Core Capabilities
 
-- **Local-First & Offline**: Runs entirely on your machine via Ollama or local APIs with GPU acceleration.
+- **Native Apple Intelligence (macOS)**: Runs on-device foundation models via Apple's native `FoundationModels` framework and Apple Neural Engine with zero dependencies, zero RAM overhead, and ultra-low latency.
+- **Local-First & Offline**: Runs entirely on your machine via Apple Intelligence, Ollama, or local APIs with GPU acceleration.
 - **Terminal Output Buffer**: Answers questions directly about command outputs printed on your screen.
 - **Non-Destructive Execution**: Asks for confirmation before executing any suggested command.
 - **Multi-Language Support**: Automatically detects and switches between English, Portuguese, and Spanish.
@@ -46,6 +47,7 @@ The installer is self-healing: missing dependencies (`curl`, `jq` — Zero Pytho
 | `? <query>` | Fast shorthand alias |
 | `ai commit` | Generate Conventional Commit from git diff with confirmation |
 | `ai explain <cmd>` | Break down and explain flags of any CLI command |
+| `ai provider <auto\|apple\|ollama\|cloud>` | Switch active AI provider |
 | `ai update` | Self-update to latest release from GitHub |
 | `ai version` | Check installed and remote version |
 | `ai language <pt\|en\|es>` | Change assistant language |
