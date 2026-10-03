@@ -1,8 +1,8 @@
 class Powerai < Formula
   desc "Invisible, zero-dependency local-first terminal AI harness using Ollama"
   homepage "https://luizhcrs.github.io/powerai/"
-  url "https://github.com/Luizhcrs/powerai/archive/refs/tags/v1.2.0.tar.gz"
-  sha256 "a3e670e7c70ca12864314ef8f3a773a8d002caa58973d0f5ba813ef300a86a03"
+  url "https://github.com/Luizhcrs/powerai/archive/refs/tags/v1.3.0.tar.gz"
+  sha256 "e12b3a372535e85a161d9a07d011fd0230a1e3b94ea88c60ec79432326eb2d2a"
   license "PolyForm-Noncommercial-1.0.0"
 
   depends_on "jq"
